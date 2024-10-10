@@ -48,6 +48,6 @@ class RM3100 {
         // Internal variables
         uint8_t _i2cAddress;
     private:
-}
+};
 
 #endif
