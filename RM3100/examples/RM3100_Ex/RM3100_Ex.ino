@@ -26,6 +26,7 @@ void loop() {
     Serial.print((int) y);
     Serial.print("Z:");
     Serial.print((int) z);
+    Serial.println("");
 }
 
 /* Extra bits of information: 
