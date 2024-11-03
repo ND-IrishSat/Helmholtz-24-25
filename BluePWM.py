@@ -1,6 +1,25 @@
 import RPi.GPIO as GPIO
 import time
 
+import bleak
+import asyncio
+import struct
+
+async def main():
+    async with bleak.BleakClient("30:C6:F7:01:53:AA") as magnetometer:
+            x = await magnetometer.read_gatt_char("fd0f3499-4289-46b1-8ee5-c7781cb46b77")
+            y = await magnetometer.read_gatt_char("0bea22dc-8371-4193-8e1a-1c8e46550f3f")
+            z = await magnetometer.read_gatt_char("ab134932-3915-45bd-8366-8ee0ce7535f8")
+            
+            x = struct.unpack('f', x)[0]
+            y = struct.unpack('f', y)[0]
+            z = struct.unpack('f', z)[0]
+            
+            print("X: " + "{:.2f}".format(x) + " Y: " + "{:.2f}".format(y) + " Z: " + "{:.2f}".format(z) )
+        
+
+
+
 # hbridge gpio pins
 x1 = 14
 x2 = 15
@@ -91,7 +110,6 @@ def rampDutyCycle():
                 z1PWM.ChangeDutyCycle(i)
             time.sleep(incDelay)
      
-    
 ans = input("Do you want the duty cycle as a ramp? (Y/N): ")
 if((ans == 'Y') or (ans == 'y')):
     rampDutyCycle()
@@ -111,7 +129,8 @@ else:
     y2PWM.ChangeDutyCycle(y2_cyc)
     z1PWM.ChangeDutyCycle(z1_cyc)
     z2PWM.ChangeDutyCycle(z2_cyc)
-    
+
+asyncio.run(main())
 
 # 
 # 
