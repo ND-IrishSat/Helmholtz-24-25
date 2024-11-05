@@ -39,7 +39,7 @@ void loop() {
     Serial.print("Connected to: ");
     Serial.println(central.address());
 
-        magnetometerX.writeValue(x);
+        magnetometerX.writeValue(unsigned short value));
         magnetometerY.writeValue(2*x);
         magnetometerZ.writeValue(3*x);
         x++;

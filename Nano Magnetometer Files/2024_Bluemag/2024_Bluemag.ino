@@ -161,7 +161,12 @@ void loop() {
   z = (z * 256 * 256 * 256) | (int32_t)(z2) * 256 * 256 | (uint16_t)(z1) * 256 | z0;
 
   //calculate magnitude of results
-  double uT = sqrt(pow(((float)(x)/gain),2) + pow(((float)(y)/gain),2)+ pow(((float)(z)/gain),2));
+
+  magX = (float)(x)/gain;
+  magY = (float)(y)/gain;
+  magZ = (float)(z)/gain;
+
+  double uT = sqrt(pow(magX,2) + pow(magY,2)+ pow(magZ,2));
 
   //display results
   Serial.print("Data in counts:");
@@ -171,10 +176,6 @@ void loop() {
   Serial.print(y);
   Serial.print("   Z:");
   Serial.println(z);
-
-  magX = round(((float)(x)/gain) * 100) / 100;
-  magY = round(((float)(y)/gain) * 100) / 100;
-  magZ = round(((float)(z)/gain) * 100) / 100;
 
   Serial.print("Data in microTesla(uT):");
   Serial.print("   X:");
@@ -197,6 +198,7 @@ void loop() {
         magnetometerX.writeValue(magX);
         magnetometerY.writeValue(magY);
         magnetometerZ.writeValue(magZ);
+
       Serial.println(x);
   }
 }
@@ -205,7 +207,7 @@ void loop() {
 uint8_t readReg(uint8_t addr){
   uint8_t data = 0;
   digitalWrite(PIN_CS, LOW);
-  delay(100);
+  delay(50);
   SPI.transfer(addr | 0x80); //OR with 0x80 to make first bit(read/write bit) high for read
   data = SPI.transfer(0);
   digitalWrite(PIN_CS, HIGH);
@@ -215,7 +217,7 @@ uint8_t readReg(uint8_t addr){
 //addr is the 7 bit (No r/w bit) value of the internal register's address, data is 8 bit data being written
 void writeReg(uint8_t addr, uint8_t data){
   digitalWrite(PIN_CS, LOW); 
-  delay(100);
+  delay(50);
   SPI.transfer(addr & 0x7F); //AND with 0x7F to make first bit(read/write bit) low for write
   SPI.transfer(data);
   digitalWrite(PIN_CS, HIGH);
@@ -227,7 +229,7 @@ void changeCycleCount(uint16_t newCC){
   uint8_t CCLSB = newCC & 0xFF; //get the least significant byte
     
   digitalWrite(PIN_CS, LOW); 
-  delay(100);
+  delay(50);
   SPI.transfer(RM3100_CCX1_REG & 0x7F); //AND with 0x7F to make first bit(read/write bit) low for write
   SPI.transfer(CCMSB);  //write new cycle count to ccx1
   SPI.transfer(CCLSB);  //write new cycle count to ccx0
