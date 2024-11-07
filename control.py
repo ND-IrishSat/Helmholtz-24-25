@@ -51,6 +51,15 @@ async def main():
             
             # Send new duty cycles
             if __name__ == '__main__':
+        
+                try: 
+                    ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
+                except:
+                    print('USB port ACM1')
+                    ser = serial.Serial('/dev/ttyACM1',9600,timeout=1)
+                else:
+                    print('USB port ACM0')
+
                 ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
                 ser.reset_input_buffer()
             
