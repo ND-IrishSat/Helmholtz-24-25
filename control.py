@@ -7,6 +7,9 @@ import serial
 import time
 from simple_pid import PID
 
+doPID = False
+debug = True
+
 async def main():
     # Init
     # PID Init
@@ -15,9 +18,9 @@ async def main():
     pid.setpoint = 75
     
     # Duty Cycles Init
-    dutyX1 = 0.0
+    dutyX1 = 100.0
     dutyX2 = 0.0
-    dutyY1 = 0.0
+    dutyY1 = 100.0
     dutyY2 = 0.0
     dutyZ1 = 0.0
     dutyZ2 = 0.0
@@ -28,6 +31,19 @@ async def main():
     setZ = 60.0
 
     # Body
+    
+    if __name__ == '__main__':
+        
+            try: 
+                ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
+            except:
+                print('USB port ACM1')
+                ser = serial.Serial('/dev/ttyACM1',9600,timeout=1)
+            else:
+                print('USB port ACM0')
+
+            ser.reset_input_buffer()
+
     async with bleak.BleakClient("30:C6:F7:01:53:AA") as magnetometer:
         while True:
             # Gets magnetic fields
@@ -41,33 +57,26 @@ async def main():
             
             print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ) )
             
+            if (doPID):
             # Run PID
-            pid.setpoint = setX
-            dutyX = pid(magX)
-            pid.setpoint = setY
-            dutyY = pid(magY)
-            pid.setpoint = setZ
-            dutyZ = pid(magZ)
+                pid.setpoint = setX
+                dutyX = pid(magX)
+                pid.setpoint = setY
+                dutyY = pid(magY)
+                pid.setpoint = setZ
+                dutyZ = pid(magZ)
             
             # Send new duty cycles
-            if __name__ == '__main__':
-        
-                try: 
-                    ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
-                except:
-                    print('USB port ACM1')
-                    ser = serial.Serial('/dev/ttyACM1',9600,timeout=1)
-                else:
-                    print('USB port ACM0')
-
-                ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
-                ser.reset_input_buffer()
+          
             
             # x1 x2 y1 y2 z1 z2
-            data = "0.00 " + str(dutyX) + " " + str(dutyY) + " 0.00 " + "0.00 " + str(dutyZ)
+            data = str(dutyX1) + " " + str(dutyX2) + " " + str(dutyY1) + " " + str(dutyY2) + " " + str(dutyZ1) + " " + str(dutyZ2)
             ser.write(data.encode('utf-8'))
-            print(ser.readline().decode('utf-8').rstrip())
             
+            if (debug):
+                print(ser.readline().decode('utf-8').rstrip())
+                time.sleep(0.8)
+
             
         
 asyncio.run(main())
