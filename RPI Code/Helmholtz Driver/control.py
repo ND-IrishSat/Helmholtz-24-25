@@ -3,9 +3,14 @@
 import bleak
 import asyncio
 import struct
-import serial
 import time
 from simple_pid import PID
+
+from R4UART import * # UART code 
+
+debug = False
+
+initiateUART()
 
 async def main():
     # Init
@@ -15,19 +20,18 @@ async def main():
     pid.setpoint = 75
     
     # Duty Cycles Init
-    dutyX1 = 0.0
-    dutyX2 = 0.0
-    dutyY1 = 0.0
-    dutyY2 = 0.0
-    dutyZ1 = 0.0
-    dutyZ2 = 0.0
+    x1 = 0.0
+    x2 = 0.0
+    y1 = 0.0
+    y2 = 0.0
+    z1 = 0.0
+    z2 = 0.0
     
     # Mag Field Setpoints Init
     setX = 70.0
     setY = 80.0
     setZ = 60.0
 
-    # Body
     async with bleak.BleakClient("30:C6:F7:01:53:AA") as magnetometer:
 
             while True:
@@ -43,32 +47,17 @@ async def main():
                 print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ) )
                 
                 # Run PID
-                pid.setpoint = setX
-                dutyX = pid(magX)
-                pid.setpoint = setY
-                dutyY = pid(magY)
-                pid.setpoint = setZ
-                dutyZ = pid(magZ)
-                
-                # Send new duty cycles
-                if __name__ == '__main__':
-            
-                    try: 
-                        ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
-                    except:
-                        print('USB port ACM1')
-                        ser = serial.Serial('/dev/ttyACM1',9600,timeout=1)
-                    else:
-                        print('USB port ACM0')
+                # pid.setpoint = setX
+                # dutyX = pid(magX)
+                # pid.setpoint = setY
+                # dutyY = pid(magY)
+                # pid.setpoint = setZ
+                # dutyZ = pid(magZ)
 
-                    ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
-                    ser.reset_input_buffer()
-                
-                # x1 x2 y1 y2 z1 z2
-                data = "0.00 " + str(dutyX) + " " + str(dutyY) + " 0.00 " + "0.00 " + str(dutyZ)
-                ser.write(data.encode('utf-8'))
-                print(ser.readline().decode('utf-8').rstrip())
-            
+                sendPWMValues(x1, x2, y1, y2, z1, z2) # sends PWM to R4
+
+                if(debug):
+                    readPWMValues()
             
         
 asyncio.run(main())
