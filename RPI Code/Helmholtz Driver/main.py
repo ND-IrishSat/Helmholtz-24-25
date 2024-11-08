@@ -6,9 +6,9 @@ import struct
 import time
 import numpy
 
-from R4UART import * # UART code 
-from PID import * # PID code
-from calibrateValues import * # magnetometer calibration code 
+from R4UART import sendPWMValues, readPWMValues, initiateUART # UART code 
+from PID import PIDsetpoints, computePID # PID code
+from calibrateValues import calibrate # magnetometer calibration code 
 
 debug = False # enables extra print statements (slow)
 manual = False # when false, PID is enabled
