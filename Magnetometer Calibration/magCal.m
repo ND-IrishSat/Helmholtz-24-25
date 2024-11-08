@@ -1,14 +1,23 @@
 clc;
-rawTable = readmatrix("magnetometer_data.txt");
+rawTable = readmatrix("arduino_output.txt");
+disp(rawTable)
 
-D = rawTable(:, 2:4);
-x = rawTable(:, 2);
-y = rawTable(:, 3);
-z = rawTable(:, 4);
+D = rawTable(:, 1:3);
+x = rawTable(:, 1);
+y = rawTable(:, 2);
+z = rawTable(:, 3);
 
 [A,b,expmfs] = magcal(D); % Calibration coefficients
-expmfs % Display the expected magnetic field strength in uT
+
+%expmfs % Display the expected magnetic field strength in uT
 C = (D-b)*A; % Calibrated data
+
+disp("///////////////////////////////////////////////////////////////////////")
+disp(C)
+
+disp(A)
+disp(b)
+
 
 figure(1)
 plot3(x(:),y(:),z(:),"LineStyle","none","Marker","X","MarkerSize",8)

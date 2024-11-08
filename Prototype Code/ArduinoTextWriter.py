@@ -13,6 +13,7 @@ with open("arduino_output.txt", "w") as file:
             # Read the data from Arduino
             if ser.in_waiting > 0:
                 arduino_output = ser.readline().decode('utf-8').strip()
+                
                 # print(arduino_output)  # Testing print statement to display the output
                 file.write(arduino_output + "\n")  # Save the output to the text file
                 file.flush()  # Ensure data is written to the file

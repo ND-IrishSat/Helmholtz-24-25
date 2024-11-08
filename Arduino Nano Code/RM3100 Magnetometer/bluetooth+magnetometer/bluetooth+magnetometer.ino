@@ -1,9 +1,9 @@
-//Gimbal BLE Transmitter
-//authored by Will Stotz for Notre Dame IrishSat, 2024
+
+// prints magnetometer values and sends them through bluetooth
 
 #include <ArduinoBLE.h>
 
-// SOURCE https://github.com/hnguy169/RM3100-Arduino
+// RM3100 COMMS SOURCE https://github.com/hnguy169/RM3100-Arduino
 
 // CONNECTIONS
 
@@ -67,7 +67,7 @@ void setup() {
 
   BLE.advertise();
 
-  Serial.println("Bluetooth started.");
+  //Serial.println("Bluetooth started.");
 
 
   pinMode(PIN_DRDY, INPUT);  
@@ -79,21 +79,21 @@ void setup() {
 
   revid = readReg(RM3100_REVID_REG);
   
-  Serial.print("REVID ID = 0x"); //REVID ID should be 0x22
-  Serial.println(revid, HEX);
+  // Serial.print("REVID ID = 0x"); //REVID ID should be 0x22
+  // Serial.println(revid, HEX);
 
   changeCycleCount(initialCC); //change the cycle count; default = 200 (lower cycle count = higher data rates but lower resolution)
 
   cycleCount = readReg(RM3100_CCX1_REG);
   cycleCount = (cycleCount << 8) | readReg(RM3100_CCX0_REG);
 
-  Serial.print("Cycle Counts = "); //display cycle count
-  Serial.println(cycleCount);
+  // Serial.print("Cycle Counts = "); //display cycle count
+  // Serial.println(cycleCount);
 
   gain = 75; //(0.3671 * (float)cycleCount) + 1.5; //linear equation to calculate the gain from cycle count
 
-  Serial.print("Gain = "); //display gain; default gain should be around 75 for the default cycle count of 200
-  Serial.println(gain);
+  // Serial.print("Gain = "); //display gain; default gain should be around 75 for the default cycle count of 200
+  // Serial.println(gain);
 
   if (singleMode){
     //set up single measurement mode
@@ -169,37 +169,39 @@ void loop() {
   double uT = sqrt(pow(magX,2) + pow(magY,2)+ pow(magZ,2));
 
   //display results
-  Serial.print("Data in counts:");
-  Serial.print("   X:");
-  Serial.print(x);
-  Serial.print("   Y:");
-  Serial.print(y);
-  Serial.print("   Z:");
-  Serial.println(z);
+  // Serial.print("Data in counts:");
+  // Serial.print("   X:");
+  // Serial.print(x);
+  // Serial.print("   Y:");
+  // Serial.print(y);
+  // Serial.print("   Z:");
+  // Serial.println(z);
 
-  Serial.print("Data in microTesla(uT):");
-  Serial.print("   X:");
+  //Serial.print("Data in microTesla(uT):");
+  //Serial.print("   X:");
   Serial.print(magX);
-  Serial.print("   Y:");
+  Serial.print(", ");
+  //Serial.print("   Y:");
   Serial.print(magY);
-  Serial.print("   Z:");
+   Serial.print(", ");
+  //Serial.print("   Z:");
   Serial.println(magZ);
 
   //Magnitude should be around 45 uT (+/- 15 uT)
-  Serial.print("Magnitude(uT):");
-  Serial.println(uT);
-  Serial.println();    
+  // Serial.print("Magnitude(uT):");
+  // Serial.println(uT);
+  // Serial.println();    
 
    if (central) {
-    Serial.print("Connected to: ");
-    Serial.println(central.address());
+    // Serial.print("Connected to: ");
+    // Serial.println(central.address());
 
 
         magnetometerX.writeValue(magX);
         magnetometerY.writeValue(magY);
         magnetometerZ.writeValue(magZ);
 
-      Serial.println(x);
+      //Serial.println(x);
   }
 }
 
