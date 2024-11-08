@@ -1,6 +1,7 @@
 # communication from RPi -> Arduino R4 for PWM
 
 import serial
+import time
 
 ser = 0
 def initiateUART():
@@ -24,4 +25,6 @@ def sendPWMValues(x1, x2, y1, y2, z1, z2):
 
 def readPWMValues():
     print(ser.readline().decode('utf-8').rstrip())
+    time.sleep(0.8)
+
             

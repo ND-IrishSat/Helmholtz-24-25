@@ -1,3 +1,5 @@
+# pid computations
+
 from simple_pid import PID
 
 pidX = PID(5, 2, 2, setpoint=0)
@@ -20,7 +22,7 @@ def computePID(magX, magY, magZ):
     result[0] = pidX(magX)
     result[1] = pidY(magY)
     result[2] = pidZ(magZ)
-    
+
     return result
 
 

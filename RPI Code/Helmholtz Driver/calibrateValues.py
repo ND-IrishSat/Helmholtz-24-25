@@ -1,3 +1,4 @@
+# applies calibrated coefficient values to raw magnetometer data
 
 import numpy
 
