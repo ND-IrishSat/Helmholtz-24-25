@@ -4,9 +4,11 @@ import bleak
 import asyncio
 import struct
 import time
+import numpy
 
 from R4UART import * # UART code 
 from PID import * # PID code
+from calibrateValues import * # magnetometer calibration code 
 
 debug = False # enables extra print statements (slow)
 manual = False # when false, PID is enabled
@@ -39,8 +41,14 @@ async def main():
             magX = struct.unpack('f', magX)[0]
             magY = struct.unpack('f', magY)[0]
             magZ = struct.unpack('f', magZ)[0]
+
+            calibratedValues = calibrate(magX, magY, magZ) # apply calibration
+
+            magX = calibratedValues[0]
+            magY = calibratedValues[1]
+            magZ = calibratedValues[2]
             
-            print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ) )
+            print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
         
             if not(manual):
                 PIDsetpoints(setX, setY, setZ)
