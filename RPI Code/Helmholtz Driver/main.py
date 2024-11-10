@@ -11,7 +11,7 @@ from R4UART import sendPWMValues, readPWMValues, initiateUART # UART code
 from PID import PIDsetpoints, computePID # PID code
 from calibrateValues import calibrate # magnetometer calibration code 
 
-debug = True # enables extra print statements (slow)
+debug = False # enables extra print statements (slow)
 manual = True # when false, PID is enabled
 
 # initial setpoints, for manual mode set desired ones here
@@ -42,6 +42,8 @@ async def main():
             magX = struct.unpack('f', magX)[0]
             magY = struct.unpack('f', magY)[0]
             magZ = struct.unpack('f', magZ)[0]
+            
+            print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
 
             calibratedValues = calibrate(magX, magY, magZ) # apply calibration
 
@@ -50,7 +52,8 @@ async def main():
             magZ = calibratedValues[2]
             
             print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
-        
+            print()
+            
             if not(manual):
                 PIDsetpoints(setX, setY, setZ)
                 results = computePID(magX, magY, magZ)
