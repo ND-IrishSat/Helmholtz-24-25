@@ -15,21 +15,22 @@ debug = False # enables extra print statements (slow)
 manual = True # when false, PID is enabled
 
 # initial setpoints, for manual mode set desired ones here
-setX = 0
-setY = 0
-setZ = 0
 
 ser = initiateUART()
 
 async def main():
     
     # initial duty cycles, for manual mode set desired ones here
-    x1 = 0.0
+    x1 = 0.0 
     x2 = 0.0
     y1 = 0.0
     y2 = 0.0
     z1 = 0.0
-    z2 = 0.0
+    z2 = 5
+    
+    setX = 0
+    setY = 0
+    setZ = 0
 
     async with bleak.BleakClient("30:C6:F7:01:53:AA") as magnetometer:
 
@@ -43,7 +44,7 @@ async def main():
             magY = struct.unpack('f', magY)[0]
             magZ = struct.unpack('f', magZ)[0]
             
-            print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
+            #print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
 
             calibratedValues = calibrate(magX, magY, magZ) # apply calibration
 
