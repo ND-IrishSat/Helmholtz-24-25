@@ -3,9 +3,7 @@
 import serial
 import time
 
-ser = 0
 def initiateUART():
-    if __name__ == '__main__':
                 
         try: 
             ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
@@ -17,13 +15,15 @@ def initiateUART():
 
         ser = serial.Serial('/dev/ttyACM0',9600,timeout=1)
         ser.reset_input_buffer()
+        
+        return ser
 
 
-def sendPWMValues(x1, x2, y1, y2, z1, z2):
+def sendPWMValues(x1, x2, y1, y2, z1, z2, ser):
     data = str(x1) + " " + str(x2) + " " + str(y1) + " " + str(y2) + " " + str(z1) + " " + str(z2)
     ser.write(data.encode('utf-8'))
 
-def readPWMValues():
+def readPWMValues(ser):
     print(ser.readline().decode('utf-8').rstrip())
     time.sleep(0.8)
 

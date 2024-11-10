@@ -5,30 +5,31 @@ import asyncio
 import struct
 import time
 import numpy
+import serial
 
 from R4UART import sendPWMValues, readPWMValues, initiateUART # UART code 
 from PID import PIDsetpoints, computePID # PID code
 from calibrateValues import calibrate # magnetometer calibration code 
 
-debug = False # enables extra print statements (slow)
-manual = False # when false, PID is enabled
-
-# initial duty cycles, for manual mode set desired ones here
-x1 = 0.0
-x2 = 0.0
-y1 = 0.0
-y2 = 0.0
-z1 = 0.0
-z2 = 0.0
+debug = True # enables extra print statements (slow)
+manual = True # when false, PID is enabled
 
 # initial setpoints, for manual mode set desired ones here
 setX = 0
 setY = 0
 setZ = 0
 
-initiateUART()
+ser = initiateUART()
 
 async def main():
+    
+    # initial duty cycles, for manual mode set desired ones here
+    x1 = 0.0
+    x2 = 0.0
+    y1 = 0.0
+    y2 = 0.0
+    z1 = 0.0
+    z2 = 0.0
 
     async with bleak.BleakClient("30:C6:F7:01:53:AA") as magnetometer:
 
@@ -60,10 +61,10 @@ async def main():
                 y1 = results[1]
                 z1 = results[2]
 
-            sendPWMValues(x1, x2, y1, y2, z1, z2) # sends PWM to R4 (currently trying with 1 direction)
+            sendPWMValues(x1, x2, y1, y2, z1, z2, ser) # sends PWM to R4 (currently trying with 1 direction)
 
             if(debug):
-                readPWMValues()
+                readPWMValues(ser)
             
         
 asyncio.run(main())
