@@ -3,12 +3,12 @@
 import numpy
 
 # A coefficients
-A = numpy.array([[0.9966, -0.0040, -0.027], 
-                 [-0.004, 1.0545, -0.0016], 
-                 [-0.0270, -0.0016, 0.9522]])
+A = numpy.array([[1.0030, -0.0063, -0.0272], 
+                 [-0.0063, 1.0607, -0.0042], 
+                 [-0.0272, -0.0042, 0.9407]])
 
 # b coefficients
-b = numpy.array([-17.3563, -8.4044, -3.5274])
+b = numpy.array([-15.6258, -8.1023, -2.5412])
 
 def calibrate(magX, magY, magZ):
     values = numpy.array([magX, magY, magZ])

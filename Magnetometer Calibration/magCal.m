@@ -7,6 +7,8 @@ x = rawTable(:, 1);
 y = rawTable(:, 2);
 z = rawTable(:, 3);
 
+disp(length(x))
+
 [A,b,expmfs] = magcal(D); % Calibration coefficients
 
 %expmfs % Display the expected magnetic field strength in uT
