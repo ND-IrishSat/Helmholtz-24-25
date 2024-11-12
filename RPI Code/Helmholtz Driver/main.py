@@ -12,7 +12,7 @@ from PID import PIDsetpoints, computePID # PID code
 from calibrateValues import calibrate # magnetometer calibration code 
 
 debug = False # enables extra print statements (slow)
-manual = True # when false, PID is enabled
+manual = False # when false, PID is enabled
 
 # initial setpoints, for manual mode set desired ones here
 
@@ -30,7 +30,7 @@ async def main():
     Zp = 0.0
     Zn = 0.0
     
-    setX = 50
+    setX = 40
     setY = 0
     setZ = 0
 
@@ -60,17 +60,36 @@ async def main():
             if not(manual):
                 PIDsetpoints(setX, setY, setZ)
                 results = computePID(magX, magY, magZ)
+                
+                xTemp = results[0]
+                yTemp = results[1]
+                zTemp = results[2]
+                
+                if(xTemp < 0):
+                    Xn = xTemp * -1
+                    Xp = 0
+                else:
+                    Xp = xTemp
+                    Xn = 0
+                
+                if(yTemp < 0):
+                    Yn = yTemp * -1
+                    Yp = 0
+                else:
+                    Yp = yTemp
+                    Yn = 0
+                    
+                if(zTemp < 0):
+                    Zn = zTemp * -1
+                    Zp = 0
+                else:
+                    Zp = zTemp
+                    Zn = 0
+                    
+                time.sleep(1)
 
-                Xp = results[0]
-                Xn = 0#results[1]
 
-                Yp = results[2]
-                Yn = 0#results[3] 
-
-                Zp = results[4]
-                Zn = 0#results[5]
-
-            sendPWMValues(Xp, Xn, Yp, Yn, Zp, Zn, ser) # sends PWM to R4 (currently trying with 1 direction)
+            sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, ser) # sends PWM to R4 (currently trying with 1 direction)
 
             if(debug):
                 readPWMValues(ser)
