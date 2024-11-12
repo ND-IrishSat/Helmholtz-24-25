@@ -62,13 +62,13 @@ async def main():
                 results = computePID(magX, magY, magZ)
 
                 Xp = results[0]
-                Xn = results[1]
+                Xn = results[1] * -1
 
                 Yp = results[2]
-                Yn = results[3]
+                Yn = results[3] * -1
 
                 Zp = results[4]
-                Zn = results[5]
+                Zn = results[5] * -1
 
             sendPWMValues(Xp, Xn, Yp, Yn, Zp, Zn, ser) # sends PWM to R4 (currently trying with 1 direction)
 
