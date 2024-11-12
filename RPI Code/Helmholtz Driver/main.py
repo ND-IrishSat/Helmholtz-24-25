@@ -21,16 +21,16 @@ ser = initiateUART()
 async def main():
     
     # initial duty cycles, for manual mode set desired ones here
-    Xp = 0.0 
+    Xp = 0.0
     Xn = 0.0
 
     Yp = 0.0
     Yn = 0.0
 
     Zp = 0.0
-    Zn = 5
+    Zn = 0.0
     
-    setX = 0
+    setX = 50
     setY = 0
     setZ = 0
 
@@ -62,13 +62,13 @@ async def main():
                 results = computePID(magX, magY, magZ)
 
                 Xp = results[0]
-                Xn = results[1] * -1
+                Xn = 0#results[1]
 
                 Yp = results[2]
-                Yn = results[3] * -1
+                Yn = 0#results[3] 
 
                 Zp = results[4]
-                Zn = results[5] * -1
+                Zn = 0#results[5]
 
             sendPWMValues(Xp, Xn, Yp, Yn, Zp, Zn, ser) # sends PWM to R4 (currently trying with 1 direction)
 

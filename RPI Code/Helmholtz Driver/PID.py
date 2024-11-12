@@ -19,9 +19,9 @@ pidYp.output_limits = (0.00, 100.00)
 pidZp.output_limits = (0.00, 100.00)
 
 # negative limits
-pidXn.output_limits = (-100.0, 0.0)
-pidYn.output_limits = (-100.0, 0.0)
-pidZn.output_limits = (-100.0, 0.0)
+pidXn.output_limits = (0.0, 100.0)
+pidYn.output_limits = (0.0, 100.0)
+pidZn.output_limits = (0.0, 100.0)
 
 # change the setpoints of each axis
 def PIDsetpoints(x, y, z):
