@@ -10,6 +10,7 @@ import serial
 from R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
 from PID import PIDsetpoints, computePID # PID code
 from calibrateValues import calibrate # magnetometer calibration code 
+from extraneous import processStrings # import extraneous functions
 
 debug = False # enables extra print statements (slow)
 manual = True # when false, PID is enabled
@@ -58,8 +59,7 @@ while True:
     magStrings = processStrings(magX, magY, magZ)
     
     print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
-     
-    print()
+
     
     if not(manual):
         PIDsetpoints(setX, setY, setZ)
