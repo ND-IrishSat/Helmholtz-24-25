@@ -12,7 +12,7 @@ from PID import PIDsetpoints, computePID # PID code
 from calibrateValues import calibrate # magnetometer calibration code 
 
 debug = False # enables extra print statements (slow)
-manual = False # when false, PID is enabled
+manual = True # when false, PID is enabled
 
 # initial setpoints, for manual mode set desired ones here
 
@@ -42,17 +42,23 @@ while True:
 
     magnetometerOutput = magnetometerOutput.split(" ")
 
-    magX = magnetometerOutput[0]
-    magY = magnetometerOutput[1]
-    magZ = magnetometerOutput[2]
+    magX = float(magnetometerOutput[0])
+    magY = float(magnetometerOutput[1])
+    magZ = float(magnetometerOutput[2])
 
     calibratedValues = calibrate(magX, magY, magZ) # apply calibration
 
-    magX = calibratedValues[0]
-    magY = calibratedValues[1]
-    magZ = calibratedValues[2]
+#     print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
+
+    magX = round(calibratedValues[0], 2)
+    magY = round(calibratedValues[1], 2)
+    magZ = round(calibratedValues[2], 2)
     
-    print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
+    # purely for readable format, adds necessary zeros to preserve 2 decimal format
+    magStrings = processStrings(magX, magY, magZ)
+    
+    print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
+     
     print()
     
     if not(manual):
@@ -84,13 +90,12 @@ while True:
             Zp = zTemp
             Zn = 0
             
-        time.sleep(1)
 
 
-    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, nanoSer) # sends PWM to R4 (currently trying with 1 direction)
+    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser) # sends PWM to R4 (currently trying with 1 direction)
 
     if(debug):
-        readPWMValues(nanoSer)
+        readPWMValues(R4Ser)
     
 
 

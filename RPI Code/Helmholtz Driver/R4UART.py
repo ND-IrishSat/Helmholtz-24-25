@@ -6,7 +6,7 @@ import time
 def initiateUART():
                 
         nanoSer = serial.Serial('/dev/ttyACM0',9600)
-        R4Ser = serial.Serial('/dev/ttyACM0',9600)
+        R4Ser = serial.Serial('/dev/ttyACM1',9600)
 
         # ser.reset_input_buffer()
         # ser.reset_output_buffer()
