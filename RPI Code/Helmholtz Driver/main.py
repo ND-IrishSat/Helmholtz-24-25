@@ -10,16 +10,24 @@ import serial
 from R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
 from PID import PIDsetpoints, computePID # PID code
 from calibrateValues import calibrate # magnetometer calibration code 
-from extraneous import processStrings # import extraneous functions
+from extraneous import processStrings, calculateOffsets # import extraneous functions
 
 debug = False # enables extra print statements (slow)
 manual = False # when false, PID is enabled
+
+initializing = True # leave true to find earth magnetic field offsets for PID
+numOfOffsetVals = 50 # number of measurements script will take before calculating earth offset 
+xOffset = 0
+yOffset = 0
+zOffset = 0
 
 # initial setpoints, for manual mode set desired ones here
 
 terminals = initiateUART()
 nanoSer = terminals[0]
 R4Ser = terminals[1]
+
+time.sleep(1)
 
 while True:
     
@@ -33,10 +41,20 @@ while True:
     Zp = 0.0
     Zn = 0.0
     
+    # initial set positions, implement pysol reading here
     setX = 0
     setY = 0
     setZ = 0
+
+    # arrays to hold initial offset values
+    xAvg = []
+    yAvg = []
+    zAvg = []
+
+    # turn off cage at start
+    sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
                     
+    ################################################################################################################## magnetometer reading
     #print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
 
     magnetometerOutput = readMagnetometerValues(nanoSer)
@@ -49,7 +67,7 @@ while True:
 
     calibratedValues = calibrate(magX, magY, magZ) # apply calibration
 
-    print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
+    #print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
 
     magX = round(calibratedValues[0], 2)
     magY = round(calibratedValues[1], 2)
@@ -59,6 +77,15 @@ while True:
     magStrings = processStrings(magX, magY, magZ)
     
     #print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
+    ##################################################################################################################
+
+    if(initializing):
+        xAvg.append(magX)
+        yAvg.append(magY)
+        zAvg.append(magZ)
+
+        if(len(xAvg) >= numOfOffsetVals):
+            xOffset, yOffset, zOffset = calculateOffsets(xAvg, yAvg, zAvg)
 
     
     if not(manual):
@@ -89,6 +116,7 @@ while True:
         else:
             Zp = zTemp
             Zn = 0
+
     time.sleep(0.1)
     sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser) # sends PWM to R4 (currently trying with 1 direction)
 

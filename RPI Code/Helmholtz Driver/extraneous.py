@@ -1,3 +1,19 @@
+import time
+
+def calculateOffsets(xAvg, yAvg, zAvg):
+    offsets = [0, 0, 0]
+    
+    offsets[0] = sum(xAvg) / len(xAvg)
+    offsets[1] = sum(yAvg) / len(yAvg)
+    offsets[2] = sum(zAvg) / len(zAvg)
+    
+    print("Offsets calculated -------")
+    print()
+
+    time.sleep(2)
+
+    return offsets
+
 
 def processStrings(magX, magY, magZ):
 
