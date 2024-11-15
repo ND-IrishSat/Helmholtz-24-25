@@ -13,7 +13,7 @@ from calibrateValues import calibrate # magnetometer calibration code
 from extraneous import processStrings # import extraneous functions
 
 debug = False # enables extra print statements (slow)
-manual = True # when false, PID is enabled
+manual = False # when false, PID is enabled
 
 # initial setpoints, for manual mode set desired ones here
 
@@ -33,7 +33,7 @@ while True:
     Zp = 0.0
     Zn = 0.0
     
-    setX = 40
+    setX = 0
     setY = 0
     setZ = 0
                     
@@ -49,7 +49,7 @@ while True:
 
     calibratedValues = calibrate(magX, magY, magZ) # apply calibration
 
-#     print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
+    print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
 
     magX = round(calibratedValues[0], 2)
     magY = round(calibratedValues[1], 2)
@@ -58,7 +58,7 @@ while True:
     # purely for readable format, adds necessary zeros to preserve 2 decimal format
     magStrings = processStrings(magX, magY, magZ)
     
-    print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
+    #print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
 
     
     if not(manual):
@@ -89,9 +89,7 @@ while True:
         else:
             Zp = zTemp
             Zn = 0
-            
-
-
+    time.sleep(0.1)
     sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser) # sends PWM to R4 (currently trying with 1 direction)
 
     if(debug):
