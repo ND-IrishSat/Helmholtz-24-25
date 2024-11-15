@@ -4,9 +4,9 @@
 
 from simple_pid import PID
 
-kP = 0.25
-kI = 0.25
-kD = 0.25
+kP = 2
+kI = 2
+kD = 5
 
 pidX = PID(kP, kI, kD, setpoint=0)
 
