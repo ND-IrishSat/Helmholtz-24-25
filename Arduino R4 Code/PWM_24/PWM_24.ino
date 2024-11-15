@@ -25,7 +25,7 @@ float x_1, x_2, y_1, y_2, z_1, z_2;
 // String data="";
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   
   // if (Serial.available() > 0) {
   //   String data = Serial.readStringUntil('\n');
@@ -54,9 +54,9 @@ void setup() {
 }
 
 void loop() {
-  // There is no war in ba sing se
 
   if (Serial.available() > 0) {
+   // String data = Serial.readStringUntil('\n');
     String data = Serial.readStringUntil('\n');
     parseValues(data, x_1, x_2, y_1, y_2, z_1, z_2);
     Serial.println(data);
