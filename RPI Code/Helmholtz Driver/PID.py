@@ -14,10 +14,9 @@ pidY = PID(kP, kI, kD, setpoint=0)
 
 pidZ = PID(kP, kI, kD, setpoint=0)
 
-pidX.output_limits = (-100.00, 100.00)
-pidY.output_limits = (-100.00, 100.00)
-pidZ.output_limits = (-100.00, 100.00)
-
+pidX.output_limits = (0, 100.00)
+pidY.output_limits = (0, 100.00)
+pidZ.output_limits = (0, 100.00)
 
 # change the setpoints of each axis
 def PIDsetpoints(x, y, z):

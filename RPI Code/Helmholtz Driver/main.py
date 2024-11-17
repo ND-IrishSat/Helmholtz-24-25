@@ -42,9 +42,9 @@ while True:
     Zn = 0.0
     
     # initial set positions, implement pysol reading here
-    setX = 0
-    setY = 0
-    setZ = 0
+    xSet = 0
+    ySet = 0
+    zSet = 0
 
     # arrays to hold initial offset values
     xAvg = []
@@ -96,26 +96,27 @@ while True:
         yTemp = results[1]
         zTemp = results[2]
         
-        if(xTemp < 0):
-            Xn = xTemp * -1
+        if(xSet < xOffset):
+            Xn = xTemp
             Xp = 0
         else:
             Xp = xTemp
             Xn = 0
         
-        if(yTemp < 0):
+        if(ySet < yOffset):
             Yn = yTemp * -1
             Yp = 0
         else:
             Yp = yTemp
             Yn = 0
             
-        if(zTemp < 0):
+        if(zSet < zOffset):
             Zn = zTemp * -1
             Zp = 0
         else:
             Zp = zTemp
             Zn = 0
+
 
     time.sleep(0.1)
     sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser) # sends PWM to R4 (currently trying with 1 direction)
