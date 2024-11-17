@@ -89,7 +89,7 @@ while True:
 
     
     if not(manual):
-        PIDsetpoints(setX, setY, setZ)
+        PIDsetpoints(xSet, ySet, zSet)
         results = computePID(magX, magY, magZ)
         
         xTemp = results[0]
