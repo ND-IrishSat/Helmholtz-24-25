@@ -64,11 +64,37 @@ labelframe1.columnconfigure([0], weight=1)
 # Create buttons inside the LabelFrame
 PIDButton = tk.Button(labelframe1, text="PID", fg="#0c2340")
 PIDButton.config(command=lambda: toggle_PID_Manual("PID"))
-PIDButton.grid(row=0, sticky="ew")
+PIDButton.grid(row=0,columnspan=2, sticky="ew")
 
 ManualButton = tk.Button(labelframe1, text="Manual", fg="#0c2340")
 ManualButton.config(command=lambda: toggle_PID_Manual("Manual"))
-ManualButton.grid(row=1, sticky="ew")
+ManualButton.grid(row=1,columnspan=2,sticky="ew")
+
+# Coods
+x_1 = tk.StringVar()
+x_2 = tk.StringVar()
+y_1 = tk.StringVar()
+y_2 = tk.StringVar()
+z_1 = tk.StringVar()
+z_2 = tk.StringVar()
+
+coods= [x_1,x_2,y_1,y_2,z_1,z_2]
+
+def manualEntry(coodNum,coodVariable,rowNum,colNum):
+    coodNum = f"{coodNum}: " 
+    n_n_label = tk.Label(labelframe1,text=coodNum,bg="#0c2340",fg="#c99700")
+    n_n_entry = tk.Entry(labelframe1,textvariable=coodVariable,font=('calibre',10,'normal'))
+    n_n_label.grid(row=rowNum,column=colNum,stick="ew")
+    n_n_entry.grid(row=rowNum,column=colNum+1,stick="ew")
+
+manualEntry("x_1",coods[0],2,0)
+manualEntry("x_2",coods[1],3,0)
+
+manualEntry("y_1",coods[2],4,0)
+manualEntry("y_2",coods[3],5,0)
+
+manualEntry("z_1",coods[4],6,0)
+manualEntry("z_2",coods[5],7,0)
 
 # # Frame for the Matplotlib plot
 frame = ttk.Frame(root)
