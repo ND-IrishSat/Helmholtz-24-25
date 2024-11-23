@@ -24,8 +24,16 @@ float x_1 = 0, x_2 = 0, y_1 = 0, y_2 = 0, z_1 = 0, z_2 = 0;
 String incomingData = "";  // Buffer for serial data
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println("Ready to receive data from Raspberry Pi.");
+  Serial.begin(9600);
+  while(true) {
+    if (Serial.available()) {
+        String command = Serial.readStringUntil('\n');
+        if (command == "IDENTIFY") {
+            Serial.println("R4");
+            break;
+        }
+    }
+  }
 
   // Set PWM period and initial duty cycle for each bridge
   initializePwm(xBridge1);

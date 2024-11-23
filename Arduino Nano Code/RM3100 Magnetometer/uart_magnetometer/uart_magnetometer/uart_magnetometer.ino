@@ -44,7 +44,18 @@ void setup() {
   digitalWrite(PIN_CS, HIGH);
   SPI.begin(); // Initiate the SPI library
   SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));  
-  Serial.begin(9600); //set baud rate to 9600
+  
+  Serial.begin(9600);
+  while(true) {
+    if (Serial.available()) {
+        String command = Serial.readStringUntil('\n');
+        if (command == "IDENTIFY") {
+            Serial.println("NANO");
+            break;
+        }
+    }
+  }  
+  
   delay(100);
 
   revid = readReg(RM3100_REVID_REG);
