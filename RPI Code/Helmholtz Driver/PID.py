@@ -4,9 +4,9 @@
 
 from simple_pid import PID
 
-kP = 2
-kI = 2
-kD = 5
+kP = 0.1
+kI = 0
+kD = 0
 
 pidX = PID(kP, kI, kD, setpoint=0)
 
@@ -14,9 +14,9 @@ pidY = PID(kP, kI, kD, setpoint=0)
 
 pidZ = PID(kP, kI, kD, setpoint=0)
 
-pidX.output_limits = (0, 100.00)
-pidY.output_limits = (0, 100.00)
-pidZ.output_limits = (0, 100.00)
+pidX.output_limits = (-100.00, 100.00)
+pidY.output_limits = (-100.00, 100.00)
+pidZ.output_limits = (-100.00, 100.00)
 
 # change the setpoints of each axis
 def PIDsetpoints(x, y, z):
