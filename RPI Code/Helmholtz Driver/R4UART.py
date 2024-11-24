@@ -6,8 +6,8 @@ import time
 
 def initiateUART():
     
-    nanoSer = serial.Serial('/dev/ttyACM2',9600)
-    R4Ser = serial.Serial('/dev/ttyACM1', 9600)
+    nanoSer = serial.Serial('/dev/ttyACM1',9600)
+    R4Ser = serial.Serial('/dev/ttyACM0', 9600)
    
 #    ports = serial.tools.list_ports.comports()
 #     devices = {}
@@ -45,11 +45,11 @@ def initiateUART():
 #     r4.reset_input_buffer()
 #     r4.reset_output_buffer()
     
-    nanoSer.reset_input_buffer()
-    nanoSer.reset_output_buffer()
+#     nanoSer.reset_input_buffer()
+#     nanoSer.reset_output_buffer()
     
-    R4Ser.reset_input_buffer()
-    R4Ser.reset_output_buffer()
+#     R4Ser.reset_input_buffer()
+#     R4Ser.reset_output_buffer()
     
     return [nanoSer, R4Ser]
 

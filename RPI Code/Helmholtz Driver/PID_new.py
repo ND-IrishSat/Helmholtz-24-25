@@ -4,16 +4,22 @@ xMagSet = 0
 # Proportional Gain
 kp = 4
 
-def PID_fun(goalPoint, currentPoint, prevPoint, maxVal, dt):
+def PID_fun(goalPoint, currentPoint, prevPoint, prevCntrlPos, prevCntrlNeg, maxVal, dt):
     # output is pwm signal (0-100)
     # magnetic field is (-75,100)
-    kp = 8
+    kp = 1
     kd = 0
-    
+    if (prevCntrlPos == 0):
+        prevCntrl = -prevCntrlNeg
+    else:
+         prevCntrl = prevCntrlPos
+         
     # Approx deriv
     magDot = (currentPoint-prevPoint)/dt
     
-    output = -kp*(currentPoint-goalPoint) - kd*magDot
+    delta_pwm = -kp*(currentPoint-goalPoint) - kd*magDot
+    
+    output = prevCntrl + delta_pwm
     
     print("current point: ", currentPoint)
     
