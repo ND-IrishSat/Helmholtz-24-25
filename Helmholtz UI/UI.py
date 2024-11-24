@@ -3,6 +3,14 @@ from tkinter import ttk
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+import serial
+import time
+
+# # serial.Serial('COMXX',baud rate)
+ser = serial.Serial(port='COM6',baudrate=115200)
+# Clears data that has already been received and waiting in the input buffer of a communication channel
+ser.reset_input_buffer()
+
 # Requirements
 # PID vs Manuel  
 # # PID:
@@ -28,10 +36,9 @@ root.columnconfigure([0,1,2], weight=1)
 
 def update_field():
     # Once we get a function to read the magnetic field from the magnetometer, we need to change the global b_field_i to read directly form that
-    global b_field_i
-    b_field_i+=100
-    display_b_field.set(f"Magnetic Field: {b_field_i}") 
-    root.after(1000,update_field)
+    # global b_field_i
+    display_b_field.set(f"Magnetic Field: {ser.readline().decode('utf-8').strip()}")
+    root.after(10,update_field)
 
 def toggle_PID_Manual(mode):
     if mode == "PID":
@@ -41,9 +48,8 @@ def toggle_PID_Manual(mode):
         print("Pressed Manual")
 
 # Variables
-b_field_i = 1000
 display_b_field = tk.StringVar()
-display_b_field.set(f"Magnetic Field: {b_field_i}")
+display_b_field.set(f"Magnetic Field: {ser.readline().decode('utf-8').strip()}")
 
 # Header
 header = tk.Label(root, text="GoatLab - Helmhotlz Cage", bg="#0c2340", fg="#c99700", font=("Arial", 24), pady=10) 
@@ -123,22 +129,22 @@ enter_btn = tk.Button(cageMode, text="Enter", fg="#0c2340",command=enter_button)
 enter_btn.grid(row=9,columnspan=2, sticky="ew")
 
 
-# # Frame for the Matplotlib plot
-# frame = ttk.Frame(root)
-# frame.grid(row=2, column=1, columnspan=2, sticky="nsew")  # Span columns 1 to 2
+# Frame for the Matplotlib plot
+frame = ttk.Frame(root)
+frame.grid(row=2, column=1, columnspan=2, sticky="nsew")  # Span columns 1 to 2
 
-# fig = Figure(figsize=(5, 4), dpi=100)
-# ax = fig.add_subplot(111)
-# ax.plot([1, 2, 3, 4, 5], [1, 4, 9, 16, 25])  # Example plot
-# ax.set_title("Magnetic Field (μT) vs. Time")
-# ax.set_ylabel("Magnetic Field (μT)")
+fig = Figure(figsize=(5, 4), dpi=100)
+ax = fig.add_subplot(111)
+ax.plot([1, 2, 3, 4, 5], [1, 4, 9, 16, 25])  # Example plot
+ax.set_title("Magnetic Field (μT) vs. Time")
+ax.set_ylabel("Magnetic Field (μT)")
 
 
-# # # Embed the Matplotlib figure in the frame
-# canvas = FigureCanvasTkAgg(fig, master=frame)
-# canvas_widget = canvas.get_tk_widget()
+# # Embed the Matplotlib figure in the frame
+canvas = FigureCanvasTkAgg(fig, master=frame)
+canvas_widget = canvas.get_tk_widget()
 
-# canvas_widget.grid(row=0, column=0, rowspan=3, columnspan=2, sticky="nsew")
+canvas_widget.grid(row=0, column=0, rowspan=3, columnspan=2, sticky="nsew")
 
 # Start the magnetic field update loop
 root.after(0,update_field)
