@@ -7,7 +7,7 @@ import serial
 import time
 
 # # serial.Serial('COMXX',baud rate)
-ser = serial.Serial(port='COM6',baudrate=115200)
+ser = serial.Serial(port='COM7',baudrate=115200)
 # Clears data that has already been received and waiting in the input buffer of a communication channel
 ser.reset_input_buffer()
 
@@ -34,10 +34,27 @@ root.config(background="#0c2340")
 # root.rowconfigure(2, weight=1)
 root.columnconfigure([0,1,2], weight=1)
 
+# Variables
+display_b_field = tk.StringVar()
+display_b_field.set(f"Magnetic Field: {ser.readline().decode('utf-8').strip()}")
+
 def update_field():
-    # Once we get a function to read the magnetic field from the magnetometer, we need to change the global b_field_i to read directly form that
-    # global b_field_i
-    display_b_field.set(f"Magnetic Field: {ser.readline().decode('utf-8').strip()}")
+    print(time.time())
+    # Places the information from the serial line into a list of strings for easier manipulation
+    magnetic_field_string = ser.readline().decode('utf-8').strip().split()
+    
+    try:
+        # Iterates through the list, converting the strings into floats for ploting 
+        for i in range(len(magnetic_field_string)):
+            magnetic_field_string[i] = float(magnetic_field_string[i].rstrip(";"))
+    except ValueError:
+        # In the first couple of lines of reading the serial line, there is product labeling values so I used an try-except case to ignore it
+        pass 
+    
+    # Display for prototype testing and live reading of data
+    display_b_field.set(f"Magnetic Field: {magnetic_field_string}")
+    
+    # Function updates after 10 miliseconds
     root.after(10,update_field)
 
 def toggle_PID_Manual(mode):
@@ -46,10 +63,6 @@ def toggle_PID_Manual(mode):
 
     elif mode == "Manual":
         print("Pressed Manual")
-
-# Variables
-display_b_field = tk.StringVar()
-display_b_field.set(f"Magnetic Field: {ser.readline().decode('utf-8').strip()}")
 
 # Header
 header = tk.Label(root, text="GoatLab - Helmhotlz Cage", bg="#0c2340", fg="#c99700", font=("Arial", 24), pady=10) 
@@ -133,14 +146,25 @@ enter_btn.grid(row=9,columnspan=2, sticky="ew")
 frame = ttk.Frame(root)
 frame.grid(row=2, column=1, columnspan=2, sticky="nsew")  # Span columns 1 to 2
 
-fig = Figure(figsize=(5, 4), dpi=100)
-ax = fig.add_subplot(111)
-ax.plot([1, 2, 3, 4, 5], [1, 4, 9, 16, 25])  # Example plot
-ax.set_title("Magnetic Field (μT) vs. Time")
-ax.set_ylabel("Magnetic Field (μT)")
+def create_graph():
+    # Create a figure and axis
+    fig = Figure(figsize=(5, 4), dpi=100)
+    ax = fig.add_subplot(111)
+    
+    # Plot data
+    x = [1, 2, 3, 4, 5]
+    y = [2, 4, 6, 8, 10]
+    ax.plot(x, y, label="Linear Growth")
+    ax.set_title("Magnetic Field (μT) vs. Time")
+    ax.set_ylabel("Magnetic Field (μT)")
+    ax.set_xlabel("Time")
+    ax.legend()
+
+    return fig
 
 
 # # Embed the Matplotlib figure in the frame
+fig = create_graph()
 canvas = FigureCanvasTkAgg(fig, master=frame)
 canvas_widget = canvas.get_tk_widget()
 
