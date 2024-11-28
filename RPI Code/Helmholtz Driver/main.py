@@ -42,7 +42,7 @@ Zp = 0.0
 Zn = 0.0
     
     # initial set positions, implement pysol reading here
-xSet = 30
+xSet = 0
 ySet = 0
 zSet = 0
 
@@ -55,11 +55,17 @@ maxVal = 100 # max value of pwm signal (control output)
 
     # turn off cage at start
 sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
-time.sleep(10)
+time.sleep(2)
 
-magOutput = [0]
-pwmPosOutput = [0]
-pwmNegOutput = [0]
+magOutputX = [0]
+magOutputY = [0]
+magOutputZ = [0]
+pwmPosOutputX = [0]
+pwmNegOutputX = [0]
+pwmPosOutputY = [0]
+pwmNegOutputY = [0]
+pwmPosOutputZ = [0]
+pwmNegOutputZ = [0]
 i = 1;
 
 startTime = time.time(); # get start time
@@ -151,7 +157,11 @@ while (time.time()-startTime < 10):
     timeVec.append(time.time()-startTime)               
     ################################################################################################################## magnetometer reading
     #print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
-
+    nanoSer.reset_input_buffer()
+    nanoSer.reset_output_buffer()
+    
+    R4Ser.reset_input_buffer()
+    R4Ser.reset_output_buffer()
     magnetometerOutput = readMagnetometerValues(nanoSer)
 
     magnetometerOutput = magnetometerOutput.split(" ")
@@ -162,20 +172,22 @@ while (time.time()-startTime < 10):
 
     calibratedValues = calibrate(magX, magY, magZ) # apply calibration
 
-    #print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
+#     print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
 
-    magX = round(calibratedValues[0], 2)
-    magY = round(calibratedValues[1], 2)
-    magZ = round(calibratedValues[2], 2)
+    calMagX = round(calibratedValues[0], 2)
+    calMagY = round(calibratedValues[1], 2)
+    calMagZ = round(calibratedValues[2], 2)
     
-    # purely for readable format, adds necessary zeros to preserve 2 decimal format
-    magStrings = processStrings(magX, magY, magZ)
-    magOutput.append(magX)
+#     # purely for readable format, adds necessary zeros to preserve 2 decimal format
+    magStrings = processStrings(calMagX, calMagY, calMagZ)
+    magOutputX.append(calMagX)
+    magOutputY.append(calMagY)
+    magOutputZ.append(calMagZ)
     print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
     ##################################################################################################################
 
     if(initializing):
-        xAvg.append(magX)
+        xAvg.append(calMagX)
         yAvg.append(magY)
         zAvg.append(magZ)
         if(len(xAvg) >= numOfOffsetVals):
@@ -183,28 +195,39 @@ while (time.time()-startTime < 10):
             initializing = False
             #print(str(xOffset) + " " + str(yOffset) + " " + str(zOffset))
 
-    #[Xp, Xn] = PID_fun(xSet, magX, magOutput[i-1], maxVal, timeVec[i]-timeVec[i-1]) 
+    [Xp, Xn] = PID_fun(xSet, calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVec[i]-timeVec[i-1])
+    [Yp, Yn] = PID_fun(ySet, calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVec[i]-timeVec[i-1])
+    [Zp, Zn] = PID_fun(zSet, calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVec[i]-timeVec[i-1]) 
     
-    Xp += .5
+#     Xp += 5
+#     
+#     if (Xp >=100):
+#         Xp = 100
 
-        
-    pwmPosOutput.append(Xp)
-    pwmNegOutput.append(Xn)
+    pwmPosOutputX.append(Xp)
+    pwmNegOutputX.append(Xn)
+    
+    pwmPosOutputY.append(Yp)
+    pwmNegOutputY.append(Yn)
+    
+    pwmPosOutputZ.append(Zp)
+    pwmNegOutputZ.append(Zn)
 
         
         #print(str(xTemp) + " " + str(yTemp) + " " + str(zTemp))
 
     time.sleep(0.1)
-    sendPWMValues(0, 0, Xn, Xp, 0, 0, R4Ser)
+    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
+    readPWMValues(R4Ser)
     #sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser) # sends PWM to R4 (currently trying with 1 direction)
 
     i+=1
     
     
 fig, ax = plt.subplots(3)
-ax[0].plot(timeVec, magOutput)
-ax[1].plot(timeVec, pwmPosOutput)
-ax[2].plot(timeVec, pwmNegOutput)
+ax[0].plot(timeVec, magOutputX)
+ax[1].plot(timeVec, magOutputY)
+ax[2].plot(timeVec, magOutputZ)
 plt.show()
 
 
