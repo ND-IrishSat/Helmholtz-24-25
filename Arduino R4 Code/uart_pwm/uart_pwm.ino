@@ -25,23 +25,36 @@ String incomingData = "";  // Buffer for serial data
 
 void setup() {
   Serial.begin(9600);
-  while(true) {
-    if (Serial.available()) {
-        String command = Serial.readStringUntil('\n');
-        if (command == "IDENTIFY") {
-            Serial.println("R4");
-            break;
-        }
-    }
-  }
+  // while(true) {
+  //   if (Serial.available()) {
+  //       String command = Serial.readStringUntil('\n');
+  //       if (command == "IDENTIFY") {
+  //           Serial.println("R4");
+  //           break;
+  //       }
+  //   }
+  // }
 
   // Set PWM period and initial duty cycle for each bridge
-  initializePwm(xBridge1);
-  initializePwm(xBridge2);
-  initializePwm(yBridge1);
-  initializePwm(yBridge2);
-  initializePwm(zBridge1);
-  initializePwm(zBridge2);
+
+  xBridge1.begin(200, 0.0);
+  xBridge2.begin(200, 0.0);
+
+  yBridge1.begin(200, 0.0);
+  yBridge2.begin(200, 0.0);
+
+  zBridge1.begin(200, 0.0);
+  zBridge2.begin(200, 0.0);
+
+  xBridge1.pulse_perc(0);
+  xBridge2.pulse_perc(0.0);
+
+  yBridge1.pulse_perc(0);
+  yBridge2.pulse_perc(0.0);
+
+  zBridge1.pulse_perc(0);
+  zBridge2.pulse_perc(0.0);
+
 }
 
 void loop() {
@@ -52,7 +65,7 @@ void loop() {
       // When newline is received, process the buffer
       if (parseValues(incomingData, x_1, x_2, y_1, y_2, z_1, z_2)) {
         updatePwmDutyCycles();
-        //Serial.println("Data received and applied: " + incomingData);  // Optional feedback
+        Serial.println("Data received and applied: " + incomingData);  // Optional feedback
       } else {
         //Serial.println("Error: Incorrect data format.");
       }

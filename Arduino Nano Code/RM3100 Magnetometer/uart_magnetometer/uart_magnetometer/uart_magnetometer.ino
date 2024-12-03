@@ -46,15 +46,15 @@ void setup() {
   SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));  
   
   Serial.begin(9600);
-  while(true) {
-    if (Serial.available()) {
-        String command = Serial.readStringUntil('\n');
-        if (command == "IDENTIFY") {
-            Serial.println("NANO");
-            break;
-        }
-    }
-  }  
+  // while(true) {
+  //   if (Serial.available()) {
+  //       String command = Serial.readStringUntil('\n');
+  //       if (command == "IDENTIFY") {
+  //           Serial.println("NANO");
+  //           break;
+  //       }
+  //   }
+  // }  
   
   delay(100);
 
