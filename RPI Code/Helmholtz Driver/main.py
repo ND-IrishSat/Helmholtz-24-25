@@ -42,9 +42,9 @@ Zp = 0.0
 Zn = 0.0
     
     # initial set positions, implement pysol reading here
-xSet = 0
-ySet = 0
-zSet = 0
+xSet = 24
+ySet = 70
+zSet = 100
 
     # arrays to hold initial offset values
 xAvg = []
@@ -84,6 +84,7 @@ while (time.time()-startTime < 10):
     magnetometerOutput = readMagnetometerValues(nanoSer)
 
     magnetometerOutput = magnetometerOutput.split(" ")
+    print(magnetometerOutput)
 
     magX = float(magnetometerOutput[0])
     magY = float(magnetometerOutput[1])
@@ -102,7 +103,7 @@ while (time.time()-startTime < 10):
     magOutputX.append(calMagX)
     magOutputY.append(calMagY)
     magOutputZ.append(calMagZ)
-    print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
+    #print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
     ##################################################################################################################
 
     if(initializing):
@@ -132,8 +133,11 @@ while (time.time()-startTime < 10):
         #print(str(xTemp) + " " + str(yTemp) + " " + str(zTemp))
 
     time.sleep(0.1)
+    #sendPWMValues(Yp, Yn, 0, 0, 0, 0, R4Ser)
+    #sendPWMValues(0, 0, Xn, Xp, 0, 0, R4Ser)
+    #sendPWMValues(0, 0, 0, 0, Zp, Zn, R4Ser)
     sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
-    readPWMValues(R4Ser)
+    #readPWMValues(R4Ser)
     #sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser) # sends PWM to R4 (currently trying with 1 direction)
 
     i+=1
