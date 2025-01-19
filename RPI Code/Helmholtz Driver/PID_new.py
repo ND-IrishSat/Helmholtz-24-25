@@ -13,6 +13,11 @@ def xPID(goalPoint, currentPoint, prevPoint, prevCntrlPos, prevCntrlNeg, maxVal,
     ki = xParameters[1]
     kd = xParameters[2]
 
+
+
+    kp = 2.1 - (goalPoint * 0.016)
+
+        
     if (prevCntrlPos == 0):
         prevCntrl = -prevCntrlNeg
     else:
@@ -55,6 +60,9 @@ def yPID(goalPoint, currentPoint, prevPoint, prevCntrlPos, prevCntrlNeg, maxVal,
     kp = yParameters[0]
     ki = yParameters[1]
     kd = yParameters[2]
+    
+    if(goalPoint > 20):
+        kp = 1
 
     if (prevCntrlPos == 0):
         prevCntrl = -prevCntrlNeg

@@ -43,9 +43,9 @@ Zn = 0.0
     
     # initial set positions, implement pysol reading here
     # Array for changing set values
-xSet = [17.39, 0]
-ySet = [-0.02, 0]
-zSet = [38.64, 0]
+xSet = [0, 60]
+ySet = [0, 0]
+zSet = [0, 0]
 
     # arrays to hold initial offset values
 xAvg = []
@@ -81,6 +81,7 @@ while (time.time()-startTime < 10):
         set_index = 0
     elif (time.time()-startTime < 10):
         set_index = 1
+
     
     #print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
     nanoSer.reset_input_buffer()
@@ -152,7 +153,7 @@ while (time.time()-startTime < 10):
     
 fig, ax = plt.subplots(3)
 ax[0].plot(timeVec, magOutputX)
-ax[0].set_ylim(-50, 50)
+ax[0].set_ylim(-50, 120)
 ax[1].plot(timeVec, magOutputY)
 ax[1].set_ylim(-50, 50)
 ax[2].plot(timeVec, magOutputZ)
