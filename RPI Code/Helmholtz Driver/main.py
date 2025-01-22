@@ -6,6 +6,7 @@ import struct
 import time
 import numpy
 import serial
+import math
 
 import matplotlib.pyplot as plt
 
@@ -43,9 +44,11 @@ Zn = 0.0
     
     # initial set positions, implement pysol reading here
     # Array for changing set values
-xSet = [0, 60]
-ySet = [0, 0]
-zSet = [0, 0]
+xSet = [0, 0, 0, 0]
+# ySet = [0, 10, 30, -10]
+zSet = [0, 0, 0, 0]
+
+yRamp = 0
 
     # arrays to hold initial offset values
 xAvg = []
@@ -73,15 +76,22 @@ i = 1
 startTime = time.time(); # get start time
 timeVec = [0]
 
-while (time.time()-startTime < 10):
+while (time.time()-startTime < 15):
     timeVec.append(time.time()-startTime)               
     ################################################################################################################## magnetometer reading
     #Change set values
-    if (time.time()-startTime < 5):
+    if (time.time()-startTime < 4):
         set_index = 0
     elif (time.time()-startTime < 10):
         set_index = 1
+    elif (time.time()-startTime < 15):
+        set_index = 2
+#     elif (time.time()-startTime < 16):
+#         set_index = 3
 
+    # Ramp Y values
+    # yRamp = (13/12) * (-1 * (time.time()-startTime)) * ((time.time()-startTime) - 15)
+    yRamp = 60 * math.sin(2 * math.pi * (time.time()-startTime) / 15)
     
     #print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
     nanoSer.reset_input_buffer()
@@ -124,7 +134,7 @@ while (time.time()-startTime < 10):
             #print(str(xOffset) + " " + str(yOffset) + " " + str(zOffset))
 
     [Xp, Xn] = xPID(xSet[set_index], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVec[i]-timeVec[i-1])
-    [Yp, Yn] = yPID(ySet[set_index], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVec[i]-timeVec[i-1])
+    [Yp, Yn] = yPID(yRamp, calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVec[i]-timeVec[i-1])
     [Zp, Zn] = zPID(zSet[set_index], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVec[i]-timeVec[i-1]) 
     
 
@@ -155,7 +165,7 @@ fig, ax = plt.subplots(3)
 ax[0].plot(timeVec, magOutputX)
 ax[0].set_ylim(-50, 120)
 ax[1].plot(timeVec, magOutputY)
-ax[1].set_ylim(-50, 50)
+ax[1].set_ylim(-75, 75)
 ax[2].plot(timeVec, magOutputZ)
 ax[2].set_ylim(-50, 50)
 plt.show()

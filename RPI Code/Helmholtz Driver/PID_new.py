@@ -3,7 +3,7 @@ xMagSet = 0
 
 #              P  I  D
 xParameters = [2.1, 0, 0]
-yParameters = [2, 0, 0]
+yParameters = [1, 0.75, 0]
 zParameters = [0.6, 0, 0]
 
 def xPID(goalPoint, currentPoint, prevPoint, prevCntrlPos, prevCntrlNeg, maxVal, dt):
@@ -15,7 +15,7 @@ def xPID(goalPoint, currentPoint, prevPoint, prevCntrlPos, prevCntrlNeg, maxVal,
 
 
 
-    kp = 2.1 - (goalPoint * 0.016)
+#     kp = 2.1 - (goalPoint * 0.016)
 
         
     if (prevCntrlPos == 0):
@@ -61,8 +61,8 @@ def yPID(goalPoint, currentPoint, prevPoint, prevCntrlPos, prevCntrlNeg, maxVal,
     ki = yParameters[1]
     kd = yParameters[2]
     
-    if(goalPoint > 20):
-        kp = 1
+#     if(goalPoint > 20):
+#         kp = 1
 
     if (prevCntrlPos == 0):
         prevCntrl = -prevCntrlNeg
