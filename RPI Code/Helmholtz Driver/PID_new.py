@@ -2,9 +2,9 @@
 xMagSet = 0
 
 #              P  I  D
-xParameters = [2.1, 0, 0]
-yParameters = [1, 0.75, 0]
-zParameters = [0.6, 0, 0]
+xParameters = [0.5, 0.2, 0]
+yParameters = [0.5, 0.2, 0]
+zParameters = [0.5, 0, 0]
 
 def xPID(goalPoint, currentPoint, prevPoint, prevCntrlPos, prevCntrlNeg, maxVal, dt):
     # output is pwm signal (0-100)

@@ -44,11 +44,13 @@ Zn = 0.0
     
     # initial set positions, implement pysol reading here
     # Array for changing set values
-xSet = [0, 0, 0, 0]
+# xSet = [0, 0, 0, 0]
 # ySet = [0, 10, 30, -10]
-zSet = [0, 0, 0, 0]
+# zSet = [0, 0, 0, 0]
 
+xRamp = 0
 yRamp = 0
+zRamp = 0
 
     # arrays to hold initial offset values
 xAvg = []
@@ -80,18 +82,22 @@ while (time.time()-startTime < 15):
     timeVec.append(time.time()-startTime)               
     ################################################################################################################## magnetometer reading
     #Change set values
-    if (time.time()-startTime < 4):
-        set_index = 0
-    elif (time.time()-startTime < 10):
-        set_index = 1
-    elif (time.time()-startTime < 15):
-        set_index = 2
+#     if (time.time()-startTime < 4):
+#         set_index = 0
+#     elif (time.time()-startTime < 10):
+#         set_index = 1
+#     elif (time.time()-startTime < 15):
+#         set_index = 2
 #     elif (time.time()-startTime < 16):
 #         set_index = 3
 
+    xRamp = 60 * math.sin(2 * math.pi * (time.time()-startTime) / 15)
+
     # Ramp Y values
     # yRamp = (13/12) * (-1 * (time.time()-startTime)) * ((time.time()-startTime) - 15)
-    yRamp = 60 * math.sin(2 * math.pi * (time.time()-startTime) / 15)
+    yRamp = -60 * math.sin(2 * math.pi * (time.time()-startTime) / 15)
+    
+    zRamp = 30 * math.cos(6 * math.pi * (time.time()-startTime) / 15)
     
     #print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
     nanoSer.reset_input_buffer()
@@ -133,9 +139,9 @@ while (time.time()-startTime < 15):
             initializing = False
             #print(str(xOffset) + " " + str(yOffset) + " " + str(zOffset))
 
-    [Xp, Xn] = xPID(xSet[set_index], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVec[i]-timeVec[i-1])
+    [Xp, Xn] = xPID(xRamp, calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVec[i]-timeVec[i-1])
     [Yp, Yn] = yPID(yRamp, calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVec[i]-timeVec[i-1])
-    [Zp, Zn] = zPID(zSet[set_index], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVec[i]-timeVec[i-1]) 
+    [Zp, Zn] = zPID(zRamp, calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVec[i]-timeVec[i-1]) 
     
 
     pwmPosOutputX.append(Xp)
@@ -163,7 +169,7 @@ while (time.time()-startTime < 15):
     
 fig, ax = plt.subplots(3)
 ax[0].plot(timeVec, magOutputX)
-ax[0].set_ylim(-50, 120)
+ax[0].set_ylim(-75, 75)
 ax[1].plot(timeVec, magOutputY)
 ax[1].set_ylim(-75, 75)
 ax[2].plot(timeVec, magOutputZ)
