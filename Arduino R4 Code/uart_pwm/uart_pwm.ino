@@ -37,14 +37,15 @@ void setup() {
 
   // Set PWM period and initial duty cycle for each bridge
 
-  xBridge1.begin(200, 0.0);
-  xBridge2.begin(200, 0.0);
+  xBridge1.begin(800, 0.0);
+  xBridge2.begin(800, 0.0);
 
-  yBridge1.begin(200, 0.0);
-  yBridge2.begin(200, 0.0);
 
-  zBridge1.begin(200, 0.0);
-  zBridge2.begin(200, 0.0);
+  yBridge1.begin(800, 0.0);
+  yBridge2.begin(800, 0.0);
+
+  zBridge1.begin(800, 0.0);
+  zBridge2.begin(800, 0.0);
 
   xBridge1.pulse_perc(0);
   xBridge2.pulse_perc(0.0);

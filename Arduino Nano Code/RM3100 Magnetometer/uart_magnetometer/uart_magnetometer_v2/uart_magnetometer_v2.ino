@@ -86,6 +86,7 @@ void setup() {
     writeReg(RM3100_CMM_REG, 0x79);
   }
 
+ // digitalWrite(PIN_CS, LOW);
 }
 
 void loop() {
@@ -108,7 +109,7 @@ void loop() {
   
   //read measurements
   digitalWrite(PIN_CS, LOW);
-  delay(100);
+  delay(10);
   SPI.transfer(0xA4);
   x2 = SPI.transfer(0xA5);
   x1 = SPI.transfer(0xA6);
@@ -152,13 +153,16 @@ void loop() {
   Serial.print(yMag);
   Serial.print(" ");
   Serial.println(zMag);
+
+  delay(10);
 }
 
 //addr is the 7 bit value of the register's address (without the R/W bit)
 uint8_t readReg(uint8_t addr){
+
   uint8_t data = 0;
   digitalWrite(PIN_CS, LOW);
-  delay(50);
+  delay(10);
   SPI.transfer(addr | 0x80); //OR with 0x80 to make first bit(read/write bit) high for read
   data = SPI.transfer(0);
   digitalWrite(PIN_CS, HIGH);
@@ -167,8 +171,9 @@ uint8_t readReg(uint8_t addr){
 
 //addr is the 7 bit (No r/w bit) value of the internal register's address, data is 8 bit data being written
 void writeReg(uint8_t addr, uint8_t data){
+
   digitalWrite(PIN_CS, LOW); 
-  delay(50);
+  delay(10);
   SPI.transfer(addr & 0x7F); //AND with 0x7F to make first bit(read/write bit) low for write
   SPI.transfer(data);
   digitalWrite(PIN_CS, HIGH);
@@ -176,11 +181,12 @@ void writeReg(uint8_t addr, uint8_t data){
 
 //newCC is the new cycle count value (16 bits) to change the data acquisition
 void changeCycleCount(uint16_t newCC){
+
   uint8_t CCMSB = (newCC & 0xFF00) >> 8; //get the most significant byte
   uint8_t CCLSB = newCC & 0xFF; //get the least significant byte
     
   digitalWrite(PIN_CS, LOW); 
-  delay(50);
+  delay(10);
   SPI.transfer(RM3100_CCX1_REG & 0x7F); //AND with 0x7F to make first bit(read/write bit) low for write
   SPI.transfer(CCMSB);  //write new cycle count to ccx1
   SPI.transfer(CCLSB);  //write new cycle count to ccx0
@@ -188,5 +194,6 @@ void changeCycleCount(uint16_t newCC){
   SPI.transfer(CCLSB);  //write new cycle count to ccy0
   SPI.transfer(CCMSB);  //write new cycle count to ccz1
   SPI.transfer(CCLSB);  //write new cycle count to ccz0
+
   digitalWrite(PIN_CS, HIGH);
 }
