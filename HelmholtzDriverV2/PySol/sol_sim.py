@@ -23,8 +23,6 @@ from itertools import count
 from math import remainder
 from time import strftime
 
-from test_folder.testfunction import tester
-
 # from tkinter.tix import DisplayStyle
 import spacecraft as sp 
 import orb_tools as ot 
