@@ -4,6 +4,7 @@ import time
 import math
 import matplotlib.pyplot as plt
 
+from PySol.sol_sim import generate_orbit_data
 from R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
 from PID import xPID, yPID, zPID # PID code
 from calibrateValues import calibrate # magnetometer calibration code 
