@@ -6,7 +6,7 @@
 
 import numpy as np
 
-import orb_tools as ot 
+from PySol import orb_tools as ot 
 
 
 class Spacecraft():

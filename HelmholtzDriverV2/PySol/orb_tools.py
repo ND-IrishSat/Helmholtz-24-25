@@ -10,8 +10,8 @@ import scipy as sci
 import numpy as np
 
 
-import orb_tools as ot
-import constants
+from PySol import orb_tools as ot
+from PySol import constants
 import datetime as dt
 
 import astropy.time as astro_time

@@ -10,7 +10,7 @@
 """
 
 import numpy as np
-import constants 
+# import constants 
 
 def R_E(units: str = 'km') -> int:
     R_E = 6371 # Earth's Radius in kilometers

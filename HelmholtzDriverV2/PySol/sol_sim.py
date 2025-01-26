@@ -24,9 +24,9 @@ from math import remainder
 from time import strftime
 
 # from tkinter.tix import DisplayStyle
-import spacecraft as sp 
-import orb_tools as ot 
-import models
+from PySol import spacecraft as sp 
+from PySol import orb_tools as ot 
+from PySol import models
 import astropy.time as astro_time
 
 import os
@@ -35,13 +35,13 @@ import datetime
 import numpy as np
 import scipy.integrate as sci
 import matplotlib.pyplot as plt
-import constants
+from PySol import constants
 
 import geopandas as gpd
 import geodatasets
 
+from PySol import wmm 
 from wmm import WMM
-
 
 # fix for geopandas depricating their dataset, probably slower
 # url = "https://naciscdn.org/naturalearth/110m/cultural/ne_110m_admin_0_countries.zip"
@@ -626,7 +626,7 @@ def generate_orbit_data(OE_array, total_time, timestep, file_name="b_field_data.
         
         # Full path to output file
         output_path = os.path.join(output_dir, file_name)
-        
+        print(output_path)
         # Save data to CSV
         with open(output_path, 'w') as f:
             # Write header with simulation parameters
@@ -730,7 +730,7 @@ def get_orbit_data(file_name, oe=None, total_time=None, timestep=None, GPS=False
 if __name__ == '__main__':
     
     oe = [121, 6_800, 0.0000922, 51, -10, 80]
-    total_time = 3
+    total_time = 0.3
     timestep = 1.0
     file_name = "test.csv"
     store_data = True
@@ -742,11 +742,7 @@ if __name__ == '__main__':
     # print(gps)
    # print("ram: ", ram)
     # print(get_orbit_data(file_name))
-
-    tester()
     '''
-    
-
     
     # 3/21, 2022
     t0 = datetime.datetime(2022, 3, 21, 0, 0, 0)
