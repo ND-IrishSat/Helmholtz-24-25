@@ -5,6 +5,8 @@
 import time
 import math
 import matplotlib.pyplot as plt
+import pandas as pd
+import os
 
 from PySol.sol_sim import generate_orbit_data
 from HelmholtzDriverV2.Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
@@ -28,6 +30,22 @@ generate_GPS = False
 generate_RAM = False
 
 generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
+
+script_dir = os.path.dirname(os.path.abspath(__file__))
+output_dir = os.path.join(script_dir, "PySol")
+os.makedirs(output_dir, exist_ok=True)
+        
+# Full path to output file
+output_path = os.path.join(output_dir, "outputs")
+output_path = os.path.join(output_path, file_name)
+
+dataFrame = pd.read_csv(output_path) # magnetic fields dataframe
+
+currentFields = []
+
+currentFields[0] = dataFrame.loc[0, 'Bx']
+currentFields[1] = dataFrame.loc[0, 'By']
+currentFields[2] = dataFrame.loc[0, 'Bz']
 
 ##########################################################################################
 

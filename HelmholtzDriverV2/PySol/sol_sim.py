@@ -630,7 +630,8 @@ def generate_orbit_data(OE_array, total_time, timestep, file_name="b_field_data.
         # Save data to CSV
         with open(output_path, 'w') as f:
             # Write header with simulation parameters
-            f.write(f"# f={OE_array[0]},a={OE_array[1]},e={OE_array[2]},i={OE_array[3]},Om={OE_array[4]},w={OE_array[5]},total_time={total_time},timestep={timestep}\n")
+            #f.write(f"# f={OE_array}")
+            #f.write(f"# f={OE_array[0]},a={OE_array[1]},e={OE_array[2]},i={OE_array[3]},Om={OE_array[4]},w={OE_array[5]},total_time={total_time},timestep={timestep}\n")
             
             if GPS:
                 # combine b field and gps data
