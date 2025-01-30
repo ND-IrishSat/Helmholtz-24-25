@@ -15,9 +15,9 @@ from Dependencies.extraneous import processStrings, calculateOffsets # import ex
 
 ########################################################################################## Settings
 
-runValues = 100 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
-startPos = 0 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
-runSpeed = 0.1 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
+runValues = 120 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
+startPos = 1000 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
+runSpeed = 1 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
 
 ########################################################################################## pysol initialization
 
@@ -29,7 +29,7 @@ store_data = True
 generate_GPS = False
 generate_RAM = False
 
-generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
+# generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_dir = os.path.join(script_dir, "PySol")
@@ -49,10 +49,10 @@ currentFields[2] = dataFrame.loc[startPos, 'Bz']
 
 ##########################################################################################
 
-# terminals = initiateUART()
-# time.sleep(1)
-# nanoSer = terminals[0]
-# R4Ser = terminals[1]
+terminals = initiateUART()
+time.sleep(1)
+nanoSer = terminals[0]
+R4Ser = terminals[1]
 
 # initial duty cycles, for manual mode set desired ones here
 Xp = 0.0
@@ -68,7 +68,7 @@ Zn = 0.0
 maxVal = 100 # max value of pwm signal (control output)
 
 # turn off cage at start
-# sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
+sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 time.sleep(2)
 
 
@@ -88,41 +88,46 @@ pwmPosOutputZ = [0]
 pwmNegOutputZ = [0]
 
 timeVector = [0]
-i = startPos + 1 # simulation position
+simPos = startPos + 1 # simulation position
+i = 1 # array positions
 
-fig, ax = plt.subplots(3)
+print("Running")
 
-while (i < len(dataFrame)):
+while (simPos < len(dataFrame)):
     timeVector.append(i)
     ################################################################################################################## magnetometer reading
-    # nanoSer.reset_input_buffer()
-    # nanoSer.reset_output_buffer()
+    nanoSer.reset_input_buffer()
+    nanoSer.reset_output_buffer()
     
-    # R4Ser.reset_input_buffer()
-    # R4Ser.reset_output_buffer()
-    # magnetometerOutput = readMagnetometerValues(nanoSer)
+    R4Ser.reset_input_buffer()
+    R4Ser.reset_output_buffer()
+    magnetometerOutput = readMagnetometerValues(nanoSer)
 
-#     magnetometerOutput = magnetometerOutput.split(" ")
-#     # print(magnetometerOutput)
+    magnetometerOutput = magnetometerOutput.split(" ")
+    print(magnetometerOutput)
 
-#     magX = float(magnetometerOutput[0])
-#     magY = float(magnetometerOutput[1])
-#     magZ = float(magnetometerOutput[2])
-
-#     calibratedValues = calibrate(magX, magY, magZ) # apply calibration
+    try:
+        magX = float(magnetometerOutput[0])
+        magY = float(magnetometerOutput[1])
+        magZ = float(magnetometerOutput[2])    
+        
+        calibratedValues = calibrate(magX, magY, magZ) # apply calibration
 
 # #     print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
 
-#     calMagX = round(calibratedValues[0], 2)
-#     calMagY = round(calibratedValues[1], 2)
-#     calMagZ = round(calibratedValues[2], 2)
+        calMagX = round(calibratedValues[0], 2)
+        calMagY = round(calibratedValues[1], 2)
+        calMagZ = round(calibratedValues[2], 2)
+    
+    except:
+        
+        calMagX = magOutputX[len(magOutputX) - 1]
+        calMagY = magOutputY[len(magOutputY) - 1]
+        calMagZ = magOutputZ[len(magOutputZ) - 1]
     
 # #     # purely for readable format, adds necessary zeros to preserve 2 decimal format
-#     magStrings = processStrings(calMagX, calMagY, calMagZ)
+    magStrings = processStrings(calMagX, calMagY, calMagZ)
 
-    calMagX = 1
-    calMagY = 2
-    calMagZ = 3
     magOutputX.append(calMagX)
     magOutputY.append(calMagY)
     magOutputZ.append(calMagZ)
@@ -145,50 +150,55 @@ while (i < len(dataFrame)):
     pwmPosOutputZ.append(Zp)
     pwmNegOutputZ.append(Zn)
 
-    #sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
+    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
 
     simulationProgressX.append(currentFields[0])
     simulationProgressY.append(currentFields[1])
     simulationProgressZ.append(currentFields[2])
 
 
-    ax[0].plot(timeVector,magOutputX)
-    ax[0].plot(timeVector, simulationProgressX)
-
-    ax[1].plot(timeVector,magOutputY)
-    ax[1].plot(timeVector, simulationProgressY)
-
-    ax[2].plot(timeVector,magOutputZ)
-    ax[2].plot(timeVector, simulationProgressZ)
-
-    fig.show()
-    
-    fig.canvas.draw()
- 
-    fig.canvas.flush_events()
+#     ax[0].plot(timeVector,magOutputX)
+#     ax[0].plot(timeVector, simulationProgressX)
+# 
+#     ax[1].plot(timeVector,magOutputY)
+#     ax[1].plot(timeVector, simulationProgressY)
+# 
+#     ax[2].plot(timeVector,magOutputZ)
+#     ax[2].plot(timeVector, simulationProgressZ)
+# 
+#     fig.show()
+#     
+#     fig.canvas.draw()
+#  
+#     fig.canvas.flush_events()
     
     time.sleep(1 * runSpeed)
 
     i += 1
+    simPos += 1
 
-    currentFields[0] = dataFrame.loc[i - 1, 'Bx']
-    currentFields[1] = dataFrame.loc[i - 1, 'By']
-    currentFields[2] = dataFrame.loc[i - 1, 'Bz']
+    currentFields[0] = dataFrame.loc[simPos - 1, 'Bx']
+    currentFields[1] = dataFrame.loc[simPos - 1, 'By']
+    currentFields[2] = dataFrame.loc[simPos - 1, 'Bz']
 
     if(i >= runValues):
         break
 
 
 
-ax[0].plot(timeVector,magOutputX)
-ax[0].plot(timeVector, simulationProgressX)
 
-ax[1].plot(timeVector,magOutputY)
-ax[1].plot(timeVector, simulationProgressY)
+fig, ax = plt.subplots(3)
 
-ax[2].plot(timeVector,magOutputZ)
-ax[2].plot(timeVector, simulationProgressZ)
+ax[0].plot(timeVector,magOutputX, color = "red", label = "Real")
+ax[0].plot(timeVector, simulationProgressX, color = "blue", label = "PySOL")
 
+ax[1].plot(timeVector,magOutputY, color = "red")
+ax[1].plot(timeVector, simulationProgressY,  color = "blue")
+
+ax[2].plot(timeVector,magOutputZ, color = "red")
+ax[2].plot(timeVector, simulationProgressZ, color = "blue")
+
+plt.legend(loc = "upper left")
 plt.show()
 
 
