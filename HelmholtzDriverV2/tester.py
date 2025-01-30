@@ -31,7 +31,51 @@ Zn = 0.0
     
 
 maxVal = 100 # max value of pwm signal (control output)
-
+magOutputX = [0]
+magOutputY = [0]
+magOutputZ = [0]
 # turn off cage at start
-sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
+sendPWMValues(0, 0, 0, 0, 0, 99, R4Ser)
+
+while (True):
+
+    ################################################################################################################## magnetometer reading
+    nanoSer.reset_input_buffer()
+    nanoSer.reset_output_buffer()
+    
+    R4Ser.reset_input_buffer()
+    R4Ser.reset_output_buffer()
+    magnetometerOutput = readMagnetometerValues(nanoSer)
+
+    magnetometerOutput = magnetometerOutput.split(" ")
+    print(magnetometerOutput)
+
+    try:
+        magX = float(magnetometerOutput[0])
+        magY = float(magnetometerOutput[1])
+        magZ = float(magnetometerOutput[2])    
+        
+        calibratedValues = calibrate(magX, magY, magZ) # apply calibration
+
+# #     print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
+
+        calMagX = round(calibratedValues[0], 2)
+        calMagY = round(calibratedValues[1], 2)
+        calMagZ = round(calibratedValues[2], 2)
+    
+    except:
+        
+        calMagX = magOutputX[len(magOutputX) - 1]
+        calMagY = magOutputY[len(magOutputY) - 1]
+        calMagZ = magOutputZ[len(magOutputZ) - 1]
+    
+# #     # purely for readable format, adds necessary zeros to preserve 2 decimal format
+    magStrings = processStrings(calMagX, calMagY, calMagZ)
+
+    magOutputX.append(calMagX)
+    magOutputY.append(calMagY)
+    magOutputZ.append(calMagZ)
+    print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
+
+    ##################################################################################################################
 
