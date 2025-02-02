@@ -16,7 +16,7 @@ from Dependencies.extraneous import processStrings, calculateOffsets # import ex
 ########################################################################################## Settings
 
 runValues = 120 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
-startPos = 1000 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
+startPos = 0 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
 runSpeed = 1 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
 
 ########################################################################################## pysol initialization
