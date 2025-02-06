@@ -47,6 +47,8 @@ currentFields[0] = dataFrame.loc[startPos, 'Bx']
 currentFields[1] = dataFrame.loc[startPos, 'By']
 currentFields[2] = dataFrame.loc[startPos, 'Bz']
 
+df = pd.DataFrame(columns=["SIM X", "SIM Y", "SIM Z", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
+
 ##########################################################################################
 
 terminals = initiateUART()
@@ -142,22 +144,30 @@ while (simPos < len(dataFrame)):
     [Xp, Xn] = xPID(currentFields[0], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVector[i]-timeVector[i-1])
     [Yp, Yn] = yPID(currentFields[1], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVector[i]-timeVector[i-1])
     [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1])
+
+    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
+
+    pwmPosOutputX.append(Xp)
+    pwmNegOutputX.append(Xn)
+    
+    pwmPosOutputY.append(Yp)
+    pwmNegOutputY.append(Yn)
+    
+    pwmPosOutputZ.append(Zp)
+    pwmNegOutputZ.append(Zn)
     
     # Sleeps for 1/x runSpeed so the PID attempts to get it x times before appending to list
     time.sleep(runSpeed / 10)
 
     # Doesn't append anything until set time has elapsed   
     if millis() - t0 > 1000 * runSpeed:
-        pwmPosOutputX.append(Xp)
-        pwmNegOutputX.append(Xn)
+        # Adds relevant info to dataframe for output csv
+        row = pd.DataFrame([{"SIM X": currentFields[0], "SIM Y": currentFields[1], "SIM Z": currentFields[0], 
+                             "PWM_X+": Xp, "PWM_X-": Xn,
+                             "PWM_Y+": Yp, "PWM_Y-": Yn,
+                             "PWM_Z+": Zp, "PWM_Z-": Zn,}])
         
-        pwmPosOutputY.append(Yp)
-        pwmNegOutputY.append(Yn)
-        
-        pwmPosOutputZ.append(Zp)
-        pwmNegOutputZ.append(Zn)
-
-        sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
+        df = pd.concat([df, row], ignore_index=True)
 
         simulationProgressX.append(currentFields[0])
         simulationProgressY.append(currentFields[1])
@@ -191,6 +201,10 @@ while (simPos < len(dataFrame)):
 #  
 #       fig.canvas.flush_events()
 
+# Creates output CSV file
+df.to_csv("OUTPUT_DATA.csv", index=True)
+
+# Plots data
 fig, ax = plt.subplots(3)
 
 ax[0].plot(timeVector,magOutputX, color = "red", label = "Real")
