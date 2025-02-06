@@ -140,7 +140,10 @@ while (simPos < len(dataFrame)):
 
     [Xp, Xn] = xPID(currentFields[0], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVector[i]-timeVector[i-1])
     [Yp, Yn] = yPID(currentFields[1], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVector[i]-timeVector[i-1])
-    [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1]) 
+    [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1])
+    
+    # Sleeps for 1/x runSpeed so the PID attempts to get it x times before appending to list
+    time.sleep(runSpeed / 10)
 
     # Doesn't append anything until set time has elapsed   
     if millis() - t0 > 1000 * runSpeed:
