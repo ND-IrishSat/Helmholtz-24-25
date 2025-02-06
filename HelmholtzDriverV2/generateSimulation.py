@@ -18,7 +18,12 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 runValues = 30 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
 startPos = 5060 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
 runSpeed = 1 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
-renderFidelity = 20
+renderFidelity = 10 * runSpeed # number of tries the PID gets 
+
+usingPYSOL = False
+
+inputFileName = "zeroed.csv"
+outputFileName = "runZeroed.csv"
 
 ########################################################################################## pysol initialization
 
@@ -40,7 +45,12 @@ os.makedirs(output_dir, exist_ok=True)
 output_path = os.path.join(output_dir, "outputs")
 output_path = os.path.join(output_path, file_name)
 
-dataFrame = pd.read_csv(output_path) # magnetic fields dataframe
+dataFrame = 0
+
+if(usingPYSOL):
+    dataFrame = pd.read_csv(output_path) # magnetic fields dataframe
+else:
+    dataFrame = pd.read_csv(inputFileName)
 
 currentFields = [0, 0, 0]
 
@@ -221,7 +231,7 @@ while (simPos < len(dataFrame)):
 #       fig.canvas.flush_events()
 
 # Creates output CSV file
-df.to_csv("OUTPUT_DATA.csv", index=True)
+df.to_csv(outputFileName, index=True)
 
 # Plots data
 fig, ax = plt.subplots(3)
@@ -235,5 +245,4 @@ ax[1].plot(timeVector, simulationProgressY,  color = "blue")
 ax[2].plot(timeVector,magOutputZ, color = "red")
 ax[2].plot(timeVector, simulationProgressZ, color = "blue")
 
-plt.legend(loc = "upper left")
 plt.show()
