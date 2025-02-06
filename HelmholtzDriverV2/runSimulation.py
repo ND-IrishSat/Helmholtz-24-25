@@ -88,20 +88,20 @@ while(True):
     print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
 
 
-    currentFields[0] = dataFrame.loc[i, 'Bx']
-    currentFields[1] = dataFrame.loc[i, 'By']
-    currentFields[2] = dataFrame.loc[i, 'Bz']
+    currentFields[0] = dataFrame.loc[i, 'SIMX']
+    currentFields[1] = dataFrame.loc[i, 'SIMY']
+    currentFields[2] = dataFrame.loc[i, 'SIMZ']
 
     simulationX.append(currentFields[0])
     simulationY.append(currentFields[1])
     simulationZ.append(currentFields[2])
 
-    currentPWMVals[0] = dataFrame.loc[i, 'Px']
-    currentPWMVals[1] = dataFrame.loc[i, 'Nx']
-    currentPWMVals[2] = dataFrame.loc[i, 'Py']
-    currentPWMVals[3] = dataFrame.loc[i, 'Ny']
-    currentPWMVals[4] = dataFrame.loc[i, 'Pz']
-    currentPWMVals[5] = dataFrame.loc[i, 'Nz']
+    currentPWMVals[0] = dataFrame.loc[i, 'PWM_X+']
+    currentPWMVals[1] = dataFrame.loc[i, 'PWM_X-']
+    currentPWMVals[2] = dataFrame.loc[i, 'PWM_Y+']
+    currentPWMVals[3] = dataFrame.loc[i, 'PWM_Y-']
+    currentPWMVals[4] = dataFrame.loc[i, 'PWM_Z+']
+    currentPWMVals[5] = dataFrame.loc[i, 'PWM_Z-']
 
     sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5])
 

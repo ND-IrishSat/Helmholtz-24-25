@@ -15,7 +15,7 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 
 ########################################################################################## Settings
 
-runValues = 120 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
+runValues = 50 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
 startPos = 5060 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
 runSpeed = 1 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
 renderFidelity = 10
@@ -93,6 +93,9 @@ timeVector = [0]
 simPos = startPos + 1 # simulation position
 i = 1 # array positions
 
+i_best = 1 # best attempt index
+err_best = 10000 # best attempt error
+
 print("Running")
 
 appendedTimes = 0
@@ -162,15 +165,24 @@ while (simPos < len(dataFrame)):
     simulationProgressX.append(currentFields[0])
     simulationProgressY.append(currentFields[1])
     simulationProgressZ.append(currentFields[2])
+
+    err_current = (abs(simulationProgressX[i] - magOutputX[i])) + (abs(simulationProgressY[i] - magOutputY[i])) + (abs(simulationProgressZ[i] - magOutputZ[i]))
+    print("Err Current: ", end=" ")
+    print(err_current)
+    if (err_current < err_best):
+        print("Err Best: ", end=" ")
+        print(err_best)
+        err_best = err_current
+        i_best = i
     
     # Doesn't append anything until set time has elapsed
     appendedTimes += 1
     if((millis() - t0) > (1000 * runSpeed) + (renderFidelity * 13)):
         # Adds relevant info to dataframe for output csv
-        row = pd.DataFrame([{"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[0], 
-                             "PWM_X+": Xp, "PWM_X-": Xn,
-                             "PWM_Y+": Yp, "PWM_Y-": Yn,
-                             "PWM_Z+": Zp, "PWM_Z-": Zn,}])
+        row = pd.DataFrame([{"SIMX": simulationProgressX[i_best], "SIMY": simulationProgressY[i_best], "SIMZ": simulationProgressZ[i_best], 
+                             "PWM_X+": pwmPosOutputX[i_best], "PWM_X-": pwmNegOutputX[i_best],
+                             "PWM_Y+": pwmPosOutputY[i_best], "PWM_Y-": pwmNegOutputY[i_best],
+                             "PWM_Z+": pwmPosOutputZ[i_best], "PWM_Z-": pwmNegOutputZ[i_best],}])
         
         df = pd.concat([df, row], ignore_index=True)
 
@@ -184,6 +196,7 @@ while (simPos < len(dataFrame)):
         print("appended" + str(appendedTimes))
         appendedTimes = 0
         t0 = millis()
+        err_best = 10000
         
     i += 1
     if(i >= runValues * renderFidelity):
