@@ -15,7 +15,7 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 
 ########################################################################################## Settings
 
-runValues = 120 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
+runValues = 50 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
 startPos = 5060 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
 runSpeed = 1 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
 renderFidelity = 10
@@ -167,7 +167,11 @@ while (simPos < len(dataFrame)):
     simulationProgressZ.append(currentFields[2])
 
     err_current = (abs(simulationProgressX[i] - magOutputX[i])) + (abs(simulationProgressY[i] - magOutputY[i])) + (abs(simulationProgressZ[i] - magOutputZ[i]))
+    print("Err Current: ", end=" ")
+    print(err_current)
     if (err_current < err_best):
+        print("Err Best: ", end=" ")
+        print(err_best)
         err_best = err_current
         i_best = i
     
@@ -192,6 +196,7 @@ while (simPos < len(dataFrame)):
         print("appended" + str(appendedTimes))
         appendedTimes = 0
         t0 = millis()
+        err_best = 10000
         
     i += 1
     if(i >= runValues * renderFidelity):
