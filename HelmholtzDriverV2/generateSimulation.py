@@ -93,8 +93,9 @@ i = 1 # array positions
 
 print("Running")
 
+t0 = millis()
+
 while (simPos < len(dataFrame)):
-    t0 = millis()
 
     timeVector.append(i)
     ################################################################################################################## magnetometer reading
@@ -169,6 +170,8 @@ while (simPos < len(dataFrame)):
         currentFields[0] = dataFrame.loc[simPos - 1, 'Bx']
         currentFields[1] = dataFrame.loc[simPos - 1, 'By']
         currentFields[2] = dataFrame.loc[simPos - 1, 'Bz']
+
+        t0 = millis()
 
         if(i >= runValues):
             break
