@@ -29,5 +29,7 @@ def processStrings(magX, magY, magZ):
 
     return results
 
-
+# millis() function from arduino
+def millis():
+    return int(round(time.time() * 1000))
 

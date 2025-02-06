@@ -11,7 +11,7 @@ from PySol.sol_sim import generate_orbit_data
 from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
 from Dependencies.PID import xPID, yPID, zPID # PID code
 from Dependencies.calibrateValues import calibrate # magnetometer calibration code 
-from Dependencies.extraneous import processStrings, calculateOffsets # import extraneous functions
+from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
 
 ########################################################################################## Settings
 
@@ -94,6 +94,8 @@ i = 1 # array positions
 print("Running")
 
 while (simPos < len(dataFrame)):
+    t0 = millis()
+
     timeVector.append(i)
     ################################################################################################################## magnetometer reading
     nanoSer.reset_input_buffer()
@@ -139,53 +141,49 @@ while (simPos < len(dataFrame)):
     [Xp, Xn] = xPID(currentFields[0], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVector[i]-timeVector[i-1])
     [Yp, Yn] = yPID(currentFields[1], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVector[i]-timeVector[i-1])
     [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1]) 
+
+    # Doesn't append anything until set time has elapsed   
+    if millis() - t0 > 1000 * runSpeed:
+        pwmPosOutputX.append(Xp)
+        pwmNegOutputX.append(Xn)
+        
+        pwmPosOutputY.append(Yp)
+        pwmNegOutputY.append(Yn)
+        
+        pwmPosOutputZ.append(Zp)
+        pwmNegOutputZ.append(Zn)
+
+        sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
+
+        simulationProgressX.append(currentFields[0])
+        simulationProgressY.append(currentFields[1])
+        simulationProgressZ.append(currentFields[2])
+        
+        # Moves simulation forward
+        i += 1
+        simPos += 1
+
+        currentFields[0] = dataFrame.loc[simPos - 1, 'Bx']
+        currentFields[1] = dataFrame.loc[simPos - 1, 'By']
+        currentFields[2] = dataFrame.loc[simPos - 1, 'Bz']
+
+        if(i >= runValues):
+            break
     
-
-    pwmPosOutputX.append(Xp)
-    pwmNegOutputX.append(Xn)
-    
-    pwmPosOutputY.append(Yp)
-    pwmNegOutputY.append(Yn)
-    
-    pwmPosOutputZ.append(Zp)
-    pwmNegOutputZ.append(Zn)
-
-    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
-
-    simulationProgressX.append(currentFields[0])
-    simulationProgressY.append(currentFields[1])
-    simulationProgressZ.append(currentFields[2])
-
-
-#     ax[0].plot(timeVector,magOutputX)
-#     ax[0].plot(timeVector, simulationProgressX)
+#       ax[0].plot(timeVector,magOutputX)
+#       ax[0].plot(timeVector, simulationProgressX)
 # 
-#     ax[1].plot(timeVector,magOutputY)
-#     ax[1].plot(timeVector, simulationProgressY)
+#       ax[1].plot(timeVector,magOutputY)
+#       ax[1].plot(timeVector, simulationProgressY)
 # 
-#     ax[2].plot(timeVector,magOutputZ)
-#     ax[2].plot(timeVector, simulationProgressZ)
+#       ax[2].plot(timeVector,magOutputZ)
+#       ax[2].plot(timeVector, simulationProgressZ)
 # 
-#     fig.show()
+#       fig.show()
 #     
-#     fig.canvas.draw()
+#       fig.canvas.draw()
 #  
-#     fig.canvas.flush_events()
-    
-    time.sleep(1 * runSpeed)
-
-    i += 1
-    simPos += 1
-
-    currentFields[0] = dataFrame.loc[simPos - 1, 'Bx']
-    currentFields[1] = dataFrame.loc[simPos - 1, 'By']
-    currentFields[2] = dataFrame.loc[simPos - 1, 'Bz']
-
-    if(i >= runValues):
-        break
-
-
-
+#       fig.canvas.flush_events()
 
 fig, ax = plt.subplots(3)
 
@@ -200,5 +198,3 @@ ax[2].plot(timeVector, simulationProgressZ, color = "blue")
 
 plt.legend(loc = "upper left")
 plt.show()
-
-
