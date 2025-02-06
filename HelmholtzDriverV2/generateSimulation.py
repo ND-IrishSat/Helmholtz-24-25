@@ -155,10 +155,14 @@ while (simPos < len(dataFrame)):
     
     pwmPosOutputZ.append(Zp)
     pwmNegOutputZ.append(Zn)
-    
+        
     # Sleeps for 1/x runSpeed so the PID attempts to get it x times before appending to list
     time.sleep(runSpeed / 10)
 
+    simulationProgressX.append(currentFields[0])
+    simulationProgressY.append(currentFields[1])
+    simulationProgressZ.append(currentFields[2])
+    
     # Doesn't append anything until set time has elapsed   
     if millis() - t0 > 1000 * runSpeed:
         # Adds relevant info to dataframe for output csv
@@ -169,22 +173,18 @@ while (simPos < len(dataFrame)):
         
         df = pd.concat([df, row], ignore_index=True)
 
-        simulationProgressX.append(currentFields[0])
-        simulationProgressY.append(currentFields[1])
-        simulationProgressZ.append(currentFields[2])
         
-        # Moves simulation forward
-        i += 1
-        simPos += 1
-
         currentFields[0] = dataFrame.loc[simPos - 1, 'Bx']
         currentFields[1] = dataFrame.loc[simPos - 1, 'By']
         currentFields[2] = dataFrame.loc[simPos - 1, 'Bz']
+       
+        simPos += 1
 
         t0 = millis()
-
-        if(i >= runValues):
-            break
+        
+    i += 1
+    if(i >= runValues):
+        break
     
 #       ax[0].plot(timeVector,magOutputX)
 #       ax[0].plot(timeVector, simulationProgressX)
