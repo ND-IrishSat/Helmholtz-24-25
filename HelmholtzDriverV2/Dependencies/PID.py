@@ -2,9 +2,9 @@
 xMagSet = 0
 
 #              P  I  D
-xParameters = [0.25, 0, 0]
-yParameters = [0.25, 0, 0]
-zParameters = [0.25, 0, 0]
+xParameters = [0.5, 0, 0]
+yParameters = [0.5, 0, 0]
+zParameters = [0.5, 0, 0]
 # 0.2
 
 def xPID(goalPoint, currentPoint, prevPoint, prevCntrlPos, prevCntrlNeg, maxVal, dt):

@@ -91,13 +91,13 @@ while (time.time()-startTime < 15):
 #     elif (time.time()-startTime < 16):
 #         set_index = 3
 
-    xRamp = 60 * math.sin(2 * math.pi * (time.time()-startTime) / 15)
+    xRamp = 70 * math.sin(2 * math.pi * (time.time()-startTime) / 15)
 
     # Ramp Y values
     # yRamp = (13/12) * (-1 * (time.time()-startTime)) * ((time.time()-startTime) - 15)
-    yRamp = -60 * math.sin(2 * math.pi * (time.time()-startTime) / 15)
+    yRamp = -70 * math.sin(2 * math.pi * (time.time()-startTime) / 15)
     
-    zRamp = 30 * math.cos(6 * math.pi * (time.time()-startTime) / 15)
+    zRamp = 60 * math.cos(6 * math.pi * (time.time()-startTime) / 15)
     
     #print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
     nanoSer.reset_input_buffer()

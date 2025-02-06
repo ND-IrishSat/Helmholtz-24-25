@@ -18,7 +18,7 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 runValues = 120 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
 startPos = 5060 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
 runSpeed = 1 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
-
+renderFidelity = 10
 ########################################################################################## pysol initialization
 
 oe = [121, 6_800, 0.0000922, 51, -10, 80]
@@ -95,6 +95,7 @@ i = 1 # array positions
 
 print("Running")
 
+appendedTimes = 0
 t0 = millis()
 
 while (simPos < len(dataFrame)):
@@ -157,14 +158,14 @@ while (simPos < len(dataFrame)):
     pwmNegOutputZ.append(Zn)
         
     # Sleeps for 1/x runSpeed so the PID attempts to get it x times before appending to list
-    time.sleep(runSpeed / 10)
 
     simulationProgressX.append(currentFields[0])
     simulationProgressY.append(currentFields[1])
     simulationProgressZ.append(currentFields[2])
     
-    # Doesn't append anything until set time has elapsed   
-    if millis() - t0 > 1000 * runSpeed:
+    # Doesn't append anything until set time has elapsed
+    appendedTimes += 1
+    if((millis() - t0) > (1000 * runSpeed) + (renderFidelity * 13)):
         # Adds relevant info to dataframe for output csv
         row = pd.DataFrame([{"SIM X": currentFields[0], "SIM Y": currentFields[1], "SIM Z": currentFields[0], 
                              "PWM_X+": Xp, "PWM_X-": Xn,
@@ -179,12 +180,16 @@ while (simPos < len(dataFrame)):
         currentFields[2] = dataFrame.loc[simPos - 1, 'Bz']
        
         simPos += 1
-
+        
+        print("appended" + str(appendedTimes))
+        appendedTimes = 0
         t0 = millis()
         
     i += 1
-    if(i >= runValues):
+    if(i >= runValues * renderFidelity):
         break
+    
+    time.sleep(runSpeed / renderFidelity)
     
 #       ax[0].plot(timeVector,magOutputX)
 #       ax[0].plot(timeVector, simulationProgressX)
