@@ -9,7 +9,7 @@ from Dependencies.calibrateValues import calibrate # magnetometer calibration co
 from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
 
 
-dataFrame = pd.read_csv("filename") # magnetic fields dataframe
+dataFrame = pd.read_csv("OUTPUT_DATA.csv") # magnetic fields dataframe
 
 ################################################################################ Run parameters
 
@@ -47,14 +47,27 @@ simulationX = []
 simulationY = []
 simulationZ = []
 
+currentPWMVals[0] = dataFrame.loc[i, 'PWM_X+']
+currentPWMVals[1] = dataFrame.loc[i, 'PWM_X-']
+currentPWMVals[2] = dataFrame.loc[i, 'PWM_Y+']
+currentPWMVals[3] = dataFrame.loc[i, 'PWM_Y-']
+currentPWMVals[4] = dataFrame.loc[i, 'PWM_Z+']
+currentPWMVals[5] = dataFrame.loc[i, 'PWM_Z-']
+
+sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
+time.sleep(1)
+
 while(True):
 
+    
     ################################################################################################################## magnetometer reading
     nanoSer.reset_input_buffer()
     nanoSer.reset_output_buffer()
     
     R4Ser.reset_input_buffer()
     R4Ser.reset_output_buffer()
+    
+       
     magnetometerOutput = readMagnetometerValues(nanoSer)
 
     magnetometerOutput = magnetometerOutput.split(" ")
@@ -87,6 +100,14 @@ while(True):
     magOutputZ.append(calMagZ)
     print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
 
+    currentPWMVals[0] = dataFrame.loc[i, 'PWM_X+']
+    currentPWMVals[1] = dataFrame.loc[i, 'PWM_X-']
+    currentPWMVals[2] = dataFrame.loc[i, 'PWM_Y+']
+    currentPWMVals[3] = dataFrame.loc[i, 'PWM_Y-']
+    currentPWMVals[4] = dataFrame.loc[i, 'PWM_Z+']
+    currentPWMVals[5] = dataFrame.loc[i, 'PWM_Z-']
+
+    sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
 
     currentFields[0] = dataFrame.loc[i, 'SIMX']
     currentFields[1] = dataFrame.loc[i, 'SIMY']
@@ -96,25 +117,17 @@ while(True):
     simulationY.append(currentFields[1])
     simulationZ.append(currentFields[2])
 
-    currentPWMVals[0] = dataFrame.loc[i, 'PWM_X+']
-    currentPWMVals[1] = dataFrame.loc[i, 'PWM_X-']
-    currentPWMVals[2] = dataFrame.loc[i, 'PWM_Y+']
-    currentPWMVals[3] = dataFrame.loc[i, 'PWM_Y-']
-    currentPWMVals[4] = dataFrame.loc[i, 'PWM_Z+']
-    currentPWMVals[5] = dataFrame.loc[i, 'PWM_Z-']
-
-    sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5])
-
     i += 1
-
+    
+    timeVector.append(timeVar)
+    timeVar += 1
     if(i == len(dataFrame) - 1):
         if(loop):
             i = startPosition
         else:
             break
 
-    timeVector.append(timeVar)
-    timeVar += 1
+  
 
     time.sleep(runSpeed)
 
@@ -129,3 +142,5 @@ ax[1].plot(timeVector, simulationY,  color = "blue")
 
 ax[2].plot(timeVector,magOutputZ, color = "red")
 ax[2].plot(timeVector, simulationZ, color = "blue")
+
+plt.show()

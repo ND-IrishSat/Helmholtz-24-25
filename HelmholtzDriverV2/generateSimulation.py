@@ -15,10 +15,11 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 
 ########################################################################################## Settings
 
-runValues = 50 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
+runValues = 30 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
 startPos = 5060 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
 runSpeed = 1 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
-renderFidelity = 10
+renderFidelity = 20
+
 ########################################################################################## pysol initialization
 
 oe = [121, 6_800, 0.0000922, 51, -10, 80]
@@ -47,7 +48,7 @@ currentFields[0] = dataFrame.loc[startPos, 'Bx']
 currentFields[1] = dataFrame.loc[startPos, 'By']
 currentFields[2] = dataFrame.loc[startPos, 'Bz']
 
-df = pd.DataFrame(columns=["SIM X", "SIM Y", "SIM Z", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
+df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
 
 ##########################################################################################
 
