@@ -93,6 +93,9 @@ timeVector = [0]
 simPos = startPos + 1 # simulation position
 i = 1 # array positions
 
+i_best = 1 # best attempt index
+err_best = 10000 # best attempt error
+
 print("Running")
 
 appendedTimes = 0
@@ -162,15 +165,20 @@ while (simPos < len(dataFrame)):
     simulationProgressX.append(currentFields[0])
     simulationProgressY.append(currentFields[1])
     simulationProgressZ.append(currentFields[2])
+
+    err_current = (abs(simulationProgressX[i] - magOutputX[i])) + (abs(simulationProgressY[i] - magOutputY[i])) + (abs(simulationProgressZ[i] - magOutputZ[i]))
+    if (err_current < err_best):
+        err_best = err_current
+        i_best = i
     
     # Doesn't append anything until set time has elapsed
     appendedTimes += 1
     if((millis() - t0) > (1000 * runSpeed) + (renderFidelity * 13)):
         # Adds relevant info to dataframe for output csv
-        row = pd.DataFrame([{"SIM X": currentFields[0], "SIM Y": currentFields[1], "SIM Z": currentFields[0], 
-                             "PWM_X+": Xp, "PWM_X-": Xn,
-                             "PWM_Y+": Yp, "PWM_Y-": Yn,
-                             "PWM_Z+": Zp, "PWM_Z-": Zn,}])
+        row = pd.DataFrame([{"SIM X": simulationProgressX[i_best], "SIM Y": simulationProgressY[i_best], "SIM Z": simulationProgressZ[i_best], 
+                             "PWM_X+": pwmPosOutputX[i_best], "PWM_X-": pwmNegOutputX[i_best],
+                             "PWM_Y+": pwmPosOutputY[i_best], "PWM_Y-": pwmNegOutputY[i_best],
+                             "PWM_Z+": pwmPosOutputZ[i_best], "PWM_Z-": pwmNegOutputZ[i_best],}])
         
         df = pd.concat([df, row], ignore_index=True)
 
