@@ -9,14 +9,15 @@ from Dependencies.calibrateValues import calibrate # magnetometer calibration co
 from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
 
 
-dataFrame = pd.read_csv("OUTPUT_DATA.csv") # magnetic fields dataframe
+dataFrame = pd.read_csv("runZeroed.csv") # magnetic fields dataframe
 
 ################################################################################ Run parameters
 
-loop = False # if true, simulation will start from the beginning upon reaching the end
+loop = True # if true, simulation will loop 1 value
 runSpeed = 1 # delay time in seconds between each simulation value, so 1 is real time
 startPosition = 0 # index of the dataframe to start in
-
+runMax = 300
+runTimes = 0
 ################################################################################
 
 #                x  y  z
@@ -107,6 +108,9 @@ while(True):
     currentPWMVals[4] = dataFrame.loc[i, 'PWM_Z+']
     currentPWMVals[5] = dataFrame.loc[i, 'PWM_Z-']
 
+
+    
+
     sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
 
     currentFields[0] = dataFrame.loc[i, 'SIMX']
@@ -121,15 +125,16 @@ while(True):
     
     timeVector.append(timeVar)
     timeVar += 1
-    if(i == len(dataFrame) - 1):
-        if(loop):
-            i = startPosition
-        else:
+    
+    if(loop):
+        if(runTimes > runMax):
             break
+        else:
+            i = startPosition
+        
+    runTimes += 1
 
-  
-
-    time.sleep(runSpeed)
+    time.sleep(runSpeed/ 10)
 
 
 fig, ax = plt.subplots(3)

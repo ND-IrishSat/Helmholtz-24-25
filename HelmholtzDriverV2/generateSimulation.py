@@ -15,9 +15,9 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 
 ########################################################################################## Settings
 
-runValues = 30 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
-startPos = 5060 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
-runSpeed = 1 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
+runValues = 1 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
+startPos = 0 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
+runSpeed = 2 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
 renderFidelity = 10 * runSpeed # number of tries the PID gets 
 
 usingPYSOL = False
@@ -112,7 +112,7 @@ print("Running")
 appendedTimes = 0
 t0 = millis()
 
-while (simPos < len(dataFrame)):
+while (simPos <= len(dataFrame)):
 
     timeVector.append(i)
     ################################################################################################################## magnetometer reading
