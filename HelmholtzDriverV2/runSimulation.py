@@ -31,7 +31,7 @@ timeVar = 0
 
 i = startPosition
 
-terminals = initiateUART()
+terminals = initiateUART(True, True)
 time.sleep(1)
 nanoSer = terminals[0]
 R4Ser = terminals[1]

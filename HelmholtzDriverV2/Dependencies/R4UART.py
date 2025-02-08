@@ -4,10 +4,17 @@ import serial
 import serial.tools.list_ports
 import time
 
-def initiateUART():
+def initiateUART(magnetometer, PWM):
     
-    nanoSer = serial.Serial('/dev/ttyACM1',9600)
-    R4Ser = serial.Serial('/dev/ttyACM0', 9600)
+    if(magnetometer):
+        nanoSer = serial.Serial('/dev/ttyACM1',9600)
+    else:
+        nanoSer = ""
+        
+    if(PWM):
+        R4Ser = serial.Serial('/dev/ttyACM0', 9600)
+    else:
+        R4Ser = ""
    
 #    ports = serial.tools.list_ports.comports()
 #     devices = {}

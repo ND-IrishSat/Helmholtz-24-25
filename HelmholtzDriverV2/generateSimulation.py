@@ -62,7 +62,7 @@ df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+",
 
 ##########################################################################################
 
-terminals = initiateUART()
+terminals = initiateUART(True, True)
 time.sleep(1)
 nanoSer = terminals[0]
 R4Ser = terminals[1]
