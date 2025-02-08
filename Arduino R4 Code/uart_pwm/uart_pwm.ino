@@ -36,7 +36,7 @@ void setup() {
   // }
 
   // Set PWM period and initial duty cycle for each bridge
-
+  // period in microsecond
   xBridge1.begin(800, 0.0);
   xBridge2.begin(800, 0.0);
 
