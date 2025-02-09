@@ -25,8 +25,8 @@ usingPYSOL = False
 inputFileName = "zeroed.csv"
 outputFileName = "runZeroed.csv"
 
-pwmFrequency = 1250 # pwm frequency in Hz
-pwmUSec = (1/1250) * 1000000
+pwmFrequency = 30000 # pwm frequency in Hz
+pwmUSec = (1/pwmFrequency) * 1000000
 ########################################################################################## pysol initialization
 
 oe = [121, 6_800, 0.0000922, 51, -10, 80]

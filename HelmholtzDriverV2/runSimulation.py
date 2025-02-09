@@ -16,10 +16,10 @@ dataFrame = pd.read_csv("runZeroed.csv") # magnetic fields dataframe
 loop = True # if true, simulation will loop 1 value
 runSpeed = 1 # delay time in seconds between each simulation value, so 1 is real time
 startPosition = 0 # index of the dataframe to start in
-runMax = 300
+runMax = 100
 runTimes = 0
 
-pwmFreq = 1250
+pwmFreq = 30000
 pwmUSec = (1/pwmFreq) * 1000000
 ################################################################################
 
@@ -58,7 +58,7 @@ currentPWMVals[3] = dataFrame.loc[i, 'PWM_Y-']
 currentPWMVals[4] = dataFrame.loc[i, 'PWM_Z+']
 currentPWMVals[5] = dataFrame.loc[i, 'PWM_Z-']
 
-sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
+sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSec, R4Ser)
 time.sleep(1)
 
 while(True):
