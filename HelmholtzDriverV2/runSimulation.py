@@ -18,6 +18,9 @@ runSpeed = 1 # delay time in seconds between each simulation value, so 1 is real
 startPosition = 0 # index of the dataframe to start in
 runMax = 300
 runTimes = 0
+
+pwmFreq = 1250
+pwmUSec = (1/pwmFreq) * 1000000
 ################################################################################
 
 #                x  y  z
@@ -36,7 +39,7 @@ time.sleep(1)
 nanoSer = terminals[0]
 R4Ser = terminals[1]
 
-sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
+sendPWMValues(0, 0, 0, 0, 0, 0, pwmUSec, R4Ser)
 time.sleep(2)
 
 
@@ -111,7 +114,7 @@ while(True):
 
     
 
-    sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
+    sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSec, R4Ser)
 
     currentFields[0] = dataFrame.loc[i, 'SIMX']
     currentFields[1] = dataFrame.loc[i, 'SIMY']

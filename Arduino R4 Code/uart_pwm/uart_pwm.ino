@@ -20,7 +20,8 @@ PwmOut yBridge2(y2);
 PwmOut zBridge1(z1);
 PwmOut zBridge2(z2);
 
-float x_1 = 0, x_2 = 0, y_1 = 0, y_2 = 0, z_1 = 0, z_2 = 0;
+float x_1 = 0, x_2 = 0, y_1 = 0, y_2 = 0, z_1 = 0, z_2 = 0, freq = 0;
+float prevFreq = 0;
 String incomingData = "";  // Buffer for serial data
 
 void setup() {
@@ -64,7 +65,7 @@ void loop() {
     char receivedChar = Serial.read();
     if (receivedChar == '\n') {
       // When newline is received, process the buffer
-      if (parseValues(incomingData, x_1, x_2, y_1, y_2, z_1, z_2)) {
+      if (parseValues(incomingData, x_1, x_2, y_1, y_2, z_1, z_2, freq)) {
         updatePwmDutyCycles();
         Serial.println("Data received and applied: " + incomingData);  // Optional feedback
       } else {
@@ -92,6 +93,17 @@ void updatePwmDutyCycles() {
   yBridge2.pulse_perc(y_2);
   zBridge1.pulse_perc(z_1);
   zBridge2.pulse_perc(z_2);
+
+  if(freq != prevFreq){
+    xBridge1.period_us(freq);
+    xBridge2.period_us(freq);
+    yBridge1.period_us(freq);
+    yBridge2.period_us(freq);
+    zBridge1.period_us(freq);
+    zBridge2.period_us(freq);
+    prevFreq = freq;
+  }
+
 }
 
 // Parses space-separated values and assigns them to each variable
