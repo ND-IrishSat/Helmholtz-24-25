@@ -21,7 +21,7 @@ PwmOut zBridge1(z1);
 PwmOut zBridge2(z2);
 
 float x_1 = 0, x_2 = 0, y_1 = 0, y_2 = 0, z_1 = 0, z_2 = 0, freq = 0;
-float prevFreq = 0;
+float prevFreq = 800;
 String incomingData = "";  // Buffer for serial data
 
 void setup() {
@@ -107,16 +107,16 @@ void updatePwmDutyCycles() {
 }
 
 // Parses space-separated values and assigns them to each variable
-bool parseValues(String input, float &x_1, float &x_2, float &y_1, float &y_2, float &z_1, float &z_2) {
+bool parseValues(String input, float &x_1, float &x_2, float &y_1, float &y_2, float &z_1, float &z_2, float&freq) {
   int startIdx = 0;
   int spaceIdx;
-  float values[6];
+  float values[7];
   
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < 7; i++) {
     spaceIdx = input.indexOf(' ', startIdx);
-    if (spaceIdx == -1 && i < 5) return false;  // Incorrect format if less than 6 values
+    if (spaceIdx == -1 && i < 6) return false;  // Incorrect format if less than 6 values
     
-    String valueStr = (i < 5) ? input.substring(startIdx, spaceIdx) : input.substring(startIdx);
+    String valueStr = (i < 6) ? input.substring(startIdx, spaceIdx) : input.substring(startIdx);
     values[i] = valueStr.toFloat();
     
     startIdx = spaceIdx + 1;
@@ -128,6 +128,7 @@ bool parseValues(String input, float &x_1, float &x_2, float &y_1, float &y_2, f
   y_2 = values[3];
   z_1 = values[4];
   z_2 = values[5];
+  freq = values[6];
   
   return true;
 }
