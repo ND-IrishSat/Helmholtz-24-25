@@ -127,9 +127,9 @@ bool parseValues(String input, float &x_1, float &x_2, float &y_1, float &y_2, f
   
   for (int i = 0; i < 9; i++) {
     spaceIdx = input.indexOf(' ', startIdx);
-    if (spaceIdx == -1 && i < 9) return false;  // Incorrect format if less than 6 values
+    if (spaceIdx == -1 && i < 8) return false;  // Incorrect format if less than 6 values
     
-    String valueStr = (i < 9) ? input.substring(startIdx, spaceIdx) : input.substring(startIdx);
+    String valueStr = (i < 8) ? input.substring(startIdx, spaceIdx) : input.substring(startIdx);
     values[i] = valueStr.toFloat();
     
     startIdx = spaceIdx + 1;
