@@ -25,8 +25,13 @@ usingPYSOL = False
 inputFileName = "zeroed.csv"
 outputFileName = "runZeroed.csv"
 
-pwmFrequency = 2000 # pwm frequency in Hz
-pwmUSec = (1/pwmFrequency) * 1000000
+pwmFrequencyX = 2000 # pwm frequency in Hz
+pwmFrequencyY = 2000 # pwm frequency in Hz
+pwmFrequencyZ = 2000 # pwm frequency in Hz
+
+pwmUSecX = (1/pwmFrequencyX) * 1000000
+pwmUSecY = (1/pwmFrequencyY) * 1000000
+pwmUSecZ = (1/pwmFrequencyZ) * 1000000
 ########################################################################################## pysol initialization
 
 oe = [121, 6_800, 0.0000922, 51, -10, 80]
@@ -83,7 +88,7 @@ Zn = 0.0
 maxVal = 100 # max value of pwm signal (control output)
 
 # turn off cage at start
-sendPWMValues(0, 0, 0, 0, 0, 0, pwmUSec, R4Ser)
+sendPWMValues(0, 0, 0, 0, 0, 0, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 time.sleep(2)
 
 
@@ -162,7 +167,7 @@ while (simPos <= len(dataFrame)):
     [Yp, Yn] = yPID(currentFields[1], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVector[i]-timeVector[i-1])
     [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1])
 
-    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, pwmUSec, R4Ser)
+    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 
     pwmPosOutputX.append(Xp)
     pwmNegOutputX.append(Xn)

@@ -61,8 +61,8 @@ def initiateUART(magnetometer, PWM):
     return [nanoSer, R4Ser]
 
 
-def sendPWMValues(x1, x2, y1, y2, z1, z2, freq, R4Ser):
-    data = f"{x1} {x2} {y1} {y2} {z1} {z2} {freq}\n"
+def sendPWMValues(x1, x2, y1, y2, z1, z2, freqX, freqY, freqZ, R4Ser):
+    data = f"{x1} {x2} {y1} {y2} {z1} {z2} {freqX} {freqY} {freqZ}\n"
     #data = str(x1) + " " + str(x2) + " " + str(y1) + " " + str(y2) + " " + str(z1) + " " + str(z2)
     R4Ser.write(data.encode('utf-8'))
     

@@ -19,8 +19,13 @@ startPosition = 0 # index of the dataframe to start in
 runMax = 100
 runTimes = 0
 
-pwmFreq = 2000
-pwmUSec = (1/pwmFreq) * 1000000
+pwmFrequencyX = 2000 # pwm frequency in Hz
+pwmFrequencyY = 2000 # pwm frequency in Hz
+pwmFrequencyZ = 2000 # pwm frequency in Hz
+
+pwmUSecX = (1/pwmFrequencyX) * 1000000
+pwmUSecY = (1/pwmFrequencyY) * 1000000
+pwmUSecZ = (1/pwmFrequencyZ) * 1000000
 ################################################################################
 
 #                x  y  z
@@ -39,7 +44,7 @@ time.sleep(1)
 nanoSer = terminals[0]
 R4Ser = terminals[1]
 
-sendPWMValues(0, 0, 0, 0, 0, 0, pwmUSec, R4Ser)
+sendPWMValues(0, 0, 0, 0, 0, 0, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 time.sleep(2)
 
 
@@ -58,7 +63,7 @@ currentPWMVals[3] = dataFrame.loc[i, 'PWM_Y-']
 currentPWMVals[4] = dataFrame.loc[i, 'PWM_Z+']
 currentPWMVals[5] = dataFrame.loc[i, 'PWM_Z-']
 
-sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSec, R4Ser)
+sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 time.sleep(1)
 
 while(True):
@@ -114,7 +119,7 @@ while(True):
 
     
 
-    sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSec, R4Ser)
+    sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 
     currentFields[0] = dataFrame.loc[i, 'SIMX']
     currentFields[1] = dataFrame.loc[i, 'SIMY']
