@@ -19,7 +19,7 @@ startPosition = 0 # index of the dataframe to start in
 runMax = 100
 runTimes = 0
 
-pwmFreq = 30000
+pwmFreq = 2000
 pwmUSec = (1/pwmFreq) * 1000000
 ################################################################################
 
