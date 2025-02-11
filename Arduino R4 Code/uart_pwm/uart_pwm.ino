@@ -106,7 +106,7 @@ void updatePwmDutyCycles() {
   if(freqY != prevFreqY){
     yBridge1.period_us(freqY);
     yBridge2.period_us(freqY);
-   
+    
     prevFreqY = freqY;
   }
 

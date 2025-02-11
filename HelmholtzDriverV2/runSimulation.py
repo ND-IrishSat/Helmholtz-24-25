@@ -66,6 +66,8 @@ currentPWMVals[5] = dataFrame.loc[i, 'PWM_Z-']
 sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 time.sleep(1)
 
+sendTime = millis()
+
 while(True):
 
     
@@ -119,7 +121,8 @@ while(True):
 
     
 
-    sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
+    if(sendTime - millis() > 100):
+        sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 
     currentFields[0] = dataFrame.loc[i, 'SIMX']
     currentFields[1] = dataFrame.loc[i, 'SIMY']
@@ -142,7 +145,7 @@ while(True):
         
     runTimes += 1
 
-    time.sleep(runSpeed/ 10)
+
 
 
 fig, ax = plt.subplots(3)

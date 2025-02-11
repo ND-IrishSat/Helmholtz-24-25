@@ -119,6 +119,8 @@ print("Running")
 appendedTimes = 0
 t0 = millis()
 
+pidTime = millis()
+
 while (simPos <= len(dataFrame)):
 
     timeVector.append(i)
@@ -163,26 +165,29 @@ while (simPos <= len(dataFrame)):
     ##################################################################################################################
 
 
-    [Xp, Xn] = xPID(currentFields[0], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVector[i]-timeVector[i-1])
-    [Yp, Yn] = yPID(currentFields[1], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVector[i]-timeVector[i-1])
-    [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1])
+    if(pidTime - millis() > 100):
+        [Xp, Xn] = xPID(currentFields[0], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVector[i]-timeVector[i-1])
+        [Yp, Yn] = yPID(currentFields[1], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVector[i]-timeVector[i-1])
+        [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1])
 
-    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
+        sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 
-    pwmPosOutputX.append(Xp)
-    pwmNegOutputX.append(Xn)
-    
-    pwmPosOutputY.append(Yp)
-    pwmNegOutputY.append(Yn)
-    
-    pwmPosOutputZ.append(Zp)
-    pwmNegOutputZ.append(Zn)
+        pwmPosOutputX.append(Xp)
+        pwmNegOutputX.append(Xn)
         
-    # Sleeps for 1/x runSpeed so the PID attempts to get it x times before appending to list
+        pwmPosOutputY.append(Yp)
+        pwmNegOutputY.append(Yn)
+        
+        pwmPosOutputZ.append(Zp)
+        pwmNegOutputZ.append(Zn)
+
+        pidTime = millis()
+        
 
     simulationProgressX.append(currentFields[0])
     simulationProgressY.append(currentFields[1])
     simulationProgressZ.append(currentFields[2])
+
 
     err_current = (abs(simulationProgressX[i] - magOutputX[i])) + (abs(simulationProgressY[i] - magOutputY[i])) + (abs(simulationProgressZ[i] - magOutputZ[i]))
     print("Err Current: ", end=" ")
@@ -219,8 +224,6 @@ while (simPos <= len(dataFrame)):
     i += 1
     if(i >= runValues * renderFidelity):
         break
-    
-    time.sleep(runSpeed / renderFidelity)
     
 #       ax[0].plot(timeVector,magOutputX)
 #       ax[0].plot(timeVector, simulationProgressX)
