@@ -19,9 +19,9 @@ startPosition = 0 # index of the dataframe to start in
 runMax = 100
 runTimes = 0
 
-pwmFrequencyX = 30000 # pwm frequency in Hz
+pwmFrequencyX = 2000 # pwm frequency in Hz
 pwmFrequencyY = 2000 # pwm frequency in Hz
-pwmFrequencyZ = 30000 # pwm frequency in Hz
+pwmFrequencyZ = 2000 # pwm frequency in Hz
 
 pwmUSecX = (1/pwmFrequencyX) * 1000000
 pwmUSecY = (1/pwmFrequencyY) * 1000000
@@ -121,7 +121,7 @@ while(True):
 
     
 
-    if(sendTime - millis() > 100):
+    if(millis() - sendTime > 100):
         sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 
     currentFields[0] = dataFrame.loc[i, 'SIMX']

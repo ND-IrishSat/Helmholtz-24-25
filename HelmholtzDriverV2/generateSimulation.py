@@ -25,9 +25,9 @@ usingPYSOL = False
 inputFileName = "zeroed.csv"
 outputFileName = "runZeroed.csv"
 
-pwmFrequencyX = 30000 # pwm frequency in Hz
+pwmFrequencyX = 2000 # pwm frequency in Hz
 pwmFrequencyY = 2000 # pwm frequency in Hz
-pwmFrequencyZ = 30000 # pwm frequency in Hz
+pwmFrequencyZ = 2000 # pwm frequency in Hz
 
 pwmUSecX = (1/pwmFrequencyX) * 1000000
 pwmUSecY = (1/pwmFrequencyY) * 1000000
@@ -165,23 +165,23 @@ while (simPos <= len(dataFrame)):
     ##################################################################################################################
 
 
-    if(pidTime - millis() > 100):
-        [Xp, Xn] = xPID(currentFields[0], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVector[i]-timeVector[i-1])
-        [Yp, Yn] = yPID(currentFields[1], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVector[i]-timeVector[i-1])
-        [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1])
 
-        sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
+    [Xp, Xn] = xPID(currentFields[0], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVector[i]-timeVector[i-1])
+    [Yp, Yn] = yPID(currentFields[1], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVector[i]-timeVector[i-1])
+    [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1])
 
-        pwmPosOutputX.append(Xp)
-        pwmNegOutputX.append(Xn)
+    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
+
+    pwmPosOutputX.append(Xp)
+    pwmNegOutputX.append(Xn)
         
-        pwmPosOutputY.append(Yp)
-        pwmNegOutputY.append(Yn)
+    pwmPosOutputY.append(Yp)
+    pwmNegOutputY.append(Yn)
         
-        pwmPosOutputZ.append(Zp)
-        pwmNegOutputZ.append(Zn)
+    pwmPosOutputZ.append(Zp)
+    pwmNegOutputZ.append(Zn)
 
-        pidTime = millis()
+    pidTime = millis()
         
 
     simulationProgressX.append(currentFields[0])
@@ -222,7 +222,7 @@ while (simPos <= len(dataFrame)):
         err_best = 10000
         
     i += 1
-    if(i >= runValues * renderFidelity):
+    if(i >= runValues * renderFidelity * 1000):
         break
     
 #       ax[0].plot(timeVector,magOutputX)
