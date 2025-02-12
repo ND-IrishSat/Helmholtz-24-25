@@ -45,7 +45,7 @@ void setup() {
   SPI.begin(); // Initiate the SPI library
   SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));  
 
-  Serial.begin(9600);
+  Serial.begin(115200);
   // while(true) {
   //   if (Serial.available()) {
   //       String command = Serial.readStringUntil('\n');
@@ -86,6 +86,8 @@ void setup() {
     writeReg(RM3100_CMM_REG, 0x79);
   }
 
+  writeReg(0x0B, 0x92);
+
  // digitalWrite(PIN_CS, LOW);
 }
 
@@ -109,7 +111,7 @@ void loop() {
   
   //read measurements
   digitalWrite(PIN_CS, LOW);
-  delay(2);
+ 
   SPI.transfer(0xA4);
   x2 = SPI.transfer(0xA5);
   x1 = SPI.transfer(0xA6);
@@ -154,7 +156,7 @@ void loop() {
   Serial.print(" ");
   Serial.println(zMag);
 
-  delay(10);
+
 }
 
 //addr is the 7 bit value of the register's address (without the R/W bit)
@@ -173,7 +175,7 @@ uint8_t readReg(uint8_t addr){
 void writeReg(uint8_t addr, uint8_t data){
 
   digitalWrite(PIN_CS, LOW); 
-  delay(2);
+  
   SPI.transfer(addr & 0x7F); //AND with 0x7F to make first bit(read/write bit) low for write
   SPI.transfer(data);
   digitalWrite(PIN_CS, HIGH);

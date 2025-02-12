@@ -9,7 +9,7 @@ import time
 
 # tylers mac '/dev/cu.usbmodem2101'
 
-serialPort = '/dev/cu.usbmodem2101' # replace with your own usb port 
+serialPort = '/dev/cu.usbmodem101' # replace with your own usb port 
 
 ser = serial.Serial(serialPort, 9600, timeout=1)
 
