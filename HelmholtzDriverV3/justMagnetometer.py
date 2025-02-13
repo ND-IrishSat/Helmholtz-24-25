@@ -1,16 +1,11 @@
 
 import time
 import matplotlib.pyplot as plt
-import pandas as pd
-import os
 
-from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
-from Dependencies.calibrateValues import calibrate # magnetometer calibration code 
-from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
-
+from Dependencies.R4UART import initiateUART # UART code 
+from Dependencies.extraneous import millis # import extraneous functions
 
 #                x  y  z
-
 timeVector = []
 timeVar = 0
 
@@ -18,8 +13,6 @@ terminals = initiateUART(True, False)
 time.sleep(1)
 nanoSer = terminals[0]
 R4Ser = terminals[1]
-
-
 
 magOutputX = []
 magOutputY = []
@@ -29,50 +22,26 @@ startTime = millis()
 
 while(True):
 
-    
-    ################################################################################################################## magnetometer reading
-    nanoSer.reset_input_buffer()
-    nanoSer.reset_output_buffer()
-    
-    R4Ser.reset_input_buffer()
-    R4Ser.reset_output_buffer()
-    
-       
-    magnetometerOutput = readMagnetometerValues(nanoSer)
-
-    magnetometerOutput = magnetometerOutput.split(" ")
-    #print(magnetometerOutput)
-
-    try:
-        magX = float(magnetometerOutput[0])
-        magY = float(magnetometerOutput[1])
-        magZ = float(magnetometerOutput[2])    
+    magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
+    if magnetometerOutput:
         
-        calibratedValues = calibrate(magX, magY, magZ) # apply calibration
+        magX = round(float(magnetometerOutput[0]), 2)
+        magY = round(float(magnetometerOutput[1]), 2)
+        magZ = round(float(magnetometerOutput[2]), 2)
+        print(str(magX) + " " + str(magY) + " " + str(magZ))
 
-# #     print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
+    magOutputX.append(magX)
+    magOutputY.append(magY)
+    magOutputZ.append(magZ)
 
-        calMagX = round(calibratedValues[0], 2)
-        calMagY = round(calibratedValues[1], 2)
-        calMagZ = round(calibratedValues[2], 2)
+    # nanoSer.reset_input_buffer()
+    # nanoSer.reset_output_buffer()
     
-    except:
-        
-        calMagX = magOutputX[len(magOutputX) - 1]
-        calMagY = magOutputY[len(magOutputY) - 1]
-        calMagZ = magOutputZ[len(magOutputZ) - 1]
-    
-# #     # purely for readable format, adds necessary zeros to preserve 2 decimal format
-    magStrings = processStrings(calMagX, calMagY, calMagZ)
-
-    magOutputX.append(calMagX)
-    magOutputY.append(calMagY)
-    magOutputZ.append(calMagZ)
-    print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
+    # R4Ser.reset_input_buffer()
+    # R4Ser.reset_output_buffer()
     
     timeVector.append(timeVar)
     timeVar += 1
-
 
     if(startTime - millis() > 10000):
         break

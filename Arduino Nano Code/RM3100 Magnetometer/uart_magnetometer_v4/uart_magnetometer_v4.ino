@@ -34,6 +34,19 @@
 #define singleMode 0 //0 = use continuous measurement mode; 1 = use single measurement mode
 #define useDRDYPin 1 //0 = not using DRDYPin ; 1 = using DRDYPin to wait for data
 
+
+// Hard-iron calibration settings
+const float hard_iron[3] = {
+    0, 0, 0
+};
+// Soft-iron calibration settings
+const float soft_iron[3][3] = {
+  { 1, 0, 0 },
+  { 0, 1, 0 },
+  { 0, 0, 1 }
+};
+
+
 uint8_t revid;
 uint16_t cycleCount;
 float gain;
@@ -98,7 +111,7 @@ void loop() {
   uint8_t x2,x1,x0,y2,y1,y0,z2,z1,z0;
 
   // Mag Data Array {x, y , z}
-  float magData[3] = {0, 0, 0}
+  float magData[3] = {0, 0, 0};
   // float xMag = 0;
   // float yMag = 0;
   // float zMag = 0;
@@ -152,15 +165,16 @@ void loop() {
   magData[1] = (float)(y)/gain;
   magData[2] = (float)(z)/gain; 
 
-  // Calibrate Values
-  float normData[3] = magCalFunc(magData);
+  float normData[3];
+
+  // Perform calibration
+  magCalFunc(magData, normData);
 
   Serial.print(normData[0]);
   Serial.print(" ");
   Serial.print(normData[1]);
   Serial.print(" ");
   Serial.println(normData[2]);
-
 
 }
 
@@ -206,30 +220,20 @@ void changeCycleCount(uint16_t newCC){
 }
 
 // Calibration Function
-float calValFunc( float mag_data[3] ) {
-  // Hard-iron calibration settings
-  const float hard_iron[3] = {
-     0, 0, 0
-  };
-  // Soft-iron calibration settings
-  const float soft_iron[3][3] = {
-    { 1, 0, 0 },
-    { 0, 1, 0 },
-    { 0, 0, 1 }
-  };
+void magCalFunc(const float mag_data[3], float normData[3]) {
+    float hi_cal[3];
 
-  float hi_cal[3];
-  // Apply hard-iron offsets
-    for (uint8_t i = 0; i < 3; i++) {
+    // Apply hard-iron offsets
+    for (int i = 0; i < 3; i++) {
         hi_cal[i] = mag_data[i] - hard_iron[i];
     }
-  // Apply soft-iron scaling
-    for (uint8_t i = 0; i < 3; i++) {
-        mag_data[i] = (soft_iron[i][0] * hi_cal[0]) + 
+
+    // Apply soft-iron scaling
+    for (int i = 0; i < 3; i++) {
+        normData[i] = (soft_iron[i][0] * hi_cal[0]) + 
                       (soft_iron[i][1] * hi_cal[1]) + 
                       (soft_iron[i][2] * hi_cal[2]);
     }
-  // Return Calibrated Values
-  return mag_data;
 }
+
 
