@@ -14,30 +14,9 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 timeVector = []
 timeVar = 0
 
-terminals = initiateUART(True, True)
+terminals = initiateUART(True, False)
 time.sleep(1)
 nanoSer = terminals[0]
-R4Ser = terminals[1]
-
-pwmFrequencyX = 250 # pwm frequency in Hz
-pwmFrequencyY = 250 # pwm frequency in Hz
-pwmFrequencyZ = 250 # pwm frequency in Hz
-
-pwmUSecX = (1/pwmFrequencyX) * 1000000
-pwmUSecY = (1/pwmFrequencyY) * 1000000
-pwmUSecZ = (1/pwmFrequencyZ) * 1000000
-
-sendPWMValues(0, 0, 0, 0, 0, 0, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
-time.sleep(2)
-Xp = 0
-Xn = 0
-
-Yp = 0
-Yn = 0
-
-Zp = 20
-Zn = 0
-
 
 magOutputX = []
 magOutputY = []
@@ -45,7 +24,6 @@ magOutputZ = []
 
 startTime = millis()
 
-sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 lock = False
 while(True):
 
@@ -53,9 +31,6 @@ while(True):
     ################################################################################################################## magnetometer reading
     nanoSer.reset_input_buffer()
     nanoSer.reset_output_buffer()
-    
-    R4Ser.reset_input_buffer()
-    R4Ser.reset_output_buffer()
     
     magnetometerOutput = readMagnetometerValues(nanoSer)
 
@@ -92,10 +67,7 @@ while(True):
     timeVector.append(timeVar)
     timeVar += 1
     
-    if(millis() - startTime > 1000 and not lock):
-        sendPWMValues(0, 0, 0, 0, 0, 20, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
-        lock = True
-    if(millis() - startTime > 1500):
+    if(millis() - startTime > 10000):
         break
     
 
