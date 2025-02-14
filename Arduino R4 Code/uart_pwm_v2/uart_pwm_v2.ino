@@ -3,14 +3,14 @@
 
 // h-bridge input pins 
 // here we are defining the positive (PX, PY, PZ) as input 1 on the h-bridge, so input 2 is (NX, NY, NZ)
-#define PX_PIN 1
-#define NX_PIN 2
+#define PX_PIN 3
+#define NX_PIN 5
 
-#define PY_PIN 3
-#define NY_PIN 4
+#define PY_PIN 6
+#define NY_PIN 9
 
-#define PZ_PIN 5
-#define NZ_PIN 6
+#define PZ_PIN 10
+#define NZ_PIN 11
 
 // instantiate PWM objects that will PWM input 1 of each h-brigde
 // only 3 are needed because the change notification interrupt is the inversion of this signal
@@ -21,10 +21,10 @@ PwmOut zBridge(PZ_PIN);
 
 float X_PWM = 0, Y_PWM = 0, Z_PWM = 0; // x, y, z duty cycles 
 
-float PWM_FREQ = 100; // pwm frequency in Hz
-float PREV_PWM_FREQ = 100;
-float PWM_PERIOD = 10; // initial period in miliseconds 
-float PWM_PERIOD_US = 10000; // initial period in microseconds
+float PWM_FREQ = 220; // pwm frequency in Hz
+float PREV_PWM_FREQ = PWM_FREQ;
+float PWM_PERIOD = (1/PWM_FREQ) * 1000; // initial period in miliseconds 
+float PWM_PERIOD_US = (1/PWM_FREQ) * 1000000; // initial period in microseconds
 
 String incomingData = "";  // Buffer for serial data
 
@@ -39,19 +39,20 @@ void setup(){
     pinMode(PZ_PIN, OUTPUT);
     pinMode(NZ_PIN, OUTPUT);
 
+    // for interrupts: pins 2, 8, 12  
     // set each negative pin to be the inverse of each positve pin upon the positive pin changing 
-    attachInterrupt(PX_PIN, invertPWMX, CHANGE);
-    attachInterrupt(PY_PIN, invertPWMY, CHANGE);
-    attachInterrupt(PZ_PIN, invertPWMZ, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(2), invertPWMX, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(8), invertPWMY, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(12), invertPWMZ, CHANGE);
 
     xBridge.begin(PWM_PERIOD_US, 0);
     yBridge.begin(PWM_PERIOD_US, 0);
     zBridge.begin(PWM_PERIOD_US, 0);
 
     // start all duty cycles at 0
-    xBridge.pulse_perc(0);
-    yBridge.pulse_perc(0);
-    zBridge.pulse_perc(0);
+    xBridge.pulse_perc(70);
+    yBridge.pulse_perc(30);
+    zBridge.pulse_perc(10);
 
 }
 
