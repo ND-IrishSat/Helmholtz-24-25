@@ -15,7 +15,7 @@ ser = serial.Serial(serialPort, 9600, timeout=1)
 start_time = time.time()  # Record the start time
 
 with open("arduino_output2.txt", "w") as file:
-    while time.time() - start_time < 10:  # Run for 10 seconds
+    while time.time() - start_time < 6:  # Run for 10 seconds
         line = ser.readline().decode('utf-8').strip()
         if line:
             #print(line)

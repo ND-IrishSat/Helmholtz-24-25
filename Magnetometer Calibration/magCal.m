@@ -1,13 +1,13 @@
 clc;
-rawTable = readmatrix("arduino_output.txt");
-disp(rawTable)
+rawTable = readmatrix("arduino_output2.txt");
+
 
 D = rawTable(:, 1:3);
 x = rawTable(:, 1);
 y = rawTable(:, 2);
 z = rawTable(:, 3);
 
-disp(length(x))
+disp(length(x));
 
 [A,b,expmfs] = magcal(D); % Calibration coefficients
 
@@ -15,7 +15,7 @@ disp(length(x))
 C = (D-b)*A; % Calibrated data
 
 disp("///////////////////////////////////////////////////////////////////////")
-disp(C)
+
 
 disp(A)
 disp(b)

@@ -30,20 +30,20 @@
 #define RM3100_CCX0_REG 0x05 // Hexadecimal address for the Cycle Count X0 internal register
 
 //options
-#define initialCC 75 // Set the cycle count
+#define initialCC 100 // Set the cycle count
 #define singleMode 0 //0 = use continuous measurement mode; 1 = use single measurement mode
 #define useDRDYPin 1 //0 = not using DRDYPin ; 1 = using DRDYPin to wait for data
 
 
 // Hard-iron calibration settings
 const float hard_iron[3] = {
-    0, 0, 0
+    15.7882, -0.2069, 37.7776
 };
 // Soft-iron calibration settings
 const float soft_iron[3][3] = {
-  { 1, 0, 0 },
-  { 0, 1, 0 },
-  { 0, 0, 1 }
+  {1.0093, -0.0008, -0.0779},
+  {-0.0008, 1.0609, 0.0123},
+  {-0.0779, 0.0123, 0.9400}
 };
 
 
@@ -84,7 +84,7 @@ void setup() {
   Serial.print("Cycle Counts = "); //display cycle count
   Serial.println(cycleCount);
 
-  gain = 30; //(0.3671 * (float)cycleCount) + 1.5; //linear equation to calculate the gain from cycle count
+  gain = 38; //(0.3671 * (float)cycleCount) + 1.5; //linear equation to calculate the gain from cycle count
 
   Serial.print("Gain = "); //display gain; default gain should be around 75 for the default cycle count of 200
   Serial.println(gain);
