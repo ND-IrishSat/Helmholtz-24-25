@@ -99,9 +99,9 @@ void setup() {
     writeReg(RM3100_CMM_REG, 0x79);
   }
 
-  writeReg(0x0B, 0x92);
+ writeReg(0x0B, 0x93);
 
- // digitalWrite(PIN_CS, LOW);
+  digitalWrite(PIN_CS, LOW);
 }
 
 void loop() {
@@ -126,7 +126,7 @@ void loop() {
   
   //read measurements
   digitalWrite(PIN_CS, LOW);
- 
+  delay(0.0001);
   SPI.transfer(0xA4);
   x2 = SPI.transfer(0xA5);
   x1 = SPI.transfer(0xA6);
