@@ -18,7 +18,7 @@ with open("arduino_output2.txt", "w") as file:
     while time.time() - start_time < 10:  # Run for 10 seconds
         line = ser.readline().decode('utf-8').strip()
         if line:
-            print(line)
+            #print(line)
             file.write(line + "\n")  # Save the output to the text file
             file.flush()  # Ensure data is written to the file
 
