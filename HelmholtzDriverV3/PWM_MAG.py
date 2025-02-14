@@ -23,11 +23,13 @@ startTime = millis()
 
 print("starting")
 
-xPWM = 50
-yPWM = 0
-zPWM = 0
-freq_PWM = 150
-sendPWMValues(xPWM, yPWM, zPWM, freq_PWM, R4Ser)
+xPWM = 20
+yPWM = 20
+zPWM = 20
+freq_PWM = 1000
+period = (1/freq_PWM)*100000
+time.sleep(2)
+sendPWMValues(0, 0, 40, 0, 80, 0, 10000, 0, 0, R4Ser)
 
 while(True):
     
@@ -56,7 +58,7 @@ while(True):
     timeVector.append(timeVar)
     timeVar += 1
 
-    if(millis() - startTime > 5000):
+    if(millis() - startTime > 3000):
         break
 
 # print(timeVector[len(timeVector - 1)])
@@ -64,9 +66,9 @@ while(True):
 fig, ax = plt.subplots(3)
 
 ax[0].plot(timeVector,magOutputX, color = "red", label = "Real")
-
+ax[0].set_ylim(-100, 100)
 ax[1].plot(timeVector,magOutputY, color = "red")
-
+ax[1].set_ylim(-100, 100)
 ax[2].plot(timeVector,magOutputZ, color = "red")
-
+ax[2].set_ylim(50, 150)
 plt.show()

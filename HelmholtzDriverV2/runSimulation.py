@@ -121,7 +121,7 @@ while(True):
 
     
 
-    if(millis() - sendTime > 100):
+    if(millis() - sendTime > 1000):
         sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
 
     currentFields[0] = dataFrame.loc[i, 'SIMX']
