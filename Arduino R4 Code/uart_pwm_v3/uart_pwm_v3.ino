@@ -25,12 +25,12 @@ void setup() {
     
     // Initialize PWM outputs with 0% duty cycle
     // freq in microseconds
-    xBridge1.begin(5000, 0.0);
-    xBridge2.begin(5000, 0.0);
-    yBridge1.begin(5000, 0.0);
-    yBridge2.begin(5000, 0.0);
-    zBridge1.begin(5000, 0.0);
-    zBridge2.begin(5000, 0.0);
+    xBridge1.begin(147, 0.0);
+    xBridge2.begin(147, 0.0);
+    yBridge1.begin(147, 0.0);
+    yBridge2.begin(147, 0.0);
+    zBridge1.begin(147, 0.0);
+    zBridge2.begin(147, 0.0);
 
     xBridge1.pulse_perc(0);
     xBridge2.pulse_perc(0);

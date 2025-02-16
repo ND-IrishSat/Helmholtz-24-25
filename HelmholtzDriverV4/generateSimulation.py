@@ -15,10 +15,10 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 
 ########################################################################################## Settings
 
-runValues = 1 # number of values of magnetic fields to loop through, they are in increments of seconds so 100 is 100 seconds of the sim
-startPos = 0 # starting position (in time) of the pysol simulation, so 0 seconds is at the begining 
-runSpeed = 2 # percentage of how fast simulation should be processed, 1 is 100% real time, 0.1 is 10x faster
-renderFidelity = 10 * runSpeed # number of tries the PID gets 
+pidTries = 20 # number of tries the pid can take to get the desired value before it moves on to next value
+pidDelay = 100 # number of miliseconds between each pid iteration
+
+startPos = 0 # starting position in simulation
 
 usingPYSOL = False
 
@@ -84,14 +84,21 @@ maxVal = 100 # max value of pwm signal (control output)
 sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 time.sleep(2)
 
+def isValidString(s: str) -> bool:
+    return "." in s and not s.startswith(".")
 
-magOutputX = [0]
-magOutputY = [0]
-magOutputZ = [0]
+trueMagOutputX = [0]
+trueMagOutputY = [0]
+trueMagOutputZ = [0]
 
-simulationProgressX = [0]
-simulationProgressY = [0]
-simulationProgressZ = [0]
+simulationOutputX = [0]
+simulationOutputY = [0]
+simulationOutputZ = [0]
+simulationPos = startPos
+
+pidMagOutputX = [0]
+pidMagOutputY = [0]
+pidMagOutputZ = [0]
 
 pwmPosOutputX = [0]
 pwmNegOutputX = [0]
@@ -100,138 +107,111 @@ pwmNegOutputY = [0]
 pwmPosOutputZ = [0]
 pwmNegOutputZ = [0]
 
-timeVector = [0]
-simPos = startPos + 1 # simulation position
-i = 1 # array positions
+realTimeVector = [0]
+realTime = 0 # increments with each loop, used for graphing
 
-i_best = 1 # best attempt index
-err_best = 10000 # best attempt error
+t0 = millis() # start time of the program
 
-print("Running")
+pidTime = t0
+pidTriesCount = 0
+pidPosition = 0
+pidTimeVector = [0]
 
-appendedTimes = 0
-t0 = millis()
+err_current = 0
+err_best = 10000
+bestIndex = 0
 
-pidTime = millis()
+magX = 0
+magY = 0
+magZ = 0
 
-while (simPos <= len(dataFrame)):
+while (True):
 
-    timeVector.append(i)
     ################################################################################################################## magnetometer reading
     nanoSer.reset_input_buffer()
     nanoSer.reset_output_buffer()
     
     R4Ser.reset_input_buffer()
     R4Ser.reset_output_buffer()
-    magnetometerOutput = readMagnetometerValues(nanoSer)
-
-    magnetometerOutput = magnetometerOutput.split(" ")
-    #print(magnetometerOutput)
-
-    try:
-        magX = float(magnetometerOutput[0])
-        magY = float(magnetometerOutput[1])
-        magZ = float(magnetometerOutput[2])    
-        
-        calibratedValues = calibrate(magX, magY, magZ) # apply calibration
-
-# #     print("X: " + "{:.2f}".format(magX) + " Y: " + "{:.2f}".format(magY) + " Z: " + "{:.2f}".format(magZ))
-
-        calMagX = round(calibratedValues[0], 2)
-        calMagY = round(calibratedValues[1], 2)
-        calMagZ = round(calibratedValues[2], 2)
-    
-    except:
-        
-        calMagX = magOutputX[len(magOutputX) - 1]
-        calMagY = magOutputY[len(magOutputY) - 1]
-        calMagZ = magOutputZ[len(magOutputZ) - 1]
-    
-# #     # purely for readable format, adds necessary zeros to preserve 2 decimal format
-    magStrings = processStrings(calMagX, calMagY, calMagZ)
-
-    magOutputX.append(calMagX)
-    magOutputY.append(calMagY)
-    magOutputZ.append(calMagZ)
-    print("X: " + str(magStrings[0]) + " Y: " + str(magStrings[1]) + " Z: " + str(magStrings[2]))
-
+    magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
+    if magnetometerOutput:
+        if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
+           magX = round(float(magnetometerOutput[0]), 2)
+           magY = round(float(magnetometerOutput[1]), 2)
+           magZ = round(float(magnetometerOutput[2]), 2)
+           
+           trueMagOutputX.append(magX)
+           trueMagOutputY.append(magY)
+           trueMagOutputZ.append(magZ)
+        else:
+           trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
+           trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
+           trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
     ##################################################################################################################
-
-
-
-    [Xp, Xn] = xPID(currentFields[0], calMagX, magOutputX[i-1], pwmPosOutputX[i-1], pwmNegOutputX[i-1], maxVal, timeVector[i]-timeVector[i-1])
-    [Yp, Yn] = yPID(currentFields[1], calMagY, magOutputY[i-1], pwmPosOutputY[i-1], pwmNegOutputY[i-1], maxVal, timeVector[i]-timeVector[i-1])
-    [Zp, Zn] = zPID(currentFields[2], calMagZ, magOutputZ[i-1], pwmPosOutputZ[i-1], pwmNegOutputZ[i-1], maxVal, timeVector[i]-timeVector[i-1])
-
-    sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
-
-    pwmPosOutputX.append(Xp)
-    pwmNegOutputX.append(Xn)
-        
-    pwmPosOutputY.append(Yp)
-    pwmNegOutputY.append(Yn)
-        
-    pwmPosOutputZ.append(Zp)
-    pwmNegOutputZ.append(Zn)
-
-    pidTime = millis()
-        
-
-    simulationProgressX.append(currentFields[0])
-    simulationProgressY.append(currentFields[1])
-    simulationProgressZ.append(currentFields[2])
-
-
-    err_current = (abs(simulationProgressX[i] - magOutputX[i])) + (abs(simulationProgressY[i] - magOutputY[i])) + (abs(simulationProgressZ[i] - magOutputZ[i]))
-    print("Err Current: ", end=" ")
-    print(err_current)
-    if (err_current < err_best):
-        print("Err Best: ", end=" ")
-        print(err_best)
-        err_best = err_current
-        i_best = i
     
-    # Doesn't append anything until set time has elapsed
-    appendedTimes += 1
-    if((millis() - t0) > (1000 * runSpeed) + (renderFidelity * 13)):
-        # Adds relevant info to dataframe for output csv
-        row = pd.DataFrame([{"SIMX": simulationProgressX[i_best], "SIMY": simulationProgressY[i_best], "SIMZ": simulationProgressZ[i_best], 
-                             "PWM_X+": pwmPosOutputX[i_best], "PWM_X-": pwmNegOutputX[i_best],
-                             "PWM_Y+": pwmPosOutputY[i_best], "PWM_Y-": pwmNegOutputY[i_best],
-                             "PWM_Z+": pwmPosOutputZ[i_best], "PWM_Z-": pwmNegOutputZ[i_best],}])
+
+    if(millis() - pidTime > pidDelay):
+
+        pidMagOutputX.append(magX)
+        pidMagOutputY.append(magY)
+        pidMagOutputZ.append(magZ)
+
+        pidPosition += 1
+        pidTimeVector.append(millis())
+
+        pidTime = millis()
+        
+        [Xp, Xn] = xPID(currentFields[0], magX, pidMagOutputX[pidPosition-1], pwmPosOutputX[pidPosition-1], pwmNegOutputX[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
+        [Yp, Yn] = yPID(currentFields[1], magY, pidMagOutputY[pidPosition-1], pwmPosOutputY[pidPosition-1], pwmNegOutputY[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
+        [Zp, Zn] = zPID(currentFields[2], magZ, pidMagOutputZ[pidPosition-1], pwmPosOutputZ[pidPosition-1], pwmNegOutputZ[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
+
+        sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
+
+        pwmPosOutputX.append(Xp)
+        pwmNegOutputX.append(Xn)
+        
+        pwmPosOutputY.append(Yp)
+        pwmNegOutputY.append(Yn)
+        
+        pwmPosOutputZ.append(Zp)
+        pwmNegOutputZ.append(Zn)
+
+        pidTriesCount += 1
+
+        err_current = (abs(currentFields[0] - magX)) + (abs(currentFields[1] - magY)) + (abs(currentFields[2] - magZ))
+        if (err_current < err_best):
+            err_best = err_current
+            bestIndex = pidPosition
+
+
+    if(pidTriesCount == pidTries):
+        pidTriesCount = 0
+        simulationPos += 1
+        err_best = 10000
+
+        row = pd.DataFrame([{"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[2], 
+                             "PWM_X+": pwmPosOutputX[bestIndex], "PWM_X-": pwmNegOutputX[bestIndex],
+                             "PWM_Y+": pwmPosOutputY[bestIndex], "PWM_Y-": pwmNegOutputY[bestIndex],
+                             "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex],}])
         
         df = pd.concat([df, row], ignore_index=True)
 
-        
-        currentFields[0] = dataFrame.loc[simPos - 1, 'Bx']
-        currentFields[1] = dataFrame.loc[simPos - 1, 'By']
-        currentFields[2] = dataFrame.loc[simPos - 1, 'Bz']
-       
-        simPos += 1
-        
-        print("appended" + str(appendedTimes))
-        appendedTimes = 0
-        t0 = millis()
-        err_best = 10000
-        
-    i += 1
-    if(i >= runValues * renderFidelity * 1000):
-        break
-    
-#       ax[0].plot(timeVector,magOutputX)
-#       ax[0].plot(timeVector, simulationProgressX)
-# 
-#       ax[1].plot(timeVector,magOutputY)
-#       ax[1].plot(timeVector, simulationProgressY)
-# 
-#       ax[2].plot(timeVector,magOutputZ)
-#       ax[2].plot(timeVector, simulationProgressZ)
-# 
-#       fig.show()
-#     
-#       fig.canvas.draw()
-#  
-#       fig.canvas.flush_events()
+        if(simulationPos >= len(dataFrame)):
+            break
+        else:
+            currentFields[0] = dataFrame.loc[simulationPos, 'Bx']
+            currentFields[1] = dataFrame.loc[simulationPos, 'By']
+            currentFields[2] = dataFrame.loc[simulationPos, 'Bz']
+
+
+
+    print("Err Current: ", end=" ")
+    print(err_current)
+  
+    realTime += 1
+    realTimeVector.append(realTime)
+
+
 
 # Creates output CSV file
 df.to_csv(outputFileName, index=True)
@@ -239,13 +219,13 @@ df.to_csv(outputFileName, index=True)
 # Plots data
 fig, ax = plt.subplots(3)
 
-ax[0].plot(timeVector,magOutputX, color = "red", label = "Real")
-ax[0].plot(timeVector, simulationProgressX, color = "blue", label = "PySOL")
+ax[0].plot(realTimeVector,trueMagOutputX, color = "red", label = "Real")
+ax[0].plot(realTimeVector, simulationOutputX, color = "blue", label = "PySOL")
 
-ax[1].plot(timeVector,magOutputY, color = "red")
-ax[1].plot(timeVector, simulationProgressY,  color = "blue")
+ax[1].plot(realTimeVector,trueMagOutputY, color = "red")
+ax[1].plot(realTimeVector, simulationOutputY,  color = "blue")
 
-ax[2].plot(timeVector,magOutputZ, color = "red")
-ax[2].plot(timeVector, simulationProgressZ, color = "blue")
+ax[2].plot(realTimeVector,trueMagOutputZ, color = "red")
+ax[2].plot(realTimeVector, simulationOutputZ, color = "blue")
 
 plt.show()
