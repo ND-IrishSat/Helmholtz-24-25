@@ -9,20 +9,35 @@
 #define Z2 11
 
 // PWM objects
-PwmOut pwmBridges[] = { PwmOut(X1), PwmOut(X2), PwmOut(Y1), PwmOut(Y2), PwmOut(Z1), PwmOut(Z2) };
+PwmOut xBridge1(X1);
+PwmOut xBridge2(X2);
+PwmOut yBridge1(Y1);
+PwmOut yBridge2(Y2);
+PwmOut zBridge1(Z1); 
+PwmOut zBridge2(Z2);
 
 // PWM control variables
-float dutyCycles[6] = {0}, freqs[3] = {200, 200, 200}, prevFreqs[3] = {200, 200, 200};
+float x1_duty = 0, x2_duty = 0, y1_duty = 0, y2_duty = 0, z1_duty = 0, z2_duty = 0;
 String incomingData = "";
 
 void setup() {
     Serial.begin(9600);
     
-    // Initialize all PWM outputs with default frequency and 0% duty cycle
-    for (int i = 0; i < 6; i++) {
-        pwmBridges[i].begin(5000, 0.0);
-        pwmBridges[i].pulse_perc(0);
-    }
+    // Initialize PWM outputs with 0% duty cycle
+    // freq in microseconds
+    xBridge1.begin(5000, 0.0);
+    xBridge2.begin(5000, 0.0);
+    yBridge1.begin(5000, 0.0);
+    yBridge2.begin(5000, 0.0);
+    zBridge1.begin(5000, 0.0);
+    zBridge2.begin(5000, 0.0);
+
+    xBridge1.pulse_perc(0);
+    xBridge2.pulse_perc(0);
+    yBridge1.pulse_perc(0);
+    yBridge2.pulse_perc(0);
+    zBridge1.pulse_perc(0);
+    zBridge2.pulse_perc(0);
 }
 
 void loop() {
@@ -31,6 +46,7 @@ void loop() {
         if (receivedChar == '\n') {
             if (parseValues(incomingData)) {
                 updatePWM();
+                Serial.println("HEHHEHEHE");
             }
             incomingData = "";  // Clear buffer
         } else {
@@ -41,23 +57,26 @@ void loop() {
 
 void updatePWM() {
     // Update duty cycles
-    for (int i = 0; i < 6; i++) {
-        pwmBridges[i].pulse_perc(dutyCycles[i]);
-    }
-
-    // Update frequencies if changed
-    for (int i = 0; i < 3; i++) {
-        if (freqs[i] != prevFreqs[i]) {
-            pwmBridges[i * 2].period_us((freqs[i]) * 1000);    // Update first H-Bridge pin
-            pwmBridges[i * 2 + 1].period_us((freqs[i]) * 1000); // Update second H-Bridge pin
-            prevFreqs[i] = freqs[i];  // Store new frequency
-        }
-    }
+    xBridge1.pulse_perc(x1_duty);
+    xBridge2.pulse_perc(x2_duty);
+    yBridge1.pulse_perc(y1_duty);
+    yBridge2.pulse_perc(y2_duty);
+    zBridge1.pulse_perc(z1_duty);
+    zBridge2.pulse_perc(z2_duty);
 }
 
 bool parseValues(String input) {
-    return sscanf(input.c_str(), "%f %f %f %f %f %f %f %f %f",
-                  &dutyCycles[0], &dutyCycles[1], &dutyCycles[2],
-                  &dutyCycles[3], &dutyCycles[4], &dutyCycles[5],
-                  &freqs[0], &freqs[1], &freqs[2]) == 9;
+    input.trim();  // Remove leading/trailing whitespace
+    int startIdx = 0, spaceIdx;
+    float* values[] = { &x1_duty, &x2_duty, &y1_duty, &y2_duty, &z1_duty, &z2_duty };
+
+    for (int i = 0; i < 6; i++) {
+        spaceIdx = input.indexOf(' ', startIdx);
+        if (spaceIdx == -1 && i < 5) return false; // Ensure we have all 6 values
+
+        *values[i] = input.substring(startIdx, (i < 5) ? spaceIdx : input.length()).toFloat();
+        startIdx = spaceIdx + 1;
+    }
+
+    return true;
 }

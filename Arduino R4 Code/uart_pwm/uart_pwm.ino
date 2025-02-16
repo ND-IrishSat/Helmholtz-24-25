@@ -96,12 +96,11 @@ void updatePwmDutyCycles() {
   zBridge1.pulse_perc(z_1);
   zBridge2.pulse_perc(z_2);
 
-  if(freqX != prevFreqX){
     xBridge1.period_us(freqX);
     xBridge2.period_us(freqX);
    
     prevFreqX = freqX;
-  }
+
 
   if(freqY != prevFreqY){
     yBridge1.period_us(freqY);
