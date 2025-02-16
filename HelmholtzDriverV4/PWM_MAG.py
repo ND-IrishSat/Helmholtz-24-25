@@ -25,13 +25,12 @@ startTime = millis()
 def isValidString(s: str) -> bool:
     return "." in s and not s.startswith(".")
 
-freqX = 200
-freqY = 200
-freqZ = 200
-sendPWMValues(0, 0, 0, 0, 0, 0, freqX, freqY, freqZ, R4Ser)
+print("running2")
+
+sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 time.sleep(2)
 
-sendPWMValues(0, 10, 0, 0, 0, 0, freqX, freqY, freqZ, R4Ser)
+sendPWMValues(0, 30, 0, 0, 0, 0, R4Ser)
 print("running")
 while(True):
 

@@ -25,13 +25,6 @@ usingPYSOL = False
 inputFileName = "zeroed.csv"
 outputFileName = "runZeroed.csv"
 
-pwmFrequencyX = 2000 # pwm frequency in Hz
-pwmFrequencyY = 2000 # pwm frequency in Hz
-pwmFrequencyZ = 2000 # pwm frequency in Hz
-
-pwmUSecX = (1/pwmFrequencyX) * 1000000
-pwmUSecY = (1/pwmFrequencyY) * 1000000
-pwmUSecZ = (1/pwmFrequencyZ) * 1000000
 ########################################################################################## pysol initialization
 
 oe = [121, 6_800, 0.0000922, 51, -10, 80]
@@ -88,7 +81,7 @@ Zn = 0.0
 maxVal = 100 # max value of pwm signal (control output)
 
 # turn off cage at start
-sendPWMValues(0, 0, 0, 0, 0, 0, pwmUSecX, pwmUSecY, pwmUSecZ, R4Ser)
+sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 time.sleep(2)
 
 

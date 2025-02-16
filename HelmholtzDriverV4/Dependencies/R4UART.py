@@ -12,7 +12,7 @@ def initiateUART(magnetometer, PWM):
         nanoSer = ""
         
     if(PWM):
-        R4Ser = serial.Serial('/dev/ttyACM1', 9600)
+        R4Ser = serial.Serial('/dev/ttyACM2', 9600)
     else:
         R4Ser = ""
    
@@ -61,8 +61,8 @@ def initiateUART(magnetometer, PWM):
     return [nanoSer, R4Ser]
 
 
-def sendPWMValues(x1, x2, y1, y2, z1, z2, freqX, freqY, freqZ, R4Ser):
-    data = f"{x1} {x2} {y1} {y2} {z1} {z2} {freqX} {freqY} {freqZ}\n"
+def sendPWMValues(x1, x2, y1, y2, z1, z2, R4Ser):
+    data = f"{x1} {x2} {y1} {y2} {z1} {z2}\n"
     #data = str(x1) + " " + str(x2) + " " + str(y1) + " " + str(y2) + " " + str(z1) + " " + str(z2)
     R4Ser.write(data.encode('utf-8'))
     
