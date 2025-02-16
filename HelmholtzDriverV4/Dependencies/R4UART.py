@@ -12,7 +12,7 @@ def initiateUART(magnetometer, PWM):
         nanoSer = ""
         
     if(PWM):
-        R4Ser = serial.Serial('/dev/ttyACM2', 9600)
+        R4Ser = serial.Serial('/dev/ttyACM1', 9600)
     else:
         R4Ser = ""
    

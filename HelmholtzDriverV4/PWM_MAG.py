@@ -30,7 +30,7 @@ print("running2")
 sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 time.sleep(2)
 
-sendPWMValues(0, 30, 0, 0, 0, 0, R4Ser)
+sendPWMValues(0, 30, 0, 0, 70, 0, R4Ser)
 print("running")
 while(True):
 

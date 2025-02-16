@@ -13,11 +13,11 @@ dataFrame = pd.read_csv("runZeroed.csv") # magnetic fields dataframe
 
 ################################################################################ Run parameters
 
-loop = True # if true, simulation will loop 1 value
+loop = False # if true, simulation will loop 1 value
 runTime = 10000 # # if loop is true, the simulation will only loop for this number of miliseconds
 
 startPosition = 0 # index of the dataframe to start in
-runSpeed = 1000 # time in miliseconds between each change in field, so 1000 is real time
+runSpeed = 100 # time in miliseconds between each change in field, so 1000 is real time
 
 ################################################################################
 
@@ -118,14 +118,16 @@ while(True):
     simulationX.append(currentFields[0])
     simulationY.append(currentFields[1])
     simulationZ.append(currentFields[2])
-
-    if(loop and (millis() - t0 > runTime)):
-        break
-    elif(simulationPosition >= len(dataFrame)):
-        break
-
+    
     realTime += 1
     realTimeVector.append(realTime)
+    
+    if(loop and (millis() - t0 > runTime)):
+        break
+    elif(simulationPosition >= len(dataFrame) - 1):
+        break
+
+
 
 
 fig, ax = plt.subplots(3)

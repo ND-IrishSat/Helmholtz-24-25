@@ -15,12 +15,13 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 
 ########################################################################################## Settings
 
-pidTries = 20 # number of tries the pid can take to get the desired value before it moves on to next value
-pidDelay = 100 # number of miliseconds between each pid iteration
+pidTries = 50 # number of tries the pid can take to get the desired value before it moves on to next value
+pidDelay = 50 # number of miliseconds between each pid iteration
 
-startPos = 0 # starting position in simulation
+startPos = 1000 # starting position in simulation
+runValues = 50 # number of values to run through for PYSOL
 
-usingPYSOL = False
+usingPYSOL = True
 
 inputFileName = "zeroed.csv"
 outputFileName = "runZeroed.csv"
@@ -121,6 +122,8 @@ err_current = 0
 err_best = 10000
 bestIndex = 0
 
+runValuesCount = 0
+
 magX = 0
 magY = 0
 magZ = 0
@@ -149,7 +152,10 @@ while (True):
            trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
     ##################################################################################################################
     
-
+    simulationOutputX.append(currentFields[0])
+    simulationOutputY.append(currentFields[1])
+    simulationOutputZ.append(currentFields[2])
+    
     if(millis() - pidTime > pidDelay):
 
         pidMagOutputX.append(magX)
@@ -184,9 +190,13 @@ while (True):
             bestIndex = pidPosition
 
 
+    realTime += 1
+    realTimeVector.append(realTime)
+    
     if(pidTriesCount == pidTries):
         pidTriesCount = 0
         simulationPos += 1
+        runValuesCount += 1
         err_best = 10000
 
         row = pd.DataFrame([{"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[2], 
@@ -195,8 +205,9 @@ while (True):
                              "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex],}])
         
         df = pd.concat([df, row], ignore_index=True)
-
-        if(simulationPos >= len(dataFrame)):
+        
+    
+        if(simulationPos >= len(dataFrame) or runValuesCount >= runValues):
             break
         else:
             currentFields[0] = dataFrame.loc[simulationPos, 'Bx']
@@ -204,18 +215,13 @@ while (True):
             currentFields[2] = dataFrame.loc[simulationPos, 'Bz']
 
 
-
-    print("Err Current: ", end=" ")
-    print(err_current)
-  
-    realTime += 1
-    realTimeVector.append(realTime)
+    
 
 
 
 # Creates output CSV file
 df.to_csv(outputFileName, index=True)
-
+sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 # Plots data
 fig, ax = plt.subplots(3)
 
