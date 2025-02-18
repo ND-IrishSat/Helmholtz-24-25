@@ -16,12 +16,12 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 ########################################################################################## Settings
 
 pidTries = 50 # number of tries the pid can take to get the desired value before it moves on to next value
-pidDelay = 50 # number of miliseconds between each pid iteration
+pidDelay = 100 # number of miliseconds between each pid iteration
 
-startPos = 1000 # starting position in simulation
+startPos = 0 # starting position in simulation
 runValues = 50 # number of values to run through for PYSOL
 
-usingPYSOL = True
+usingPYSOL = False
 
 inputFileName = "zeroed.csv"
 outputFileName = "runZeroed.csv"

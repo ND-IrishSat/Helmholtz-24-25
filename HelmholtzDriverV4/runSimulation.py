@@ -13,7 +13,7 @@ dataFrame = pd.read_csv("runZeroed.csv") # magnetic fields dataframe
 
 ################################################################################ Run parameters
 
-loop = False # if true, simulation will loop 1 value
+loop = True # if true, simulation will loop 1 value
 runTime = 10000 # # if loop is true, the simulation will only loop for this number of miliseconds
 
 startPosition = 0 # index of the dataframe to start in
@@ -124,7 +124,7 @@ while(True):
     
     if(loop and (millis() - t0 > runTime)):
         break
-    elif(simulationPosition >= len(dataFrame) - 1):
+    elif(not loop and simulationPosition >= len(dataFrame) - 1):
         break
 
 

@@ -7,7 +7,7 @@ import time
 def initiateUART(magnetometer, PWM):
     
     if(magnetometer):
-        nanoSer = serial.Serial('/dev/ttyACM0',115200)
+        nanoSer = serial.Serial('/dev/ttyACM3',115200)
     else:
         nanoSer = ""
         
