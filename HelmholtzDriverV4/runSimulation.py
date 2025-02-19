@@ -43,10 +43,12 @@ time.sleep(2)
 trueMagOutputX = []
 trueMagOutputY = []
 trueMagOutputZ = []
+totalMagOutput = []
 
 simulationX = []
 simulationY = []
 simulationZ = []
+simulationTotal = []
 simulationPosition = 0
 
 currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
@@ -90,8 +92,15 @@ while(True):
            trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
            trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
            trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
-    #####################################################################################################
+           
+           magX = trueMagOutputX[len(trueMagOutputX) - 1]
+           magY = trueMagOutputY[len(trueMagOutputY) - 1]
+           magZ = trueMagOutputZ[len(trueMagOutputZ) - 1]
 
+           
+    #####################################################################################################
+    totalMag = pow(((magX * magX) + (magY * magY) + (magZ * magZ)), 0.5)
+    totalMagOutput.append(totalMag)
 
     if(millis() - pwmTime >= runSpeed):
         pwmTime = millis()
@@ -113,11 +122,13 @@ while(True):
         currentFields[0] = dataFrame.loc[simulationPosition, 'SIMX']
         currentFields[1] = dataFrame.loc[simulationPosition, 'SIMY']
         currentFields[2] = dataFrame.loc[simulationPosition, 'SIMZ']
-
+        
+    simTotal = pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5)
 
     simulationX.append(currentFields[0])
     simulationY.append(currentFields[1])
     simulationZ.append(currentFields[2])
+    simulationTotal.append(simTotal)
     
     realTime += 1
     realTimeVector.append(realTime)
@@ -128,9 +139,9 @@ while(True):
         break
 
 
+sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 
-
-fig, ax = plt.subplots(3)
+fig, ax = plt.subplots(4)
 
 ax[0].plot(realTimeVector,trueMagOutputX, color = "red", label = "Real")
 ax[0].plot(realTimeVector, simulationX, color = "blue", label = "PySOL")
@@ -141,4 +152,9 @@ ax[1].plot(realTimeVector, simulationY,  color = "blue")
 ax[2].plot(realTimeVector,trueMagOutputZ, color = "red")
 ax[2].plot(realTimeVector, simulationZ, color = "blue")
 
+ax[3].plot(realTimeVector, totalMagOutput, color = "red")
+ax[3].plot(realTimeVector, simulationTotal, color = "blue")
+
 plt.show()
+
+
