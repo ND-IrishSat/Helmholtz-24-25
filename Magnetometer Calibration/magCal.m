@@ -1,5 +1,5 @@
 clc;
-rawTable = readmatrix("arduino_output2.txt");
+rawTable = readmatrix("arduino_output3.txt");
 
 
 D = rawTable(:, 1:3);
