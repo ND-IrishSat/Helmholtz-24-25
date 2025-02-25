@@ -37,13 +37,13 @@
 
 // Hard-iron calibration settings
 const float hard_iron[3] = {
-    -6.5189   -0.3490   -3.0276
+    9.9133,   -0.4296,   35.5930
 };
 // Soft-iron calibration settings
 const float soft_iron[3][3] = {
-  { 1.0054, -0.0156, -0.0039},
-  {-0.0156, 1.0258, -0.0015},
-  { -0.0039, -0.0015, 0.9698}
+  {1.0169,   -0.0067,   -0.0676},
+  {-0.0067,    1.0794,    0.0067},
+  {-0.0676,    0.0067,    0.9156}
 };
 
 
@@ -168,7 +168,7 @@ void loop() {
   float normData[3];
 
   // Perform calibration
-  magCalFunc(magData, normData);
+ magCalFunc(magData, normData);
 
   Serial.print(normData[0]);
   Serial.print(" ");
