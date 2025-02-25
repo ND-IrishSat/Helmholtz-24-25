@@ -25,6 +25,7 @@ usingPYSOL = False
 
 inputFileName = "zeroed.csv"
 outputFileName = "runZeroed.csv"
+fftOutput = "magFieldsOut.csv"
 
 ########################################################################################## pysol initialization
 
@@ -60,6 +61,8 @@ currentFields[1] = dataFrame.loc[startPos, 'By']
 currentFields[2] = dataFrame.loc[startPos, 'Bz']
 
 df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
+fftFrame = pd.DataFrame(columns=["X", "Y", "Z"])
+
 
 ##########################################################################################
 
@@ -151,6 +154,9 @@ while (True):
            trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
            trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
     ##################################################################################################################
+    magRow = pd.DataFrame([{"X": magX, "Y": magY, "Z": magZ,}])
+    fftFrame = pd.concat([fftFrame, magRow], ignore_index=True)
+    
     
     simulationOutputX.append(currentFields[0])
     simulationOutputY.append(currentFields[1])
@@ -204,8 +210,8 @@ while (True):
                              "PWM_Y+": pwmPosOutputY[bestIndex], "PWM_Y-": pwmNegOutputY[bestIndex],
                              "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex],}])
         
-        df = pd.concat([df, row], ignore_index=True)
         
+        df = pd.concat([df, row], ignore_index=True)        
     
         if(simulationPos >= len(dataFrame) or runValuesCount >= runValues):
             break
@@ -221,6 +227,7 @@ while (True):
 
 # Creates output CSV file
 df.to_csv(outputFileName, index=True)
+fftFrame.to_csv(fftOutput, index=True)
 sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 # Plots data
 fig, ax = plt.subplots(3)

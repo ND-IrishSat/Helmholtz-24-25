@@ -7,12 +7,12 @@ import time
 def initiateUART(magnetometer, PWM):
     
     if(magnetometer):
-        nanoSer = serial.Serial('/dev/ttyACM2',115200)
+        nanoSer = serial.Serial('/dev/serial/by-id/usb-Arduino_LLC_Arduino_NANO_33_IoT_8845351E50304D48502E3120FF0E180B-if00',115200)
     else:
         nanoSer = ""
         
     if(PWM):
-        R4Ser = serial.Serial('/dev/ttyACM1', 9600)
+        R4Ser = serial.Serial('/dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_F412FA74EB4C-if01', 9600)
     else:
         R4Ser = ""
    
