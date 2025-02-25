@@ -139,7 +139,7 @@ while(True):
         break
 
 
-sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
+# sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 
 fig, ax = plt.subplots(4)
 
