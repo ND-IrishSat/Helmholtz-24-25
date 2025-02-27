@@ -1,21 +1,20 @@
 
 
 clc;
-rawTable = readmatrix("arduino_output3.txt");
+rawTable = readtable("magFieldsOut.csv");
 
+x = table2array(rawTable(:, "X"));
+y = table2array(rawTable(:, "Y"));
+z = table2array(rawTable(:, "Z"));
 
-D = rawTable(:, 1:3);
-x = rawTable(:, 1);
-
-
-N = length(x);
+N = length(y);
 Ts = 1/300;
 t = 0 : Ts: (N-1)*Ts;
 
 fN = 600; % nyquist frequency
 T = N*Ts; % signal duration
 
-spec = fft(x);
+spec = fft(y);
 magnitude = abs(spec);
 
 freq = 0 : 1/T : (N/2 - 1)/T;
