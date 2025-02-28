@@ -16,7 +16,7 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 ########################################################################################## Settings
 
 pidTries = 50 # number of tries the pid can take to get the desired value before it moves on to next value
-pidDelay = 100 # number of miliseconds between each pid iteration
+pidDelay = 200 # number of miliseconds between each pid iteration
 
 startPos = 0 # starting position in simulation
 runValues = 50 # number of values to run through for PYSOL
@@ -65,12 +65,12 @@ fftFrame = pd.DataFrame(columns=["X", "Y", "Z"])
 
 
 def updatePWMValues(x1, x2, y1, y2, z1, z2):
-    pwm1.value = x1
-    pwm2.value = x2
-    pwm3.value = y1
-    pwm4.value = y2
-    pwm5.value = z1
-    pwm6.value = z2
+    pwm1.value = x1 / 100
+    pwm2.value = x2 / 100
+    pwm3.value = y1 / 100
+    pwm4.value = y2 / 100
+    pwm5.value = z1 / 100
+    pwm6.value = z2 / 100
 
 ##########################################################################################
 
