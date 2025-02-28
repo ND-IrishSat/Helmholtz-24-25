@@ -28,12 +28,13 @@ lock = False
 print("running")
 while(True):
 
-    
+    print("running0.5")
     ################################################################################################################## magnetometer reading
 #     nanoSer.reset_input_buffer()
 #     nanoSer.reset_output_buffer()
 
     magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
+    print(magnetometerOutput)
     if magnetometerOutput:
         if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
            magX = round(float(magnetometerOutput[0]), 2)
@@ -76,6 +77,7 @@ while(True):
     if(millis() - startTime > 10000):
         break
     
+    print("running2")
    
 
 fig, ax = plt.subplots(3)
