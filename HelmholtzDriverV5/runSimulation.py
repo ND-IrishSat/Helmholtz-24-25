@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
+from gpiozero import PWMOutputDevice
+
 from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
 from Dependencies.calibrateValues import calibrate # magnetometer calibration code 
 from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
@@ -21,6 +23,31 @@ runSpeed = 100 # time in miliseconds between each change in field, so 1000 is re
 
 ################################################################################
 
+
+x1 = 14
+x2 = 15
+
+y1 = 17
+y2= 18
+
+z1 = 22
+z2 = 23
+
+pwm1 = PWMOutputDevice(x1, frequency = 6803)
+pwm2 = PWMOutputDevice(x2, frequency = 6803)
+pwm3 = PWMOutputDevice(y1, frequency = 6803)
+pwm4 = PWMOutputDevice(y2, frequency = 6803)
+pwm5 = PWMOutputDevice(z1, frequency = 6803)
+pwm6 = PWMOutputDevice(z2, frequency = 6803)
+
+
+def updatePWMValues(x1, x2, y1, y2, z1, z2):
+    pwm1.value = x1 / 100
+    pwm2.value = x2 / 100
+    pwm3.value = y1 / 100
+    pwm4.value = y2 / 100
+    pwm5.value = z1 / 100
+    pwm6.value = z2 / 100
 #                x  y  z
 currentFields = [0, 0, 0]
 
@@ -30,12 +57,11 @@ currentPWMVals = [0, 0, 0, 0, 0, 0]
 realTimeVector = []
 timeVar = 0
 
-terminals = initiateUART(True, True)
+terminals = initiateUART(True)
 time.sleep(1)
 nanoSer = terminals[0]
-R4Ser = terminals[1]
 
-sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
+updatePWMValues(0, 0, 0, 0, 0, 0)
 time.sleep(2)
 
 
@@ -76,8 +102,6 @@ while(True):
     nanoSer.reset_input_buffer()
     nanoSer.reset_output_buffer()
     
-    R4Ser.reset_input_buffer()
-    R4Ser.reset_output_buffer()
     magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
     if magnetometerOutput:
         if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
@@ -117,7 +141,7 @@ while(True):
         currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
         currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
 
-        sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
+        updatePWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5])
 
         currentFields[0] = dataFrame.loc[simulationPosition, 'SIMX']
         currentFields[1] = dataFrame.loc[simulationPosition, 'SIMY']
