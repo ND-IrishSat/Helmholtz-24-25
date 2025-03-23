@@ -6,6 +6,8 @@ import matplotlib.animation as animation
 import serial
 import time
 
+#Testing my git
+
 # Port Setup - Automate when connected to PI
 ser = serial.Serial(port='COM7',baudrate=115200)
 ser.reset_input_buffer()
