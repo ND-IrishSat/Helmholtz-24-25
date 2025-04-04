@@ -626,7 +626,7 @@ def generate_orbit_data(OE_array, total_time, timestep, file_name="b_field_data.
         
         # Full path to output file
         output_path = os.path.join(output_dir, file_name)
-        print(output_path)
+        #print(output_path)
         # Save data to CSV
         with open(output_path, 'w') as f:
             # Write header with simulation parameters
@@ -641,7 +641,7 @@ def generate_orbit_data(OE_array, total_time, timestep, file_name="b_field_data.
                 # Write B-field data
                 np.savetxt(f, B_earth, delimiter=',', header='Bx,By,Bz', comments='')
             
-        print(f"Data saved to {output_path}")
+        #print(f"Data saved to {output_path}")
 
     if RAM and not GPS:
         return B_earth, ram_velocity

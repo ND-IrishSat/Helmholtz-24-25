@@ -9,11 +9,11 @@ from Dependencies.calibrateValues import calibrate # magnetometer calibration co
 from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
 
 
-dataFrame = pd.read_csv("runZeroed.csv") # magnetic fields dataframe
+dataFrame = pd.read_csv("runPysol.csv") # magnetic fields dataframe
 
 ################################################################################ Run parameters
 
-loop = True # if true, simulation will loop 1 value
+loop = False # if true, simulation will loop 1 value
 runTime = 10000 # # if loop is true, the simulation will only loop for this number of miliseconds
 
 startPosition = 0 # index of the dataframe to start in

@@ -15,16 +15,16 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 
 ########################################################################################## Settings
 
-pidTries = 50 # number of tries the pid can take to get the desired value before it moves on to next value
+pidTries = 5 # number of tries the pid can take to get the desired value before it moves on to next value
 pidDelay = 100 # number of miliseconds between each pid iteration
 
-startPos = 0 # starting position in simulation
-runValues = 50 # number of values to run through for PYSOL
+startPos = 500 # starting position in simulation
+runValues = 1000 # number of values to run through for PYSOL
 
-usingPYSOL = False
+usingPYSOL = True
 
 inputFileName = "zeroed.csv"
-outputFileName = "runZeroed.csv"
+outputFileName = "runPysol.csv"
 fftOutput = "magFieldsOut.csv"
 
 ########################################################################################## pysol initialization
@@ -37,7 +37,7 @@ store_data = True
 generate_GPS = False
 generate_RAM = False
 
-# generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
+generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_dir = os.path.join(script_dir, "PySol")
@@ -61,7 +61,7 @@ currentFields[1] = dataFrame.loc[startPos, 'By']
 currentFields[2] = dataFrame.loc[startPos, 'Bz']
 
 df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
-fftFrame = pd.DataFrame(columns=["X", "Y", "Z"])
+#fftFrame = pd.DataFrame(columns=["X", "Y", "Z"])
 
 
 ##########################################################################################
@@ -155,7 +155,7 @@ while (True):
            trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
     ##################################################################################################################
     magRow = pd.DataFrame([{"X": magX, "Y": magY, "Z": magZ,}])
-    fftFrame = pd.concat([fftFrame, magRow], ignore_index=True)
+    #fftFrame = pd.concat([fftFrame, magRow], ignore_index=True)
     
     
     simulationOutputX.append(currentFields[0])
@@ -176,7 +176,7 @@ while (True):
         [Xp, Xn] = xPID(currentFields[0], magX, pidMagOutputX[pidPosition-1], pwmPosOutputX[pidPosition-1], pwmNegOutputX[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
         [Yp, Yn] = yPID(currentFields[1], magY, pidMagOutputY[pidPosition-1], pwmPosOutputY[pidPosition-1], pwmNegOutputY[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
         [Zp, Zn] = zPID(currentFields[2], magZ, pidMagOutputZ[pidPosition-1], pwmPosOutputZ[pidPosition-1], pwmNegOutputZ[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
-
+     
         sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
 
         pwmPosOutputX.append(Xp)
@@ -195,10 +195,15 @@ while (True):
             err_best = err_current
             bestIndex = pidPosition
 
-
+# 
     realTime += 1
     realTimeVector.append(realTime)
     
+    if(len(realTimeVector) != len(trueMagOutputX) or len(realTimeVector) != len(trueMagOutputY) or len(realTimeVector) != len(trueMagOutputZ)):
+        trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
+        trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
+        trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
+
     if(pidTriesCount == pidTries):
         pidTriesCount = 0
         simulationPos += 1
@@ -227,18 +232,18 @@ while (True):
 
 # Creates output CSV file
 df.to_csv(outputFileName, index=True)
-fftFrame.to_csv(fftOutput, index=True)
+#fftFrame.to_csv(fftOutput, index=True)
 sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 # Plots data
 fig, ax = plt.subplots(3)
 
-ax[0].plot(realTimeVector,trueMagOutputX, color = "red", label = "Real")
-ax[0].plot(realTimeVector, simulationOutputX, color = "blue", label = "PySOL")
+ax[0].plot(realTimeVector,trueMagOutputX, color = "blue", label = "Real")
+ax[0].plot(realTimeVector, simulationOutputX, color = "black", label = "PySOL")
 
-ax[1].plot(realTimeVector,trueMagOutputY, color = "red")
-ax[1].plot(realTimeVector, simulationOutputY,  color = "blue")
+ax[1].plot(realTimeVector,trueMagOutputY, color = "blue")
+ax[1].plot(realTimeVector, simulationOutputY,  color = "black")
 
-ax[2].plot(realTimeVector,trueMagOutputZ, color = "red")
-ax[2].plot(realTimeVector, simulationOutputZ, color = "blue")
+ax[2].plot(realTimeVector,trueMagOutputZ, color = "blue")
+ax[2].plot(realTimeVector, simulationOutputZ, color = "black")
 
 plt.show()
