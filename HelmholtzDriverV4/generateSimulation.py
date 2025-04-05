@@ -6,6 +6,7 @@ import time
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import numpy as np
 
 from PySol.sol_sim import generate_orbit_data
 from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
@@ -15,13 +16,13 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 
 ########################################################################################## Settings
 
-pidTries = 5 # number of tries the pid can take to get the desired value before it moves on to next value
+pidTries = 20 # number of tries the pid can take to get the desired value before it moves on to next value
 pidDelay = 100 # number of miliseconds between each pid iteration
 
-startPos = 500 # starting position in simulation
-runValues = 1000 # number of values to run through for PYSOL
+startPos = 0 # starting position in simulation
+runValues = 5900 # number of values to run through for PYSOL
 
-usingPYSOL = True
+usingPYSOL = False
 
 inputFileName = "zeroed.csv"
 outputFileName = "runPysol.csv"
@@ -37,7 +38,7 @@ store_data = True
 generate_GPS = False
 generate_RAM = False
 
-generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
+#generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_dir = os.path.join(script_dir, "PySol")
@@ -94,6 +95,7 @@ def isValidString(s: str) -> bool:
 trueMagOutputX = [0]
 trueMagOutputY = [0]
 trueMagOutputZ = [0]
+totalMagOutput = [0]
 
 simulationOutputX = [0]
 simulationOutputY = [0]
@@ -155,6 +157,8 @@ while (True):
            trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
     ##################################################################################################################
     magRow = pd.DataFrame([{"X": magX, "Y": magY, "Z": magZ,}])
+    totalMag = pow(((magX * magX) + (magY * magY) + (magZ * magZ)), 0.5)
+    totalMagOutput.append(totalMag)
     #fftFrame = pd.concat([fftFrame, magRow], ignore_index=True)
     
     
@@ -228,22 +232,30 @@ while (True):
 
     
 
+array = np.array(realTimeVector)
+result = array / 310
 
-
+print(realTimeVector[(len(realTimeVector) - 1)])
 # Creates output CSV file
 df.to_csv(outputFileName, index=True)
 #fftFrame.to_csv(fftOutput, index=True)
 sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 # Plots data
-fig, ax = plt.subplots(3)
 
-ax[0].plot(realTimeVector,trueMagOutputX, color = "blue", label = "Real")
-ax[0].plot(realTimeVector, simulationOutputX, color = "black", label = "PySOL")
+plt.ylim(0,55)
+plt.plot(result,totalMagOutput, color = "red")
+# fig, ax = plt.subplots(4)
 
-ax[1].plot(realTimeVector,trueMagOutputY, color = "blue")
-ax[1].plot(realTimeVector, simulationOutputY,  color = "black")
+# ax[0].plot(result,trueMagOutputX, color = "blue", label = "Real")
+# #ax[0].plot(realTimeVector, simulationOutputX, color = "black", label = "PySOL")
+# 
+# ax[1].plot(result,trueMagOutputY, color = "blue")
+# #ax[1].plot(realTimeVector, simulationOutputY,  color = "black")
+# 
+# ax[2].plot(result,trueMagOutputZ, color = "blue")
+# ax[1].set_ylim(0, 35)
+# ax[1].plot(result,totalMagOutput, color = "red")
 
-ax[2].plot(realTimeVector,trueMagOutputZ, color = "blue")
-ax[2].plot(realTimeVector, simulationOutputZ, color = "black")
+#ax[2].plot(realTimeVector, simulationOutputZ, color = "black")
 
 plt.show()
