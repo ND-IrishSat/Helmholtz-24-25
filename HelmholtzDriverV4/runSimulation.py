@@ -8,8 +8,9 @@ from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, read
 from Dependencies.calibrateValues import calibrate # magnetometer calibration code 
 from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
 
+print("Started.\n")
 
-dataFrame = pd.read_csv("runPysol.csv") # magnetic fields dataframe
+dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
 
 ################################################################################ Run parameters
 
@@ -17,7 +18,7 @@ loop = False # if true, simulation will loop 1 value
 runTime = 10000 # # if loop is true, the simulation will only loop for this number of miliseconds
 
 startPosition = 0 # index of the dataframe to start in
-runSpeed = 100 # time in miliseconds between each change in field, so 1000 is real time
+runSpeed = 1000 # time in miliseconds between each change in field, so 1000 is real time
 
 ################################################################################
 
@@ -71,6 +72,7 @@ t0 = millis()
 pwmTime = t0
 
 while(True):
+    print("Running...\n")
 
     ##################################################################################################### magnetometer reading 
     nanoSer.reset_input_buffer()
@@ -139,6 +141,7 @@ while(True):
         break
 
 
+print("Done.\n")
 # sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 
 fig, ax = plt.subplots(4)
