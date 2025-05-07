@@ -11,6 +11,7 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 print("Started.\n")
 
 dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
+#dataFrame = pd.read_csv("runZeroed.csv") # magnetic fields dataframe
 
 ################################################################################ Run parameters
 

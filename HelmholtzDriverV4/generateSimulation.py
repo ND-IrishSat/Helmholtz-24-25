@@ -16,13 +16,13 @@ from Dependencies.extraneous import processStrings, calculateOffsets, millis # i
 
 ########################################################################################## Settings
 
-pidTries = 2 # number of tries the pid can take to get the desired value before it moves on to next value
+pidTries = 30 # number of tries the pid can take to get the desired value before it moves on to next value
 pidDelay = 100 # number of miliseconds between each pid iteration
 
 startPos = 0 # starting position in simulation
 runValues = 2950 # number of values to run through for PYSOL
 
-usingPYSOL = True
+usingPYSOL = False
 
 inputFileName = "zeroed.csv"
 outputFileName = "runZeroed.csv"
@@ -38,7 +38,7 @@ store_data = True
 generate_GPS = False
 generate_RAM = False
 
-generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
+#generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 output_dir = os.path.join(script_dir, "PySol")
