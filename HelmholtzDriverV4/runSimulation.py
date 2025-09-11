@@ -1,14 +1,28 @@
+from Dependencies.R4UART import sendPWMValues, initiateUART # UART code 
+from Dependencies.extraneous import millis
+
+#from Cage_GUI.Data_Ctrl
+#from Cage_GUI.GUI_Ctrl
+#from Cage_GUI.Serial_Ctrl
 
 import time
 import matplotlib.pyplot as plt
+
 import pandas as pd
 import os
 
-from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
-from Dependencies.calibrateValues import calibrate # magnetometer calibration code 
-from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
+#from Dependencies.calibrateValues import calibrate # magnetometer calibration code 
+#from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
+#from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code
 
 print("Started.\n")
+
+class RootGUI:
+    def __init__(self, serial, data):
+        pass
+    
+    def close_window(self):
+        pass
 
 dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
 #dataFrame = pd.read_csv("runZeroed.csv") # magnetic fields dataframe
@@ -16,10 +30,13 @@ dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
 ################################################################################ Run parameters
 
 loop = False # if true, simulation will loop 1 value
-runTime = 10000 # # if loop is true, the simulation will only loop for this number of miliseconds
+runTime = 5000 # # if loop is true, the simulation will only loop for this number of miliseconds
+
+timeLimit = True
+totalrunTime = 20000 # Time for total sim if timeLimit is true
 
 startPosition = 0 # index of the dataframe to start in
-runSpeed = 1000 # time in miliseconds between each change in field, so 1000 is real time
+runSpeed = 100 # time in miliseconds between each change in field, so 1000 is real time
 
 ################################################################################
 
@@ -39,8 +56,6 @@ R4Ser = terminals[1]
 
 sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 time.sleep(2)
-
-
 
 trueMagOutputX = []
 trueMagOutputY = []
@@ -138,6 +153,8 @@ while(True):
     
     if(loop and (millis() - t0 > runTime)):
         break
+    if(timeLimit and (millis() - t0 > totalrunTime)):
+        break   
     elif(not loop and simulationPosition >= len(dataFrame) - 1):
         break
 
