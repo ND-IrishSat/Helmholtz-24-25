@@ -33,7 +33,7 @@ loop = False # if true, simulation will loop 1 value
 runTime = 5000 # # if loop is true, the simulation will only loop for this number of miliseconds
 
 timeLimit = True
-totalrunTime = 20000 # Time for total sim if timeLimit is true
+totalrunTime = 40000 # Time for total sim if timeLimit is true
 
 startPosition = 0 # index of the dataframe to start in
 runSpeed = 100 # time in miliseconds between each change in field, so 1000 is real time
