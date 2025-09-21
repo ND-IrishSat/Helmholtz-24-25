@@ -12,7 +12,7 @@ class RootGUI():
         '''Initializing the root GUI and other comps of the program'''
         self.root = Tk()
         self.root.title("GOAT HELMHOLTZ CAGE")
-        self.root.geometry("360x120")
+        self.root.geometry("800x600")
         self.root.config(bg="white")
 
 # Manuel/Auto Selection
@@ -27,13 +27,23 @@ class ModeGui():
                                 padx=5, pady=5, bg="white")
         self.label_Mode = Label(
             self.frame, text="Mode: ", bg="white", width=15, anchor="w")
+        
+        self.input_frame = LabelFrame(root, text="Input Desired Magnetic Field", 
+                                      padx=5, pady=5, bg="white")
+        self.label_x = Label(
+            self.input_frame, text="X-axis: ", bg="white", width= 15, anchor="w")
+        self.label_y = Label(
+            self.input_frame, text="Y-axis: ", bg="white", width= 15, anchor="w")
+        self.label_z = Label(
+            self.input_frame, text="Z-axis: ", bg="white", width= 15, anchor="w")
+        
 
         # Setup the Drop option menu
         self.ModeOptionMenu()
 
         # Add the control buttons for refreshing the COMs & Connect
         self.btn_Gen_Sim = Button(self.frame, text="Generate Sim",
-                                  width=10,  command=self.Gen_Sim_ctrl)
+                                  width=10, state="disabled", command=self.Gen_Sim_ctrl)
 
         # Optional Graphic parameters
         self.padx = 20
@@ -46,13 +56,18 @@ class ModeGui():
         '''
          Method to display all the Widget of the main frame
         '''
-        self.frame.grid(row=0, column=0, rowspan=3,
-                        columnspan=3, padx=5, pady=5)
+        self.frame.grid(row=0, column=0, padx=5, pady=5)
+        #  rowspan=3, columnspan=3,
         self.label_Mode.grid(column=1, row=2)
-
         self.drop_Mode.grid(column=2, row=2, padx=self.padx)
-
         self.btn_Gen_Sim.grid(column=3, row=2)
+
+        self.input_frame.grid(row=1, column=0, padx=5, pady=5)
+        # rowspan=3, columnspan=7,
+        self.label_x.grid(row=1, column=1)
+        self.label_y.grid(row=2, column=1)
+        self.label_z.grid(row=3, column=1)
+        
 
     def ModeOptionMenu(self):
         '''
@@ -74,15 +89,20 @@ class ModeGui():
         Mehtod to keep the connect button disabled if all the
         conditions are not cleared
         '''
-        print("Mode Set")
-        # Checking the logic consistency to keep the connection btn
-#         if "-" in self.clicked_Mode.get():
-#             self.btn_Gen_Sim["state"] = "disabled"
-#         else:
-#             self.btn_Gen_Sim["state"] = "active"
+
+        if ("-" in self.clicked_Mode.get()):
+            self.btn_Gen_Sim["state"] = "disabled"            
+        else:
+            self.btn_Gen_Sim["state"] = "active"
+            if ("Auto" in self.clicked_Mode.get()):
+                print("Auto mode selected")
+            elif ("Zero" in self.clicked_Mode.get()):
+                print("Zero mode selected")
+            elif ("Manuel" in self.clicked_Mode.get()):
+                print("manual mode selected")
+
     def Gen_Sim_ctrl(self):
         print("Generate Simulation")
 
 if __name__ == "__main__":
     RootGUI()
-    ComGui()
