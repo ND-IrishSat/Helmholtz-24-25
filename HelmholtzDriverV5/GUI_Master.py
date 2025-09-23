@@ -23,17 +23,15 @@ class ModeGui():
         '''
         # Initializing the Widgets
         self.root = root
+        
         self.frame = LabelFrame(root, text="Select Manuel or Auto", padx=5, pady=5, bg="white")
         self.label_Mode = Label(self.frame, text="Mode: ", bg="white", width=15, anchor="w")
-        
         self.input_frame = LabelFrame(root, text="Input Desired Magnetic Field", padx=5, pady=5, bg="white")
         
+        self.axises = ["x_axis", "y_axis", "z_axis"]
+        self.default_magnetic_strength = "000"
         self.entry_data = {}
-        axises = ["x_axis", "y_axis", "z_axis"]
-
-        for axis in axises:
-            self.entry_data[axis] = StringVar()
-            self.entry_data[axis].set("000")
+        self.initialize_magnetic_field()
 
         self.label_x = Label(self.input_frame, text="X-axis: ", bg="white", width= 15, anchor="w")
         self.entry_x = Entry(self.input_frame, textvariable=self.entry_data['x_axis'])
@@ -106,14 +104,24 @@ class ModeGui():
             if ("Auto" in self.clicked_Mode.get()):
                 print("Auto mode selected")
             elif ("Zero" in self.clicked_Mode.get()):
+                self.zero_magnetic_field()
                 print("Zero mode selected")
             elif ("Manuel" in self.clicked_Mode.get()):
                 self.entry_x.focus()
                 print("manual mode selected")
 
     def Gen_Sim_ctrl(self):
-        print(self.entry_x.get())
+        print(f"x: {self.entry_x.get()} y: {self.entry_y.get()} z: {self.entry_z.get()}")
         print("Generate Simulation")
+
+    def initialize_magnetic_field(self):
+        for axis in self.axises:
+            self.entry_data[axis] = StringVar()
+            self.entry_data[axis].set(self.default_magnetic_strength)
+
+    def zero_magnetic_field(self):
+        for axis in self.axises:
+            self.entry_data[axis].set(self.default_magnetic_strength)
 
 if __name__ == "__main__":
     RootGUI()
