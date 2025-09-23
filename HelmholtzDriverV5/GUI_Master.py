@@ -1,6 +1,6 @@
 from tkinter import *
 #from tkinter import messagebox
-#from tkinter import ttk
+from tkinter import ttk
 #import threading
 
 #import matplotlib.pyplot as plt
@@ -23,20 +23,26 @@ class ModeGui():
         '''
         # Initializing the Widgets
         self.root = root
-        self.frame = LabelFrame(root, text="Select Manuel or Auto",
-                                padx=5, pady=5, bg="white")
-        self.label_Mode = Label(
-            self.frame, text="Mode: ", bg="white", width=15, anchor="w")
+        self.frame = LabelFrame(root, text="Select Manuel or Auto", padx=5, pady=5, bg="white")
+        self.label_Mode = Label(self.frame, text="Mode: ", bg="white", width=15, anchor="w")
         
-        self.input_frame = LabelFrame(root, text="Input Desired Magnetic Field", 
-                                      padx=5, pady=5, bg="white")
-        self.label_x = Label(
-            self.input_frame, text="X-axis: ", bg="white", width= 15, anchor="w")
-        self.label_y = Label(
-            self.input_frame, text="Y-axis: ", bg="white", width= 15, anchor="w")
-        self.label_z = Label(
-            self.input_frame, text="Z-axis: ", bg="white", width= 15, anchor="w")
+        self.input_frame = LabelFrame(root, text="Input Desired Magnetic Field", padx=5, pady=5, bg="white")
         
+        self.entry_data = {}
+        axises = ["x_axis", "y_axis", "z_axis"]
+
+        for axis in axises:
+            self.entry_data[axis] = StringVar()
+            self.entry_data[axis].set("000")
+
+        self.label_x = Label(self.input_frame, text="X-axis: ", bg="white", width= 15, anchor="w")
+        self.entry_x = Entry(self.input_frame, textvariable=self.entry_data['x_axis'])
+
+        self.label_y = Label(self.input_frame, text="Y-axis: ", bg="white", width= 15, anchor="w")
+        self.entry_y = Entry(self.input_frame, textvariable=self.entry_data['y_axis'])
+
+        self.label_z = Label(self.input_frame, text="Z-axis: ", bg="white", width= 15, anchor="w")
+        self.entry_z = Entry(self.input_frame, textvariable=self.entry_data['z_axis'])
 
         # Setup the Drop option menu
         self.ModeOptionMenu()
@@ -65,8 +71,11 @@ class ModeGui():
         self.input_frame.grid(row=1, column=0, padx=5, pady=5)
         # rowspan=3, columnspan=7,
         self.label_x.grid(row=1, column=1)
+        self.entry_x.grid(row=1, column=2)
         self.label_y.grid(row=2, column=1)
+        self.entry_y.grid(row=2, column=2)
         self.label_z.grid(row=3, column=1)
+        self.entry_z.grid(row=3, column=2)
         
 
     def ModeOptionMenu(self):
@@ -99,9 +108,11 @@ class ModeGui():
             elif ("Zero" in self.clicked_Mode.get()):
                 print("Zero mode selected")
             elif ("Manuel" in self.clicked_Mode.get()):
+                self.entry_x.focus()
                 print("manual mode selected")
 
     def Gen_Sim_ctrl(self):
+        print(self.entry_x.get())
         print("Generate Simulation")
 
 if __name__ == "__main__":
