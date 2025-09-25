@@ -3,8 +3,9 @@ from tkinter import *
 from tkinter import ttk
 #import threading
 
-#import matplotlib.pyplot as plt
-#import numpy as np
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import numpy as np
 
 
 class RootGUI():
@@ -122,6 +123,64 @@ class ModeGui():
     def zero_magnetic_field(self):
         for axis in self.axises:
             self.entry_data[axis].set(self.default_magnetic_strength)
+
+class GraphGui():
+    def __init__(self, root):
+        self.root = root
+        #self.title("Magnetic Fields (X,Y,Z, Total")
+        
+        # Frame for the graph
+        
+        self.graph_frame = ttk.Frame(root)
+        self.graph_frame.grid(row = 1, column = 1)
+        
+        # Create and embed the graph
+        
+        self.create_graph_X()
+        self.create_graph_Y()
+        self.create_graph_Z()
+        self.create_graph_Tot()
+
+        
+    def create_graph_X(self):
+        fig = Figure(figsize=(5, 4), dpi=100)
+        ax = fig.add_subplot(111)
+        ax.plot([0, 1, 2, 3], [0, 1, 4, 9])
+        ax.set_title("X Field")
+        
+        canvas = FigureCanvasTkAgg(fig, master=self.graph_frame)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=0, column=0)
+        
+    def create_graph_Y(self):
+        fig = Figure(figsize=(5, 4), dpi=100)
+        ax = fig.add_subplot(111)
+        ax.plot([0, 1, 2, 3], [0, 1, 4, 9])
+        ax.set_title("Y Field")
+        
+        canvas = FigureCanvasTkAgg(fig, master=self.graph_frame)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=0, column=1)
+
+    def create_graph_Z(self):
+        fig = Figure(figsize=(5, 4), dpi=100)
+        ax = fig.add_subplot(111)
+        ax.plot([0, 1, 2, 3], [0, 1, 4, 9])
+        ax.set_title("Z Field")
+        
+        canvas = FigureCanvasTkAgg(fig, master=self.graph_frame)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=1, column=0)
+
+    def create_graph_Tot(self):
+        fig = Figure(figsize=(5, 4), dpi=100)
+        ax = fig.add_subplot(111)
+        ax.plot([0, 1, 2, 3], [0, 1, 4, 9])
+        ax.set_title("Total Field")
+        
+        canvas = FigureCanvasTkAgg(fig, master=self.graph_frame)
+        canvas.draw()
+        canvas.get_tk_widget().grid(row=1, column=1)
 
 if __name__ == "__main__":
     RootGUI()
