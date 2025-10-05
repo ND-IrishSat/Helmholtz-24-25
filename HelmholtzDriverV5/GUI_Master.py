@@ -1,7 +1,6 @@
 from tkinter import *
-#from tkinter import messagebox
 from tkinter import ttk
-#import threading
+#import threading # Later will use threading for data managing 
 
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -135,7 +134,6 @@ class GraphGui():
         self.graph_frame.grid(row = 1, column = 1)
         
         # Create and embed the graph
-        
         self.create_graph_X()
         self.create_graph_Y()
         self.create_graph_Z()

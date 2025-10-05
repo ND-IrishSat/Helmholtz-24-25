@@ -1,0 +1,370 @@
+from tkinter import *
+from tkinter import ttk
+
+import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import numpy as np
+
+
+class RootGUI():
+    def __init__(self, serial, data):
+        '''Initializing the root GUI and other comps of the program'''
+        self.root = Tk()
+        self.serial = serial
+        self.data = data
+        self.root.title("GOAT HELMHOLTZ CAGE")
+        self.root.geometry("1200x700")
+        self.root.config(bg="white")
+        
+        # Configure grid weights for better resizing
+        self.root.grid_columnconfigure(0, weight=0)  # Left column (controls) - fixed width
+        self.root.grid_columnconfigure(1, weight=1)  # Right column (graphs) - expandable
+        self.root.grid_rowconfigure(0, weight=1)
+
+# Manuel/Auto Selection
+class ModeGui():
+    def __init__(self, root, serial, data):
+        '''
+        Initialize the mode selection GUI
+        '''
+        # Initializing the Widgets
+        self.root = root
+        self.serial = serial
+        self.data = data
+        
+        # Mode selection frame - TOP LEFT (row=0, column=0)
+        self.frame = LabelFrame(root, text="Select Manuel or Auto", padx=5, pady=5, bg="white")
+        self.label_Mode = Label(self.frame, text="Mode: ", bg="white", width=15, anchor="w")
+        
+        # Input frame - BELOW mode selection (row=1, column=0)
+        self.input_frame = LabelFrame(root, text="Input Desired Magnetic Field", padx=5, pady=5, bg="white")
+        
+        self.axises = ["x_axis", "y_axis", "z_axis"]
+        self.default_magnetic_strength = "000"
+        self.entry_data = {}
+        self.initialize_magnetic_field()
+
+        self.label_x = Label(self.input_frame, text="X-axis: ", bg="white", width=15, anchor="w")
+        self.entry_x = Entry(self.input_frame, textvariable=self.entry_data['x_axis'], width=20)
+
+        self.label_y = Label(self.input_frame, text="Y-axis: ", bg="white", width=15, anchor="w")
+        self.entry_y = Entry(self.input_frame, textvariable=self.entry_data['y_axis'], width=20)
+
+        self.label_z = Label(self.input_frame, text="Z-axis: ", bg="white", width=15, anchor="w")
+        self.entry_z = Entry(self.input_frame, textvariable=self.entry_data['z_axis'], width=20)
+
+        # Setup the Drop option menu
+        self.ModeOptionMenu()
+
+        # Add the control buttons for refreshing the COMs & Connect
+        self.btn_Gen_Sim = Button(self.frame, text="Generate Sim",
+                                  width=15, state="disabled", command=self.Gen_Sim_ctrl)
+
+        # Optional Graphic parameters
+        self.padx = 10
+        self.pady = 5
+        
+        self.graphs = None
+
+        # Put on the grid all the elements
+        self.publish()
+
+    def publish(self):
+        '''
+        Method to display all the Widget of the main frame
+        LEFT COLUMN LAYOUT (column=0)
+        '''
+        # Mode frame at TOP LEFT (row=0, column=0)
+        self.frame.grid(row=0, column=0, padx=10, pady=10, sticky="new")
+        
+        # Internal layout for mode frame
+        self.label_Mode.grid(column=0, row=0, sticky="w", padx=5, pady=5)
+        self.drop_Mode.grid(column=1, row=0, padx=self.padx, pady=5)
+        self.btn_Gen_Sim.grid(column=0, row=1, columnspan=2, pady=10)
+
+        # Input frame BELOW mode frame (row=1, column=0)
+        self.input_frame.grid(row=1, column=0, padx=10, pady=10, sticky="new")
+        
+        # Internal layout for input frame
+        self.label_x.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.entry_x.grid(row=0, column=1, padx=5, pady=5)
+        
+        self.label_y.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.entry_y.grid(row=1, column=1, padx=5, pady=5)
+        
+        self.label_z.grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.entry_z.grid(row=2, column=1, padx=5, pady=5)
+
+    def ModeOptionMenu(self):
+        '''
+        Method to Get the available modes and list them into the drop menu
+        '''
+        # Generate the list of available modes
+        modes = ["-", "Auto (PySol)", "Zero", "Manuel"]
+
+        self.clicked_Mode = StringVar()
+        self.clicked_Mode.set(modes[0])
+        self.drop_Mode = OptionMenu(
+            self.frame, self.clicked_Mode, *modes, command=self.mode_ctrl)
+
+        self.drop_Mode.config(width=15)
+
+    def mode_ctrl(self, widget):
+        '''
+        Method to keep the connect button disabled if all the
+        conditions are not cleared
+        '''
+        if ("-" in self.clicked_Mode.get()):
+            self.btn_Gen_Sim["state"] = "disabled"            
+        else:
+            self.btn_Gen_Sim["state"] = "active"
+            if ("Auto" in self.clicked_Mode.get()):
+                print("Auto mode selected")
+            elif ("Zero" in self.clicked_Mode.get()):
+                self.zero_magnetic_field()
+                print("Zero mode selected")
+            elif ("Manuel" in self.clicked_Mode.get()):
+                self.entry_x.focus()
+                print("manual mode selected")
+            
+            # Create graphs if they don't exist
+            if self.graphs is None:
+                self.graphs = GraphGui(self.root, self.serial, self.data)
+
+    def Gen_Sim_ctrl(self):
+        print(f"x: {self.entry_x.get()} y: {self.entry_y.get()} z: {self.entry_z.get()}")
+        print("Generate Simulation")
+
+    def initialize_magnetic_field(self):
+        for axis in self.axises:
+            self.entry_data[axis] = StringVar()
+            self.entry_data[axis].set(self.default_magnetic_strength)
+
+    def zero_magnetic_field(self):
+        for axis in self.axises:
+            self.entry_data[axis].set(self.default_magnetic_strength)
+
+
+class ConnGUI():
+    def __init__(self, root, serial, data):
+        '''
+        Initialize main Widgets for communication GUI
+        PLACED BELOW the input frame (row=2, column=0)
+        '''
+        self.root = root
+        self.serial = serial
+        self.data = data
+
+        # Build ConnGui Static Elements - BELOW input frame (row=2, column=0)
+        self.frame = LabelFrame(root, text="Connection Manager",
+                                padx=5, pady=5, bg="white")
+        
+        self.sync_label = Label(
+            self.frame, text="Sync Status: ", bg="white", width=15, anchor="w")
+        self.sync_status = Label(
+            self.frame, text="..Sync..", bg="white", fg="orange", width=10)
+
+        self.ch_label = Label(
+            self.frame, text="Active channels: ", bg="white", width=15, anchor="w")
+        self.ch_status = Label(
+            self.frame, text="...", bg="white", fg="orange", width=10)
+
+        self.btn_start_stream = Button(self.frame, text="Start", state="disabled",
+                                       width=10, command=self.start_stream)
+
+        self.btn_stop_stream = Button(self.frame, text="Stop", state="disabled",
+                                      width=10, command=self.stop_stream)
+
+        self.btn_add_chart = Button(self.frame, text="+", state="disabled",
+                                    width=5, bg="white", fg="#098577",
+                                    command=self.new_chart)
+
+        self.btn_kill_chart = Button(self.frame, text="-", state="disabled",
+                                     width=5, bg="white", fg="#CC252C",
+                                     command=self.kill_chart)
+        
+        self.save = False
+        self.SaveVar = IntVar()
+        self.save_check = Checkbutton(self.frame, text="Save data", variable=self.SaveVar,
+                                      onvalue=1, offvalue=0, bg="white", state="disabled",
+                                      command=self.save_data)
+
+        # Optional Graphic parameters
+        self.padx = 10
+        self.pady = 5
+
+        self.chartMaster = None
+
+        # Extending the GUI
+        self.ConnGUIOpen()
+
+    def ConnGUIOpen(self):
+        '''
+        Method to display all the widgets
+        PLACED at row=2, column=0 (below input frame)
+        '''
+        self.frame.grid(row=2, column=0, padx=10, pady=10, sticky="new")
+
+        # Internal grid layout
+        self.sync_label.grid(column=0, row=0, sticky="w", padx=5, pady=5)
+        self.sync_status.grid(column=1, row=0, padx=5, pady=5)
+
+        self.ch_label.grid(column=0, row=1, sticky="w", padx=5, pady=5)
+        self.ch_status.grid(column=1, row=1, padx=5, pady=5)
+
+        self.btn_start_stream.grid(column=0, row=2, padx=5, pady=5)
+        self.btn_stop_stream.grid(column=1, row=2, padx=5, pady=5)
+
+        self.btn_add_chart.grid(column=0, row=3, padx=5, pady=5, sticky="ew")
+        self.btn_kill_chart.grid(column=1, row=3, padx=5, pady=5, sticky="ew")
+
+        self.save_check.grid(column=0, row=4, columnspan=2, pady=10)
+
+    def ConnGUIClose(self):
+        '''
+        Method to close the connection GUI and destroys the widgets
+        '''
+        for widget in self.frame.winfo_children():
+            widget.destroy()
+        self.frame.destroy()
+
+    def start_stream(self):
+        pass
+
+    def stop_stream(self):
+        pass
+
+    def new_chart(self):
+        '''
+        Method that will add a new chart with all the options 
+        '''
+        if self.chartMaster is None:
+            self.chartMaster = GraphGui(self.root, self.serial, self.data)
+        else:
+            self.chartMaster.AddChannelMaster()
+
+    def kill_chart(self):
+        '''
+        Method that will remove a chart and kill all the widgets inside it
+        '''
+        if self.chartMaster is not None and len(self.chartMaster.frames) > 0:
+            totalFrame = len(self.chartMaster.frames) - 1
+            self.chartMaster.frames[totalFrame].destroy()
+            self.chartMaster.frames.pop()
+            self.chartMaster.figs.pop()
+            self.chartMaster.ControlFrames.pop()
+
+    def save_data(self):
+        pass
+
+
+class GraphGui():
+    def __init__(self, root, serial, data):
+        '''
+        Graph GUI - RIGHT SIDE of the window
+        All graphs placed in column=1 (right column)
+        '''
+        self.root = root
+        self.serial = serial
+        self.data = data
+        
+        # Container frame for all graphs - RIGHT SIDE (row=0, column=1)
+        self.container_frame = Frame(root, bg="white")
+        self.container_frame.grid(row=0, column=1, rowspan=3, padx=10, pady=10, sticky="nsew")
+        
+        # Frame for the graphs
+        self.frames = []
+        self.figs = []
+        self.ControlFrames = []
+        self.totalframes = 0
+        
+        # Add the first chart automatically
+        self.AddChannelMaster()
+
+    def AddChannelMaster(self):
+        '''Add a complete chart with controls'''
+        self.AddMasterFrame()
+        self.AddGraph()
+        self.AddBtnFrame()
+
+    def AddMasterFrame(self):
+        '''Create a new frame for a chart'''
+        self.frames.append(LabelFrame(self.container_frame, 
+                                      text=f"Display Manager-{len(self.frames)+1}",
+                                      pady=5, padx=5, bg="white"))
+        self.totalframes = len(self.frames) - 1
+        
+        # Stack graphs vertically in the container
+        self.frames[self.totalframes].grid(row=self.totalframes, column=0, 
+                                          padx=5, pady=5, sticky="nsew")
+        
+        # Configure container to expand graphs
+        self.container_frame.grid_rowconfigure(self.totalframes, weight=1)
+        self.container_frame.grid_columnconfigure(0, weight=1)
+
+    def AddGraph(self):
+        '''Setup the figure and plot for the current frame'''
+        self.figs.append([])
+        
+        # Initialize figure
+        self.figs[self.totalframes].append(plt.Figure(figsize=(8, 4), dpi=80))
+        
+        # Initialize the plot
+        self.figs[self.totalframes].append(
+            self.figs[self.totalframes][0].add_subplot(111))
+        
+        # Initialize the canvas
+        self.figs[self.totalframes].append(FigureCanvasTkAgg(
+            self.figs[self.totalframes][0], master=self.frames[self.totalframes]))
+
+        # Place the canvas - graph on the right (column=1)
+        self.figs[self.totalframes][2].get_tk_widget().grid(
+            column=1, row=0, sticky="nsew")
+        
+        # Configure grid weights for resizing
+        self.frames[self.totalframes].grid_columnconfigure(1, weight=1)
+        self.frames[self.totalframes].grid_rowconfigure(0, weight=1)
+
+    def AddBtnFrame(self):
+        '''Add control buttons for the chart'''
+        btnH = 2
+        btnW = 4
+        
+        self.ControlFrames.append([])
+        
+        # Control frame on the left side of the graph (column=0)
+        self.ControlFrames[self.totalframes].append(
+            LabelFrame(self.frames[self.totalframes], pady=5, bg="white", text="Controls"))
+        self.ControlFrames[self.totalframes][0].grid(
+            column=0, row=0, padx=5, pady=5, sticky="n")
+
+        # Add button
+        self.ControlFrames[self.totalframes].append(
+            Button(self.ControlFrames[self.totalframes][0], text="+",
+                   bg="white", width=btnW, height=btnH))
+        self.ControlFrames[self.totalframes][1].grid(
+            column=0, row=0, padx=5, pady=5)
+        
+        # Remove button
+        self.ControlFrames[self.totalframes].append(
+            Button(self.ControlFrames[self.totalframes][0], text="-",
+                   bg="white", width=btnW, height=btnH))
+        self.ControlFrames[self.totalframes][2].grid(
+            column=0, row=1, padx=5, pady=5)
+
+
+if __name__ == "__main__":
+    # Create root window
+    root_gui = RootGUI()
+    
+    # Mock serial and data objects for testing
+    serial = None
+    data = None
+    
+    # Initialize GUI components
+    mode_gui = ModeGui(root_gui.root, serial, data)
+    conn_gui = ConnGUI(root_gui.root, serial, data)
+    
+    # Start the main loop
+    root_gui.root.mainloop()
