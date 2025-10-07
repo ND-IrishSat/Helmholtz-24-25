@@ -8,11 +8,9 @@ import numpy as np
 
 
 class RootGUI():
-    def __init__(self, serial, data):
+    def __init__(self):
         '''Initializing the root GUI and other comps of the program'''
         self.root = Tk()
-        self.serial = serial
-        self.data = data
         self.root.title("GOAT HELMHOLTZ CAGE")
         self.root.geometry("1200x700")
         self.root.config(bg="white")
@@ -21,6 +19,7 @@ class RootGUI():
         self.root.grid_columnconfigure(0, weight=0)  # Left column (controls) - fixed width
         self.root.grid_columnconfigure(1, weight=1)  # Right column (graphs) - expandable
         self.root.grid_rowconfigure(0, weight=1)
+
 
 # Manuel/Auto Selection
 class ModeGui():
