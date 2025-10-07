@@ -278,8 +278,17 @@ class GraphGui():
         self.ControlFrames = []
         self.totalframes = 0
         
+        # Value Arrays
+        self.time = []
+        self.xmag = []
+        self.ymag = []
+        self.zmag = []
+        
         # Add the first chart automatically
         self.AddChannelMaster()
+        
+        # Update Chart
+        self.update_plot()
 
     def AddChannelMaster(self):
         '''Add a complete chart with controls'''
@@ -351,11 +360,36 @@ class GraphGui():
                    bg="white", width=btnW, height=btnH))
         self.ControlFrames[self.totalframes][2].grid(
             column=0, row=1, padx=5, pady=5)
+        
+    def update_plot(self):
+        value = self.serial.read_value()
+        if value is not None:
+            try:
+                self.xmag.append(value[0])
+                self.ymag.append(value[1])
+                self.zmag.append(value[2])
+            except:
+                self.xmag.append(self.xmag[len(self.xmag) - 1])
+                self.ymag.append(self.ymag[len(self.ymag) - 1])
+                self.zmag.append(self.xmag[len(self.zmag) - 1])
+            self.time.append(len(self.time) * 0.1)
+            print(value)
+            
+            # Show Data on graph
+            self.figs[self.totalframes][1].clear()
+            self.figs[self.totalframes][1].plot(self.time, self.xmag, color='green')
+            self.figs[self.totalframes][1].plot(self.time, self.ymag, color='red')
+            self.figs[self.totalframes][1].plot(self.time, self.zmag, color='blue')
+            self.figs[self.totalframes][2].draw()
+            
+
+        self.root.after(100, self.update_plot)
 
 
 if __name__ == "__main__":
     # Create root window
     root_gui = RootGUI()
+    graph_gui = GraphGui()
     
     # Mock serial and data objects for testing
     serial = None
