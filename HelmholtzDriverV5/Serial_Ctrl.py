@@ -8,12 +8,15 @@ class SerialCtrl:
     
     def read_value(self):
         try:
+            # Clean Start
             self.ser.reset_input_buffer()
             self.ser.reset_output_buffer()
+            
             line = self.ser.readline().decode('utf-8').strip()
             if line:
                 # Check that Data is here 
                 mag_array = [float(x) for x in line.split()]
+                
                 if len(mag_array) == 3:
                     return mag_array
                 else:

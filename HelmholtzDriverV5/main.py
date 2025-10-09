@@ -1,13 +1,11 @@
-from GUI_Master_1 import RootGUI,  ModeGui, GraphGui, ConnGUI
-from Data_Ctrl import DataMaster
+from GUI_Master import RootGUI,  ModeGui, GraphGui, ConnGUI
 from Serial_Ctrl import SerialCtrl
 
 RootMaster = RootGUI()
 
-MyData = DataMaster()
 MySerial = SerialCtrl()
-ModeMaster = ModeGui(RootMaster.root, MySerial, MyData)
-GraphMaster = GraphGui(RootMaster.root, MySerial, MyData)
-ComMaster = ConnGUI(RootMaster.root, MySerial, MyData)
+ModeMaster = ModeGui(RootMaster.root, MySerial)
+GraphMaster = GraphGui(RootMaster.root, MySerial)
+ComMaster = ConnGUI(RootMaster.root, MySerial)
 
 RootMaster.root.mainloop()
