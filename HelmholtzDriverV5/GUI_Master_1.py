@@ -37,21 +37,30 @@ class ModeGui():
         self.label_Mode = Label(self.frame, text="Mode: ", bg="white", width=15, anchor="w")
         
         # Input frame - BELOW mode selection (row=1, column=0)
-        self.input_frame = LabelFrame(root, text="Input Desired Magnetic Field", padx=5, pady=5, bg="white")
+        self.input_frame = LabelFrame(root, text="Input Desired PWM Values", padx=5, pady=5, bg="white")
         
-        self.axises = ["x_axis", "y_axis", "z_axis"]
-        self.default_magnetic_strength = "000"
+        self.axises = ["x_pos", "x_neg", "y_pos", "y_neg", "z_pos", "z_neg"]
+        self.default_pwm = "000"
         self.entry_data = {}
         self.initialize_magnetic_field()
 
-        self.label_x = Label(self.input_frame, text="X-axis: ", bg="white", width=15, anchor="w")
-        self.entry_x = Entry(self.input_frame, textvariable=self.entry_data['x_axis'], width=20)
+        self.label_x_p = Label(self.input_frame, text="X+: ", bg="white", width=15, anchor="w")
+        self.entry_x_p = Entry(self.input_frame, textvariable=self.entry_data['x_pos'], width=20)
+        
+        self.label_x_n = Label(self.input_frame, text="X-: ", bg="white", width=15, anchor="w")
+        self.entry_x_n = Entry(self.input_frame, textvariable=self.entry_data['x_neg'], width=20)
 
-        self.label_y = Label(self.input_frame, text="Y-axis: ", bg="white", width=15, anchor="w")
-        self.entry_y = Entry(self.input_frame, textvariable=self.entry_data['y_axis'], width=20)
-
-        self.label_z = Label(self.input_frame, text="Z-axis: ", bg="white", width=15, anchor="w")
-        self.entry_z = Entry(self.input_frame, textvariable=self.entry_data['z_axis'], width=20)
+        self.label_y_p = Label(self.input_frame, text="Y+: ", bg="white", width=15, anchor="w")
+        self.entry_y_p = Entry(self.input_frame, textvariable=self.entry_data['y_pos'], width=20)
+        
+        self.label_y_n = Label(self.input_frame, text="Y-: ", bg="white", width=15, anchor="w")
+        self.entry_y_n = Entry(self.input_frame, textvariable=self.entry_data['y_neg'], width=20)
+        
+        self.label_z_p = Label(self.input_frame, text="Z+: ", bg="white", width=15, anchor="w")
+        self.entry_z_p = Entry(self.input_frame, textvariable=self.entry_data['z_pos'], width=20)
+        
+        self.label_z_n = Label(self.input_frame, text="Z-: ", bg="white", width=15, anchor="w")
+        self.entry_z_n = Entry(self.input_frame, textvariable=self.entry_data['z_neg'], width=20)
 
         # Setup the Drop option menu
         self.ModeOptionMenu()
@@ -86,14 +95,24 @@ class ModeGui():
         self.input_frame.grid(row=1, column=0, padx=10, pady=10, sticky="new")
         
         # Internal layout for input frame
-        self.label_x.grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        self.entry_x.grid(row=0, column=1, padx=5, pady=5)
+        self.label_x_p.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.entry_x_p.grid(row=0, column=1, padx=5, pady=5)
         
-        self.label_y.grid(row=1, column=0, sticky="w", padx=5, pady=5)
-        self.entry_y.grid(row=1, column=1, padx=5, pady=5)
+        self.label_x_n.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.entry_x_n.grid(row=1, column=1, padx=5, pady=5)
         
-        self.label_z.grid(row=2, column=0, sticky="w", padx=5, pady=5)
-        self.entry_z.grid(row=2, column=1, padx=5, pady=5)
+        self.label_y_p.grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.entry_y_p.grid(row=2, column=1, padx=5, pady=5)
+        
+        self.label_y_n.grid(row=3, column=0, sticky="w", padx=5, pady=5)
+        self.entry_y_n.grid(row=3, column=1, padx=5, pady=5)
+        
+        self.label_z_p.grid(row=4, column=0, sticky="w", padx=5, pady=5)
+        self.entry_z_p.grid(row=4, column=1, padx=5, pady=5)
+        
+        self.label_z_n.grid(row=5, column=0, sticky="w", padx=5, pady=5)
+        self.entry_z_n.grid(row=5, column=1, padx=5, pady=5)
+        
 
     def ModeOptionMenu(self):
         '''
@@ -132,17 +151,17 @@ class ModeGui():
                 self.graphs = GraphGui(self.root, self.serial, self.data)
 
     def Gen_Sim_ctrl(self):
-        print(f"x: {self.entry_x.get()} y: {self.entry_y.get()} z: {self.entry_z.get()}")
+        # print(f"x: {self.entry_x.get()} y: {self.entry_y.get()} z: {self.entry_z.get()}")
         print("Generate Simulation")
 
     def initialize_magnetic_field(self):
         for axis in self.axises:
             self.entry_data[axis] = StringVar()
-            self.entry_data[axis].set(self.default_magnetic_strength)
+            self.entry_data[axis].set(self.default_pwm)
 
     def zero_magnetic_field(self):
         for axis in self.axises:
-            self.entry_data[axis].set(self.default_magnetic_strength)
+            self.entry_data[axis].set(self.default_pwm)
 
 
 class ConnGUI():
@@ -283,6 +302,7 @@ class GraphGui():
         self.xmag = []
         self.ymag = []
         self.zmag = []
+        self.tot = []
         
         # Add the first chart automatically
         self.AddChannelMaster()
@@ -373,13 +393,16 @@ class GraphGui():
                 self.ymag.append(self.ymag[len(self.ymag) - 1])
                 self.zmag.append(self.xmag[len(self.zmag) - 1])
             self.time.append(len(self.time) * 0.1)
+            self.tot.append( np.sqrt((self.xmag[len(self.xmag) - 1]**2) + (self.ymag[len(self.ymag) - 1]**2) + (self.zmag[len(self.zmag) - 1]**2)   ) )
             print(value)
             
             # Show Data on graph
             self.figs[self.totalframes][1].clear()
-            self.figs[self.totalframes][1].plot(self.time, self.xmag, color='green')
-            self.figs[self.totalframes][1].plot(self.time, self.ymag, color='red')
-            self.figs[self.totalframes][1].plot(self.time, self.zmag, color='blue')
+            self.figs[self.totalframes][1].plot(self.time, self.xmag, color='green', label='X Field')
+            self.figs[self.totalframes][1].plot(self.time, self.ymag, color='red', label='Y Field')
+            self.figs[self.totalframes][1].plot(self.time, self.zmag, color='blue', label='Z Field')
+            self.figs[self.totalframes][1].plot(self.time, self.tot, color='black', label='Total Field')
+            self.figs[self.totalframes][1].legend(loc ='upper left')
             self.figs[self.totalframes][2].draw()
             
 
