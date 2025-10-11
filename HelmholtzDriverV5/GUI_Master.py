@@ -1,9 +1,9 @@
 from tkinter import *
-from tkinter import ttk
 
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+from typing import Dict
 import csv
 import numpy as np
 
@@ -41,9 +41,13 @@ class ModeGui():
         
         self.axises = ["x_pos", "x_neg", "y_pos", "y_neg", "z_pos", "z_neg"]
         self.default_pwm = "000"
-        self.entry_data = {}
+        # Typing warning; imported Dict from typing to type annotate entry_data as a diction with key: str and values: StringVar
+        self.entry_data: Dict[str, StringVar] = {}
         self.initialize_magnetic_field()
 
+        # We should implement a function for this as when changing mode i.e. Manual, Generate Sim, Run Sim.
+        # They will not use the literals x, y, z but their desired magnetic field while only manual requiring
+        # literal x, y, z. (Literals is a variable and it's negative: for example: x, -x)
         self.label_x_p = Label(self.input_frame, text="X+: ", bg="white", width=15, anchor="w")
         self.entry_x_p = Entry(self.input_frame, textvariable=self.entry_data['x_pos'], width=20)
         
@@ -119,7 +123,8 @@ class ModeGui():
         Method to Get the available modes and list them into the drop menu
         '''
         # Generate the list of available modes
-        modes = ["-", "Auto (PySol)", "Zero", "Manuel"]
+        # modes = ["-", "Auto (PySol)", "Zero", "Manuel"]
+        modes = ["-", "Manuel", "Zero", "Generate Simulation"]
 
         self.clicked_Mode = StringVar()
         self.clicked_Mode.set(modes[0])
@@ -128,7 +133,7 @@ class ModeGui():
 
         self.drop_Mode.config(width=15)
 
-    def mode_ctrl(self, widget):
+    def mode_ctrl(self, selection: str) -> None:
         '''
         Method to keep the connect button disabled if all the
         conditions are not cleared
@@ -136,148 +141,31 @@ class ModeGui():
         if ("-" in self.clicked_Mode.get()):
             self.btn_Gen_Sim["state"] = "disabled"            
         else:
-            self.btn_Gen_Sim["state"] = "active"
-            if ("Auto" in self.clicked_Mode.get()):
-                print("Auto mode selected")
+            if ("Generate Simulation" in self.clicked_Mode.get()):
+                print("Generate Simulation mode selected")
             elif ("Zero" in self.clicked_Mode.get()):
-                self.zero_magnetic_field()
+                self.initialize_magnetic_field()
                 print("Zero mode selected")
             elif ("Manuel" in self.clicked_Mode.get()):
-                self.entry_x.focus()
-                print("manual mode selected")
+                self.entry_x_p.focus()
+                print("manual mode selected")                
+            self.btn_Gen_Sim["state"] = "active"
             
-            # Create graphs if they don't exist
-            if self.graphs is None:
-                self.graphs = GraphGui(self.root, self.serial, self.data)
+        # Create graphs if they don't exist
+        if self.graphs is None:
+            self.graphs = GraphGui(self.root, self.serial)
 
     def Gen_Sim_ctrl(self):
-        with open ("desired_field.csv", mode ="w", newline="") as file:
-            writer = csv.writter(file)
+        with open("desired_field.csv", mode ="w", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
             writer.writerow(["","Bx","By","Bz"])
-            writer.writerow([0, self.entry_x.get(), self.entry_y.get(), self.entry_z.get()])
+            writer.writerow([0, self.entry_x_p.get(), self.entry_y_p.get(), self.entry_z_p.get()])
         print("Generate csv")
 
     def initialize_magnetic_field(self):
         for axis in self.axises:
             self.entry_data[axis] = StringVar()
             self.entry_data[axis].set(self.default_pwm)
-
-    def zero_magnetic_field(self):
-        for axis in self.axises:
-            self.entry_data[axis].set(self.default_pwm)
-
-
-class ConnGUI():
-    def __init__(self, root, serial):
-        '''
-        Initialize main Widgets for communication GUI
-        PLACED BELOW the input frame (row=2, column=0)
-        '''
-        self.root = root
-        self.serial = serial
-
-        # Build ConnGui Static Elements - BELOW input frame (row=2, column=0)
-        self.frame = LabelFrame(root, text="Connection Manager",
-                                padx=5, pady=5, bg="white")
-        
-        self.sync_label = Label(
-            self.frame, text="Sync Status: ", bg="white", width=15, anchor="w")
-        self.sync_status = Label(
-            self.frame, text="..Sync..", bg="white", fg="orange", width=10)
-
-        self.ch_label = Label(
-            self.frame, text="Active channels: ", bg="white", width=15, anchor="w")
-        self.ch_status = Label(
-            self.frame, text="...", bg="white", fg="orange", width=10)
-
-        self.btn_start_stream = Button(self.frame, text="Start", state="disabled",
-                                       width=10, command=self.start_stream)
-
-        self.btn_stop_stream = Button(self.frame, text="Stop", state="disabled",
-                                      width=10, command=self.stop_stream)
-
-        self.btn_add_chart = Button(self.frame, text="+", state="disabled",
-                                    width=5, bg="white", fg="#098577",
-                                    command=self.new_chart)
-
-        self.btn_kill_chart = Button(self.frame, text="-", state="disabled",
-                                     width=5, bg="white", fg="#CC252C",
-                                     command=self.kill_chart)
-        
-        self.save = False
-        self.SaveVar = IntVar()
-        self.save_check = Checkbutton(self.frame, text="Save data", variable=self.SaveVar,
-                                      onvalue=1, offvalue=0, bg="white", state="disabled",
-                                      command=self.save_data)
-
-        # Optional Graphic parameters
-        self.padx = 10
-        self.pady = 5
-
-        self.chartMaster = None
-
-        # Extending the GUI
-        self.ConnGUIOpen()
-
-    def ConnGUIOpen(self):
-        '''
-        Method to display all the widgets
-        PLACED at row=2, column=0 (below input frame)
-        '''
-        self.frame.grid(row=2, column=0, padx=10, pady=10, sticky="new")
-
-        # Internal grid layout
-        self.sync_label.grid(column=0, row=0, sticky="w", padx=5, pady=5)
-        self.sync_status.grid(column=1, row=0, padx=5, pady=5)
-
-        self.ch_label.grid(column=0, row=1, sticky="w", padx=5, pady=5)
-        self.ch_status.grid(column=1, row=1, padx=5, pady=5)
-
-        self.btn_start_stream.grid(column=0, row=2, padx=5, pady=5)
-        self.btn_stop_stream.grid(column=1, row=2, padx=5, pady=5)
-
-        self.btn_add_chart.grid(column=0, row=3, padx=5, pady=5, sticky="ew")
-        self.btn_kill_chart.grid(column=1, row=3, padx=5, pady=5, sticky="ew")
-
-        self.save_check.grid(column=0, row=4, columnspan=2, pady=10)
-
-    def ConnGUIClose(self):
-        '''
-        Method to close the connection GUI and destroys the widgets
-        '''
-        for widget in self.frame.winfo_children():
-            widget.destroy()
-        self.frame.destroy()
-
-    def start_stream(self):
-        pass
-
-    def stop_stream(self):
-        pass
-
-    def new_chart(self):
-        '''
-        Method that will add a new chart with all the options 
-        '''
-        if self.chartMaster is None:
-            self.chartMaster = GraphGui(self.root, self.serial, self.data)
-        else:
-            self.chartMaster.AddChannelMaster()
-
-    def kill_chart(self):
-        '''
-        Method that will remove a chart and kill all the widgets inside it
-        '''
-        if self.chartMaster is not None and len(self.chartMaster.frames) > 0:
-            totalFrame = len(self.chartMaster.frames) - 1
-            self.chartMaster.frames[totalFrame].destroy()
-            self.chartMaster.frames.pop()
-            self.chartMaster.figs.pop()
-            self.chartMaster.ControlFrames.pop()
-
-    def save_data(self):
-        pass
-
 
 class GraphGui():
     def __init__(self, root, serial):
@@ -404,24 +292,9 @@ class GraphGui():
             self.figs[self.totalframes][1].plot(self.time, self.zmag, color='blue', label='Z Field')
             self.figs[self.totalframes][1].plot(self.time, self.tot, color='black', label='Total Field')
             self.figs[self.totalframes][1].legend(loc ='upper left')
-            self.figs[self.totalframes][2].draw()
-            
+            self.figs[self.totalframes][2].draw()            
 
         self.root.after(100, self.update_plot)
 
-
-if __name__ == "__main__":
-    # Create root window
-    root_gui = RootGUI()
-    graph_gui = GraphGui()
-    
-    # Mock serial and data objects for testing
-    serial = None
-    data = None
-    
-    # Initialize GUI components
-    mode_gui = ModeGui(root_gui.root, serial)
-    conn_gui = ConnGUI(root_gui.root, serial)
-    
-    # Start the main loop
-    root_gui.root.mainloop()
+if __name__ != "__main__":
+    pass
