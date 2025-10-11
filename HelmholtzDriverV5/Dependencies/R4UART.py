@@ -17,17 +17,29 @@ def initiateUART(magnetometer, PWM):
     
     return [nanoSer, R4Ser]
 
+def refresh_buffers(nanoSer, R4Ser):
+    nanoSer.reset_input_buffer()
+    nanoSer.reset_output_buffer()
+
+    R4Ser.reset_input_buffer()
+    R4Ser.reset_output_buffer()
+
 def sendPWMValues(x1, x2, y1, y2, z1, z2, R4Ser):
     ''' Writes literal values for x, y, and z pwm values to the Arduino R4 '''
     data = f"{x1} {x2} {y1} {y2} {z1} {z2}\n"
     R4Ser.write(data.encode('utf-8'))
 
 def readPWMValues(R4Ser):
-    print(R4Ser.readline().decode('utf-8').rstrip())
+    #pwmString = R4Ser.readline().decode('utf-8').strip()
+    #print(pwmString)
+    #return pwmString 
+    return R4Ser.readline().decode('utf-8').strip()
 
 def readMagnetometerValues(nanoSer):
-    return nanoSer.readline().decode('utf-8').strip().split()
-    # return nanoSer.readline().decode('utf-8').rstrip()
+    #magString = nanoSer.readline().decode('utf-8').strip().split()
+    #print(magString)
+    #return magString
+    return nanoSer.readline().decode('utf-8').strip().spilt()
 
 
             

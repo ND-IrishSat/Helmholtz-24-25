@@ -9,7 +9,7 @@ import os
 import numpy as np
 
 from PySol.sol_sim import generate_orbit_data
-from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, readMagnetometerValues # UART code 
+from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, refresh_buffers, readMagnetometerValues # UART code 
 from Dependencies.PID import xPID, yPID, zPID # PID code
 from Dependencies.calibrateValues import calibrate # magnetometer calibration code 
 from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
@@ -138,13 +138,6 @@ runValuesCount = 0
 magX = 0
 magY = 0
 magZ = 0
-
-def refresh_buffers(nanoSer, R4Ser):
-    nanoSer.reset_input_buffer()
-    nanoSer.reset_output_buffer()
-
-    R4Ser.reset_input_buffer()
-    R4Ser.reset_output_buffer()
 
 while (True):
     ################################################################################################################## 

@@ -4,6 +4,7 @@ from tkinter import ttk
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import csv
 import numpy as np
 
 
@@ -150,8 +151,11 @@ class ModeGui():
                 self.graphs = GraphGui(self.root, self.serial, self.data)
 
     def Gen_Sim_ctrl(self):
-        # print(f"x: {self.entry_x.get()} y: {self.entry_y.get()} z: {self.entry_z.get()}")
-        print("Generate Simulation")
+        with open ("desired_field.csv", mode ="w", newline="") as file:
+            writer = csv.writter(file)
+            writer.writerow(["","Bx","By","Bz"])
+            writer.writerow([0, self.entry_x.get(), self.entry_y.get(), self.entry_z.get()])
+        print("Generate csv")
 
     def initialize_magnetic_field(self):
         for axis in self.axises:

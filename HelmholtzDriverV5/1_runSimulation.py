@@ -10,8 +10,8 @@ def isValidString(s: str) -> bool:
     return "." in s and not s.startswith(".")
 
 print("Started.\n")
-dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
-#dataFrame = pd.read_csv("runZeroed.csv") # magnetic fields dataframe
+#dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
+dataFrame = pd.read_csv("runZeroed.csv") # magnetic fields dataframe
 
 ################################################################################ Run parameters
 
@@ -82,21 +82,20 @@ while(True):
     magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
     if magnetometerOutput:
         if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
-           magX = round(float(magnetometerOutput[0]), 2)
-           magY = round(float(magnetometerOutput[1]), 2)
-           magZ = round(float(magnetometerOutput[2]), 2)
-           
-           trueMagOutputX.append(magX)
-           trueMagOutputY.append(magY)
-           trueMagOutputZ.append(magZ)
+            magX = round(float(magnetometerOutput[0]), 2)
+            magY = round(float(magnetometerOutput[1]), 2)
+            magZ = round(float(magnetometerOutput[2]), 2)
+            trueMagOutputX.append(magX)
+            trueMagOutputY.append(magY)
+            trueMagOutputZ.append(magZ)
         else:
-           trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
-           trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
-           trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
-           
-           magX = trueMagOutputX[len(trueMagOutputX) - 1]
-           magY = trueMagOutputY[len(trueMagOutputY) - 1]
-           magZ = trueMagOutputZ[len(trueMagOutputZ) - 1]
+            trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
+            trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
+            trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
+
+            magX = trueMagOutputX[len(trueMagOutputX) - 1]
+            magY = trueMagOutputY[len(trueMagOutputY) - 1]
+            magZ = trueMagOutputZ[len(trueMagOutputZ) - 1]
 
            
     #####################################################################################################
