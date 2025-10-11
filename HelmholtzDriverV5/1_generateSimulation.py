@@ -25,6 +25,7 @@ pidDelay = 100 # number of miliseconds between each pid iteration
 startPos = 0 # starting position in simulation
 runValues = 2950 # number of values to run through for PYSOL
 
+# If we're going to make the UI interact with this, we have to set this true;
 usingPYSOL = False
 
 inputFileName = "zeroed.csv"
@@ -33,6 +34,7 @@ fftOutput = "magFieldsOut.csv"
 
 ########################################################################################## pysol initialization
 
+# oe - orbital elements
 oe = [121, 6_800, 0.0000922, 51, -10, 80]
 total_time = 3 # in hours
 timestep = 1.0 # time step in seconds
@@ -60,10 +62,13 @@ else:
 
 currentFields = [0, 0, 0]
 
-currentFields[0] = dataFrame.loc[startPos, 'Bx']
+# .loc[row_label, column_label]
+# initialized currentFields with the first target values in dataFrame.loc[startPos, 'Bx']
+currentFields[0] = dataFrame.loc[startPos, 'Bx'] # Index: 0 Column Label : 'Bx'
 currentFields[1] = dataFrame.loc[startPos, 'By']
 currentFields[2] = dataFrame.loc[startPos, 'Bz']
 
+# Dataframe created to store the final outputs data: target fields
 df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
 #fftFrame = pd.DataFrame(columns=["X", "Y", "Z"])
 
@@ -92,27 +97,28 @@ maxVal = 100 # max value of pwm signal (control output)
 sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
 time.sleep(2)
 
+# real-time magnetometer readings
 trueMagOutputX = [0]
 trueMagOutputY = [0]
 trueMagOutputZ = [0]
 totalMagOutput = [0]
-
+# target magnetometer values from simulation
 simulationOutputX = [0]
 simulationOutputY = [0]
 simulationOutputZ = [0]
 simulationPos = startPos
-
+# magnetometer values from the moment PID calculations run
 pidMagOutputX = [0]
 pidMagOutputY = [0]
 pidMagOutputZ = [0]
-
+# history of calculate pid values
 pwmPosOutputX = [0]
 pwmNegOutputX = [0]
 pwmPosOutputY = [0]
 pwmNegOutputY = [0]
 pwmPosOutputZ = [0]
 pwmNegOutputZ = [0]
-
+# time counter for plotting (each loop iteration)
 realTimeVector = [0]
 realTime = 0 # increments with each loop, used for graphing
 
@@ -133,15 +139,21 @@ magX = 0
 magY = 0
 magZ = 0
 
-while (True):
-
-    ################################################################################################################## magnetometer reading
+def refresh_buffers(nanoSer, R4Ser):
     nanoSer.reset_input_buffer()
     nanoSer.reset_output_buffer()
-    
+
     R4Ser.reset_input_buffer()
     R4Ser.reset_output_buffer()
-    magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
+
+while (True):
+    ################################################################################################################## 
+    # magnetometer reading                                                                                           #
+    ################################################################################################################## 
+    refresh_buffers(nanoSer, R4Ser)
+
+    magnetometerOutput = readMagnetometerValues(nanoSer)
+    
     if magnetometerOutput:
         if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
            magX = round(float(magnetometerOutput[0]), 2)
@@ -199,7 +211,6 @@ while (True):
             err_best = err_current
             bestIndex = pidPosition
 
-# 
     realTime += 1
     realTimeVector.append(realTime)
     
@@ -229,13 +240,6 @@ while (True):
             currentFields[1] = dataFrame.loc[simulationPos, 'By']
             currentFields[2] = dataFrame.loc[simulationPos, 'Bz']
 
-
-    
-
-# array = np.array(realTimeVector)
-# result = array / 310
-# 
-# print(realTimeVector[(len(realTimeVector) - 1)])
 # Creates output CSV file
 df.to_csv(outputFileName, index=True)
 #fftFrame.to_csv(fftOutput, index=True)
