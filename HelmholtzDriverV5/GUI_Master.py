@@ -124,7 +124,9 @@ class ModeGui():
         '''
         # Generate the list of available modes
         # modes = ["-", "Auto (PySol)", "Zero", "Manuel"]
-        modes = ["-", "Manuel", "Zero", "Generate Simulation"]
+        # via the new requirement we will still need the mannuel mode, the zero is an addition, which should be easy
+        # the generate sim will just be connecting to pysol
+        modes: list[str] = ["-", "Manuel", "Zero", "Generate Simulation"]
 
         self.clicked_Mode = StringVar()
         self.clicked_Mode.set(modes[0])
@@ -133,24 +135,24 @@ class ModeGui():
 
         self.drop_Mode.config(width=15)
 
-    def mode_ctrl(self, selection: str) -> None:
-        '''
+    def mode_ctrl(self):
+        """
         Method to keep the connect button disabled if all the
-        conditions are not cleared
-        '''
-        if ("-" in self.clicked_Mode.get()):
-            self.btn_Gen_Sim["state"] = "disabled"            
+        conditions are not cleared.
+        """
+        if "-" in self.clicked_Mode.get():
+            self.btn_Gen_Sim["state"] = "disabled"
         else:
-            if ("Generate Simulation" in self.clicked_Mode.get()):
+            if "Generate Simulation" in self.clicked_Mode.get():
                 print("Generate Simulation mode selected")
-            elif ("Zero" in self.clicked_Mode.get()):
+            elif "Zero" in self.clicked_Mode.get():
                 self.initialize_magnetic_field()
                 print("Zero mode selected")
-            elif ("Manuel" in self.clicked_Mode.get()):
+            elif "Manuel" in self.clicked_Mode.get():
                 self.entry_x_p.focus()
-                print("manual mode selected")                
+                print("Manual mode selected")
             self.btn_Gen_Sim["state"] = "active"
-            
+
         # Create graphs if they don't exist
         if self.graphs is None:
             self.graphs = GraphGui(self.root, self.serial)
