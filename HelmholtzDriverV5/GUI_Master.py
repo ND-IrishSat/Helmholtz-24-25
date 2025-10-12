@@ -123,7 +123,6 @@ class ModeGui():
         Method to Get the available modes and list them into the drop menu
         '''
         # Generate the list of available modes
-        # modes = ["-", "Auto (PySol)", "Zero", "Manuel"]
         # via the new requirement we will still need the mannuel mode, the zero is an addition, which should be easy
         # the generate sim will just be connecting to pysol
         modes: list[str] = ["-", "Manuel", "Zero", "Generate Simulation"]
@@ -273,6 +272,7 @@ class GraphGui():
             column=0, row=1, padx=5, pady=5)
         
     def update_plot(self):
+        
         value = self.serial.read_value()
         if value is not None:
             try:
@@ -289,12 +289,13 @@ class GraphGui():
             
             # Creates a window size of 100 points on the graph
             # Keep only last 100 points
-            if len(self.time) > 100:
-                self.time.pop(0)
-                self.xmag.pop(0)
-                self.ymag.pop(0)
-                self.zmag.pop(0)
-                self.tot.pop(0)
+            # does not work!!! do not uncomment
+            # if len(self.time) > 100:
+            #    self.time.pop(0)
+            #    self.xmag.pop(0)
+            #    self.ymag.pop(0)
+            #    self.zmag.pop(0)
+            #    self.tot.pop(0)
 
             # Show Data on graph
             self.figs[self.totalframes][1].clear()
