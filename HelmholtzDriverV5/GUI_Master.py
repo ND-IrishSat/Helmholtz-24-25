@@ -287,6 +287,15 @@ class GraphGui():
             self.tot.append( np.sqrt((self.xmag[len(self.xmag) - 1]**2) + (self.ymag[len(self.ymag) - 1]**2) + (self.zmag[len(self.zmag) - 1]**2)   ) )
             print(value)
             
+            # Creates a window size of 100 points on the graph
+            # Keep only last 100 points
+            if len(self.time) > 100:
+                self.time.pop(0)
+                self.xmag.pop(0)
+                self.ymag.pop(0)
+                self.zmag.pop(0)
+                self.tot.pop(0)
+
             # Show Data on graph
             self.figs[self.totalframes][1].clear()
             self.figs[self.totalframes][1].plot(self.time, self.xmag, color='green', label='X Field')
