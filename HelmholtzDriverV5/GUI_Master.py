@@ -37,7 +37,7 @@ class ModeGui():
         self.label_Mode = Label(self.frame, text="Mode: ", bg="white", width=15, anchor="w")
         
         # Input frame - BELOW mode selection (row=1, column=0)
-        self.input_frame = LabelFrame(root, text="Input Desired PWM Values", padx=5, pady=5, bg="white")
+        self.input_frame = LabelFrame(root, text="Input Desired PWM/Field Values", padx=5, pady=5, bg="white")
         
         self.axises = ["x_pos", "x_neg", "y_pos", "y_neg", "z_pos", "z_neg"]
         self.default_pwm = "000"
@@ -45,34 +45,13 @@ class ModeGui():
         self.entry_data: Dict[str, StringVar] = {}
         self.initialize_magnetic_field()
 
-        # We should implement a function for this as when changing mode i.e. Manual, Generate Sim, Run Sim.
-        # They will not use the literals x, y, z but their desired magnetic field while only manual requiring
-        # literal x, y, z. (Literals is a variable and it's negative: for example: x, -x)
-        # self.label_x_p = Label(self.input_frame, text="X+: ", bg="white", width=15, anchor="w")
-        # self.entry_x_p = Entry(self.input_frame, textvariable=self.entry_data['x_pos'], width=20)
-        
-        # self.label_x_n = Label(self.input_frame, text="X-: ", bg="white", width=15, anchor="w")
-        # self.entry_x_n = Entry(self.input_frame, textvariable=self.entry_data['x_neg'], width=20)
-
-        # self.label_y_p = Label(self.input_frame, text="Y+: ", bg="white", width=15, anchor="w")
-        # self.entry_y_p = Entry(self.input_frame, textvariable=self.entry_data['y_pos'], width=20)
-        
-        # self.label_y_n = Label(self.input_frame, text="Y-: ", bg="white", width=15, anchor="w")
-        # self.entry_y_n = Entry(self.input_frame, textvariable=self.entry_data['y_neg'], width=20)
-        
-        # self.label_z_p = Label(self.input_frame, text="Z+: ", bg="white", width=15, anchor="w")
-        # self.entry_z_p = Entry(self.input_frame, textvariable=self.entry_data['z_pos'], width=20)
-        
-        # self.label_z_n = Label(self.input_frame, text="Z-: ", bg="white", width=15, anchor="w")
-        # self.entry_z_n = Entry(self.input_frame, textvariable=self.entry_data['z_neg'], width=20)
         self._create_manual_widgets()
         
         # Setup the Drop option menu
         self.ModeOptionMenu()
 
         # Add the control buttons for refreshing the COMs & Connect
-        self.btn_Gen_Sim = Button(self.frame, text="Generate Sim",
-                                  width=15, state="disabled", command=self.Gen_Sim_ctrl)
+        self.btn_Gen_Sim = Button(self.frame, text="Generate Sim", width=15, state="disabled", command=self.Gen_Sim_ctrl)
 
         # Optional Graphic parameters
         self.padx = 10
@@ -80,10 +59,11 @@ class ModeGui():
         
         self.graphs = None
 
-        # Put on the grid all the elements
-        self.publish()
-
     def _create_manual_widgets(self):
+        # We should implement a function for this as when changing mode i.e. Manual, Generate Sim, Run Sim.
+        # They will not use the literals x, y, z but their desired magnetic field while only manual requiring
+        # literal x, y, z. (Literals is a variable and it's negative: for example: x, -x)
+       
         self.manual_widgets_maps = {
             'x_pos': 'X+:', 'x_neg': 'X-:', 
             'y_pos': 'Y+:', 'y_neg': 'Y-:', 
@@ -122,12 +102,16 @@ class ModeGui():
             self.sim_widgets[key] = (label, entry)
         
         # Set instance attributes for Bx, By, Bz entries for Gen_Sim_ctrl if needed
-        self.entry_Bx = self.sim_widgets['Bx'][1]
-        self.entry_By = self.sim_widgets['By'][1]
-        self.entry_Bz = self.sim_widgets['Bz'][1]
+        self.label_Bx, self.entry_Bx = self.sim_widgets['Bx']
+        self.label_By, self.entry_By = self.sim_widgets['By']
+        self.label_Bz, self.entry_Bz = self.sim_widgets['Bz']
 
+    def _hide_input_widgets(self):
+        for widgets in self.input_frame.winfo_children():
+            # basically widget do not get deleted it just becomes invisible and loses its position and can be retrieve 
+            widgets.grid_forget()
 
-    def publish(self):
+    def publish_manual(self):
         '''
         Method to display all the Widget of the main frame
         LEFT COLUMN LAYOUT (column=0)
@@ -146,7 +130,7 @@ class ModeGui():
         # Internal layout for input frame
         self.label_x_p.grid(row=0, column=0, sticky="w", padx=5, pady=5)
         self.entry_x_p.grid(row=0, column=1, padx=5, pady=5)
-        
+
         self.label_x_n.grid(row=1, column=0, sticky="w", padx=5, pady=5)
         self.entry_x_n.grid(row=1, column=1, padx=5, pady=5)
         
@@ -162,6 +146,31 @@ class ModeGui():
         self.label_z_n.grid(row=5, column=0, sticky="w", padx=5, pady=5)
         self.entry_z_n.grid(row=5, column=1, padx=5, pady=5)
         
+    def public_sim(self):
+        '''
+        Method to display all the Widget of the main frame
+        LEFT COLUMN LAYOUT (column=0)
+        '''
+        # Mode frame at TOP LEFT (row=0, column=0)
+        self.frame.grid(row=0, column=0, padx=10, pady=10, sticky="new")
+        
+        # Internal layout for mode frame
+        self.label_Mode.grid(column=0, row=0, sticky="w", padx=5, pady=5)
+        self.drop_Mode.grid(column=1, row=0, padx=self.padx, pady=5)
+        self.btn_Gen_Sim.grid(column=0, row=1, columnspan=2, pady=10)
+
+        # Input frame BELOW mode frame (row=1, column=0)
+        self.input_frame.grid(row=1, column=0, padx=10, pady=10, sticky="new")
+        
+        # Internal layout for input frame
+        self.label_Bx.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.entry_Bx.grid(row=0, column=1, padx=5, pady=5)
+
+        self.label_By.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.entry_By.grid(row=1, column=1, padx=5, pady=5)
+        
+        self.label_Bz.grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.entry_Bz.grid(row=2, column=1, padx=5, pady=5)
 
     def ModeOptionMenu(self):
         '''
@@ -188,13 +197,23 @@ class ModeGui():
             self.btn_Gen_Sim["state"] = "disabled"
         else:
             if "Generate Simulation" in self.clicked_Mode.get():
+                self._hide_input_widgets()
+
+                self.public_sim()
+
                 print("Generate Simulation mode selected")
             elif "Zero" in self.clicked_Mode.get():
                 self.initialize_magnetic_field()
                 print("Zero mode selected")
             elif "Manuel" in self.clicked_Mode.get():
+                # Put on the grid all the elements
+                self._hide_input_widgets()
+
+                self.publish_manual()
+
                 self.entry_x_p.focus()
                 print("Manual mode selected")
+
             self.btn_Gen_Sim["state"] = "active"
 
         # Create graphs if they don't exist
