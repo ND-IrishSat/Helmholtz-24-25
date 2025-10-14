@@ -28,10 +28,26 @@ class ModeGui():
         '''
         Initialize the mode selection GUI
         '''
-        # Initializing the Widgets
+        # 1. Initialize instance attributes
         self.root = root
         self.serial = serial
+        self.axises = ["x_pos", "x_neg", "y_pos", "y_neg", "z_pos", "z_neg"]
+        self.default_pwm = "000"
+        self.entry_data: Dict[str, StringVar] = {}
+        self.fields = ["Bx","By", "Bz"]
+        self.default_field = "0"
+        self.entry_field_data: Dict[str, StringVar] = {}
+        self.graphs = None
         
+        # Optional Graphic parameters
+        self.padx = 10
+        self.pady = 5
+
+        # Initialize the StringVars for input fields
+        self.initialize_magnetic_field()
+        self.initialize_desired_field()
+        
+        # 2. Create main frames
         # Mode selection frame - TOP LEFT (row=0, column=0)
         self.frame = LabelFrame(root, text="Select Manuel or Auto", padx=5, pady=5, bg="white")
         self.label_Mode = Label(self.frame, text="Mode: ", bg="white", width=15, anchor="w")
@@ -39,48 +55,30 @@ class ModeGui():
         # Input frame - BELOW mode selection (row=1, column=0)
         self.input_frame = LabelFrame(root, text="Input Desired PWM/Field Values", padx=5, pady=5, bg="white")
         
-        # Setup the Drop option menu
-        self.ModeOptionMenu()
+        # 3. Create input widgets (must happen AFTER StringVar init)
+        self._create_manual_widgets()
+        self._create_sim_widgets()
         
+        # 4. Setup the Drop option menu and the button
+        self.ModeOptionMenu()
+        self.btn_Gen_Sim = Button(self.frame, text="Generate Sim", width=15, state="disabled", command=self.Gen_Sim_ctrl)
+
+        # 5. Layout the main frames on the root window
         # Mode frame at TOP LEFT (row=0, column=0)
         self.frame.grid(row=0, column=0, padx=10, pady=10, sticky="new")
         
-        # Internal layout for mode frame
+        # Input frame BELOW mode frame (row=1, column=0)
+        self.input_frame.grid(row=1, column=0, padx=10, pady=10, sticky="new")
+
+        # 6. Layout the widgets inside the mode frame (TOP LEFT)
         self.label_Mode.grid(column=0, row=0, sticky="w", padx=5, pady=5)
         self.drop_Mode.grid(column=1, row=0, padx=5, pady=5)
         self.btn_Gen_Sim.grid(column=0, row=1, columnspan=2, pady=10)
-
-        # Input frame BELOW mode frame (row=1, column=0)
-        self.input_frame.grid(row=1, column=0, padx=10, pady=10, sticky="new")
         
-        
-        self.axises = ["x_pos", "x_neg", "y_pos", "y_neg", "z_pos", "z_neg"]
-        self.default_pwm = "000"
-        # Typing warning; imported Dict from typing to type annotate entry_data as a diction with key: str and values: StringVar
-        self.entry_data: Dict[str, StringVar] = {}
-        self.initialize_magnetic_field()
-        
-        self.fields = ["Bx","By", "Bz"]
-        self.default_field = "0"
-        self.entry_field_data: Dict[str, StringVar] = {}
-        self.initialize_desired_field()
-
-        self._create_manual_widgets()
-        self._create_sim_widgets()
+        # 7. Set initial input state to Manual
         self._hide_input_widgets()
         self.publish_manual()
         
-        
-
-        # Add the control buttons for refreshing the COMs & Connect
-        self.btn_Gen_Sim = Button(self.frame, text="Generate Sim", width=15, state="disabled", command=self.Gen_Sim_ctrl)
-
-        # Optional Graphic parameters
-        self.padx = 10
-        self.pady = 5
-        
-        self.graphs = None
-
     def _create_manual_widgets(self):
         # We should implement a function for this as when changing mode i.e. Manual, Generate Sim, Run Sim.
         # They will not use the literals x, y, z but their desired magnetic field while only manual requiring
@@ -223,11 +221,38 @@ class ModeGui():
             self.graphs = GraphGui(self.root, self.serial)
 
     def Gen_Sim_ctrl(self):
-        with open("desired_field.csv", mode ="w", newline="", encoding="utf-8") as file:
-            writer = csv.writer(file)
-            writer.writerow(["","Bx","By","Bz"])
-            writer.writerow([0, self.entry_x_p.get(), self.entry_y_p.get(), self.entry_z_p.get()])
-        print("Generate csv")
+        # NOTE: This method currently uses self.entry_x_p, self.entry_y_p, self.entry_z_p 
+        # which are the PWM values from the Manual mode.
+        # If in "Generate Simulation" mode, you likely want to use the B-field entries (self.entry_Bx, etc.)
+        
+        current_mode = self.clicked_Mode.get()
+        data_to_write = {}
+
+        if "Generate Simulation" in current_mode:
+            data_to_write = {
+                "Bx": self.entry_Bx.get(), 
+                "By": self.entry_By.get(), 
+                "Bz": self.entry_Bz.get()
+            }
+        elif "Manuel" in current_mode:
+            # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
+            data_to_write = {
+                "Bx": self.entry_x_p.get(), 
+                "By": self.entry_y_p.get(), 
+                "Bz": self.entry_z_p.get()  
+            }
+        # Zero mode can also be handled if needed, but we'll stick to the provided structure for now
+        
+        # Write to CSV only if data is available
+        if data_to_write:
+            with open("desired_field.csv", mode ="w", newline="", encoding="utf-8") as file:
+                writer = csv.writer(file)
+                # If using Generate Simulation mode, the headers should match the B-field data
+                writer.writerow(["","Bx","By","Bz"])
+                writer.writerow([0, data_to_write["Bx"], data_to_write["By"], data_to_write["Bz"]])
+            print(f"Generate csv in {current_mode} mode with values: {data_to_write}")
+        else:
+             print("No data to write for selected mode.")
 
     def initialize_magnetic_field(self):
         for axis in self.axises:
