@@ -48,24 +48,25 @@ class ModeGui():
         # We should implement a function for this as when changing mode i.e. Manual, Generate Sim, Run Sim.
         # They will not use the literals x, y, z but their desired magnetic field while only manual requiring
         # literal x, y, z. (Literals is a variable and it's negative: for example: x, -x)
-        self.label_x_p = Label(self.input_frame, text="X+: ", bg="white", width=15, anchor="w")
-        self.entry_x_p = Entry(self.input_frame, textvariable=self.entry_data['x_pos'], width=20)
+        # self.label_x_p = Label(self.input_frame, text="X+: ", bg="white", width=15, anchor="w")
+        # self.entry_x_p = Entry(self.input_frame, textvariable=self.entry_data['x_pos'], width=20)
         
-        self.label_x_n = Label(self.input_frame, text="X-: ", bg="white", width=15, anchor="w")
-        self.entry_x_n = Entry(self.input_frame, textvariable=self.entry_data['x_neg'], width=20)
+        # self.label_x_n = Label(self.input_frame, text="X-: ", bg="white", width=15, anchor="w")
+        # self.entry_x_n = Entry(self.input_frame, textvariable=self.entry_data['x_neg'], width=20)
 
-        self.label_y_p = Label(self.input_frame, text="Y+: ", bg="white", width=15, anchor="w")
-        self.entry_y_p = Entry(self.input_frame, textvariable=self.entry_data['y_pos'], width=20)
+        # self.label_y_p = Label(self.input_frame, text="Y+: ", bg="white", width=15, anchor="w")
+        # self.entry_y_p = Entry(self.input_frame, textvariable=self.entry_data['y_pos'], width=20)
         
-        self.label_y_n = Label(self.input_frame, text="Y-: ", bg="white", width=15, anchor="w")
-        self.entry_y_n = Entry(self.input_frame, textvariable=self.entry_data['y_neg'], width=20)
+        # self.label_y_n = Label(self.input_frame, text="Y-: ", bg="white", width=15, anchor="w")
+        # self.entry_y_n = Entry(self.input_frame, textvariable=self.entry_data['y_neg'], width=20)
         
-        self.label_z_p = Label(self.input_frame, text="Z+: ", bg="white", width=15, anchor="w")
-        self.entry_z_p = Entry(self.input_frame, textvariable=self.entry_data['z_pos'], width=20)
+        # self.label_z_p = Label(self.input_frame, text="Z+: ", bg="white", width=15, anchor="w")
+        # self.entry_z_p = Entry(self.input_frame, textvariable=self.entry_data['z_pos'], width=20)
         
-        self.label_z_n = Label(self.input_frame, text="Z-: ", bg="white", width=15, anchor="w")
-        self.entry_z_n = Entry(self.input_frame, textvariable=self.entry_data['z_neg'], width=20)
-
+        # self.label_z_n = Label(self.input_frame, text="Z-: ", bg="white", width=15, anchor="w")
+        # self.entry_z_n = Entry(self.input_frame, textvariable=self.entry_data['z_neg'], width=20)
+        self._create_manual_widgets()
+        
         # Setup the Drop option menu
         self.ModeOptionMenu()
 
@@ -81,6 +82,50 @@ class ModeGui():
 
         # Put on the grid all the elements
         self.publish()
+
+    def _create_manual_widgets(self):
+        self.manual_widgets_maps = {
+            'x_pos': 'X+:', 'x_neg': 'X-:', 
+            'y_pos': 'Y+:', 'y_neg': 'Y-:', 
+            'z_pos': 'Z+:', 'z_neg': 'Z-:'
+        }
+
+        self.manual_widgets: Dict[str, tuple] = {}
+
+        for key, text in self.manual_widgets_maps.items(): 
+            label = Label(self.input_frame, text=text, bg="white", width=15, anchor="w")
+            entry = Entry(self.input_frame, textvariable=self.entry_data[key], width=20)
+            self.manual_widgets[key] = (label, entry)
+
+        # Set instance attributes for the old code to still work (Gen_Sim_ctrl uses these)
+        self.label_x_p, self.entry_x_p = self.manual_widgets['x_pos']
+        self.label_x_n, self.entry_x_n = self.manual_widgets['x_neg']
+        self.label_y_p, self.entry_y_p = self.manual_widgets['y_pos']
+        self.label_y_n, self.entry_y_n = self.manual_widgets['y_neg']
+        self.label_z_p, self.entry_z_p = self.manual_widgets['z_pos']
+        self.label_z_n, self.entry_z_n = self.manual_widgets['z_neg']
+
+    def _create_sim_widgets(self):
+        """Creates the 3 Label/Entry pairs for Simulation Mode (B-field inputs)."""
+        # Mapping from internal B-field name to external label text
+        sim_widgets_map = {
+            'Bx': 'Desired Bx:', 
+            'By': 'Desired By:', 
+            'Bz': 'Desired Bz:'
+        }
+
+        self.sim_widgets: Dict[str, tuple] = {}
+        
+        for key, text in sim_widgets_map.items():
+            label = Label(self.input_frame, text=text, bg="white", width=15, anchor="w")
+            entry = Entry(self.input_frame, textvariable=self.entry_data[key], width=20)
+            self.sim_widgets[key] = (label, entry)
+        
+        # Set instance attributes for Bx, By, Bz entries for Gen_Sim_ctrl if needed
+        self.entry_Bx = self.sim_widgets['Bx'][1]
+        self.entry_By = self.sim_widgets['By'][1]
+        self.entry_Bz = self.sim_widgets['Bz'][1]
+
 
     def publish(self):
         '''
