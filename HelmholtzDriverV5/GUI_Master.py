@@ -39,16 +39,38 @@ class ModeGui():
         # Input frame - BELOW mode selection (row=1, column=0)
         self.input_frame = LabelFrame(root, text="Input Desired PWM/Field Values", padx=5, pady=5, bg="white")
         
+        # Setup the Drop option menu
+        self.ModeOptionMenu()
+        
+        # Mode frame at TOP LEFT (row=0, column=0)
+        self.frame.grid(row=0, column=0, padx=10, pady=10, sticky="new")
+        
+        # Internal layout for mode frame
+        self.label_Mode.grid(column=0, row=0, sticky="w", padx=5, pady=5)
+        self.drop_Mode.grid(column=1, row=0, padx=5, pady=5)
+        self.btn_Gen_Sim.grid(column=0, row=1, columnspan=2, pady=10)
+
+        # Input frame BELOW mode frame (row=1, column=0)
+        self.input_frame.grid(row=1, column=0, padx=10, pady=10, sticky="new")
+        
+        
         self.axises = ["x_pos", "x_neg", "y_pos", "y_neg", "z_pos", "z_neg"]
         self.default_pwm = "000"
         # Typing warning; imported Dict from typing to type annotate entry_data as a diction with key: str and values: StringVar
         self.entry_data: Dict[str, StringVar] = {}
         self.initialize_magnetic_field()
+        
+        self.fields = ["Bx","By", "Bz"]
+        self.default_field = "0"
+        self.entry_field_data: Dict[str, StringVar] = {}
+        self.initialize_desired_field()
 
         self._create_manual_widgets()
+        self._create_sim_widgets()
+        self._hide_input_widgets()
+        self.publish_manual()
         
-        # Setup the Drop option menu
-        self.ModeOptionMenu()
+        
 
         # Add the control buttons for refreshing the COMs & Connect
         self.btn_Gen_Sim = Button(self.frame, text="Generate Sim", width=15, state="disabled", command=self.Gen_Sim_ctrl)
@@ -98,7 +120,7 @@ class ModeGui():
         
         for key, text in sim_widgets_map.items():
             label = Label(self.input_frame, text=text, bg="white", width=15, anchor="w")
-            entry = Entry(self.input_frame, textvariable=self.entry_data[key], width=20)
+            entry = Entry(self.input_frame, textvariable=self.entry_field_data[key], width=20)
             self.sim_widgets[key] = (label, entry)
         
         # Set instance attributes for Bx, By, Bz entries for Gen_Sim_ctrl if needed
@@ -116,17 +138,7 @@ class ModeGui():
         Method to display all the Widget of the main frame
         LEFT COLUMN LAYOUT (column=0)
         '''
-        # Mode frame at TOP LEFT (row=0, column=0)
-        self.frame.grid(row=0, column=0, padx=10, pady=10, sticky="new")
-        
-        # Internal layout for mode frame
-        self.label_Mode.grid(column=0, row=0, sticky="w", padx=5, pady=5)
-        self.drop_Mode.grid(column=1, row=0, padx=self.padx, pady=5)
-        self.btn_Gen_Sim.grid(column=0, row=1, columnspan=2, pady=10)
-
-        # Input frame BELOW mode frame (row=1, column=0)
-        self.input_frame.grid(row=1, column=0, padx=10, pady=10, sticky="new")
-        
+                
         # Internal layout for input frame
         self.label_x_p.grid(row=0, column=0, sticky="w", padx=5, pady=5)
         self.entry_x_p.grid(row=0, column=1, padx=5, pady=5)
@@ -151,17 +163,7 @@ class ModeGui():
         Method to display all the Widget of the main frame
         LEFT COLUMN LAYOUT (column=0)
         '''
-        # Mode frame at TOP LEFT (row=0, column=0)
-        self.frame.grid(row=0, column=0, padx=10, pady=10, sticky="new")
-        
-        # Internal layout for mode frame
-        self.label_Mode.grid(column=0, row=0, sticky="w", padx=5, pady=5)
-        self.drop_Mode.grid(column=1, row=0, padx=self.padx, pady=5)
-        self.btn_Gen_Sim.grid(column=0, row=1, columnspan=2, pady=10)
-
-        # Input frame BELOW mode frame (row=1, column=0)
-        self.input_frame.grid(row=1, column=0, padx=10, pady=10, sticky="new")
-        
+     
         # Internal layout for input frame
         self.label_Bx.grid(row=0, column=0, sticky="w", padx=5, pady=5)
         self.entry_Bx.grid(row=0, column=1, padx=5, pady=5)
@@ -231,6 +233,11 @@ class ModeGui():
         for axis in self.axises:
             self.entry_data[axis] = StringVar()
             self.entry_data[axis].set(self.default_pwm)
+    
+    def initialize_desired_field(self):
+        for field in self.fields:
+            self.entry_field_data[field] = StringVar()
+            self.entry_field_data[field].set(self.default_field)
 
 class GraphGui():
     def __init__(self, root, serial):
