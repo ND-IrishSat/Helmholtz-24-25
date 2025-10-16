@@ -39,7 +39,7 @@ def readMagnetometerValues(nanoSer):
     #magString = nanoSer.readline().decode('utf-8').strip().split()
     #print(magString)
     #return magString
-    return nanoSer.readline().decode('utf-8').strip().spilt()
+    return nanoSer.readline().decode('utf-8').strip().split()
 
 
             

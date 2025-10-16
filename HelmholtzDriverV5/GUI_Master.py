@@ -4,9 +4,11 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 from typing import Dict
+from pathlib import Path 
 import csv
 import numpy as np
 
+from generateSimulation import gen_sim
 
 class RootGUI():
     def __init__(self):
@@ -107,24 +109,40 @@ class ModeGui():
 
     def _create_sim_widgets(self):
         """Creates the 3 Label/Entry pairs for Simulation Mode (B-field inputs)."""
-        # Mapping from internal B-field name to external label text
-        sim_widgets_map = {
-            'Bx': 'Desired Bx:', 
-            'By': 'Desired By:', 
-            'Bz': 'Desired Bz:'
-        }
+        
+        self.csv_files = list(Path.cwd().glob("*.csv"))
+        
+        
+        self.file_list = ["-"]
+        for file in self.csv_files:
+            self.file_list.append(file.name)
+        
+        print(self.file_list)
+        
+        self.clicked_file = StringVar()
+        self.clicked_file.set(self.file_list[0])
+        self.drop_file = OptionMenu(
+            self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.file_ctrl())
 
-        self.sim_widgets: Dict[str, tuple] = {}
-        
-        for key, text in sim_widgets_map.items():
-            label = Label(self.input_frame, text=text, bg="white", width=15, anchor="w")
-            entry = Entry(self.input_frame, textvariable=self.entry_field_data[key], width=20)
-            self.sim_widgets[key] = (label, entry)
-        
-        # Set instance attributes for Bx, By, Bz entries for Gen_Sim_ctrl if needed
-        self.label_Bx, self.entry_Bx = self.sim_widgets['Bx']
-        self.label_By, self.entry_By = self.sim_widgets['By']
-        self.label_Bz, self.entry_Bz = self.sim_widgets['Bz']
+        self.drop_file.config(width=15)
+        # Mapping from internal B-field name to external label text
+#         sim_widgets_map = {
+#             'Bx': 'Desired Bx:', 
+#             'By': 'Desired By:', 
+#             'Bz': 'Desired Bz:'
+#         }
+# 
+#         self.sim_widgets: Dict[str, tuple] = {}
+#         
+#         for key, text in sim_widgets_map.items():
+#             label = Label(self.input_frame, text=text, bg="white", width=15, anchor="w")
+#             entry = Entry(self.input_frame, textvariable=self.entry_field_data[key], width=20)
+#             self.sim_widgets[key] = (label, entry)
+#         
+#         # Set instance attributes for Bx, By, Bz entries for Gen_Sim_ctrl if needed
+#         self.label_Bx, self.entry_Bx = self.sim_widgets['Bx']
+#         self.label_By, self.entry_By = self.sim_widgets['By']
+#         self.label_Bz, self.entry_Bz = self.sim_widgets['Bz']
 
     def _hide_input_widgets(self):
         for widgets in self.input_frame.winfo_children():
@@ -161,16 +179,18 @@ class ModeGui():
         Method to display all the Widget of the main frame
         LEFT COLUMN LAYOUT (column=0)
         '''
+        self.drop_file.grid(column=0, row=0, padx=5, pady=5)
+
      
         # Internal layout for input frame
-        self.label_Bx.grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        self.entry_Bx.grid(row=0, column=1, padx=5, pady=5)
-
-        self.label_By.grid(row=1, column=0, sticky="w", padx=5, pady=5)
-        self.entry_By.grid(row=1, column=1, padx=5, pady=5)
-        
-        self.label_Bz.grid(row=2, column=0, sticky="w", padx=5, pady=5)
-        self.entry_Bz.grid(row=2, column=1, padx=5, pady=5)
+#         self.label_Bx.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+#         self.entry_Bx.grid(row=0, column=1, padx=5, pady=5)
+# 
+#         self.label_By.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+#         self.entry_By.grid(row=1, column=1, padx=5, pady=5)
+#         
+#         self.label_Bz.grid(row=2, column=0, sticky="w", padx=5, pady=5)
+#         self.entry_Bz.grid(row=2, column=1, padx=5, pady=5)
 
     def ModeOptionMenu(self):
         '''
@@ -187,6 +207,8 @@ class ModeGui():
             self.frame, self.clicked_Mode, *modes, command=lambda *_: self.mode_ctrl())
 
         self.drop_Mode.config(width=15)
+        
+        
 
     def mode_ctrl(self):
         """
@@ -199,7 +221,8 @@ class ModeGui():
             if "Generate Simulation" in self.clicked_Mode.get():
                 self._hide_input_widgets()
                 self.public_sim()
-
+                # gen_sim( self.file_select )
+                
                 print("Generate Simulation mode selected")
             elif "Zero" in self.clicked_Mode.get():
                 self.initialize_magnetic_field()
@@ -221,6 +244,10 @@ class ModeGui():
         # Create graphs if they don't exist
         if self.graphs is None:
             self.graphs = GraphGui(self.root, self.serial)
+            
+    def file_ctrl(self):
+        self.file_select = self.clicked_file.get()
+        print(self.file_select)
 
     def Gen_Sim_ctrl(self):
         # NOTE: This method currently uses self.entry_x_p, self.entry_y_p, self.entry_z_p 
@@ -231,17 +258,21 @@ class ModeGui():
         data_to_write = {}
 
         if "Generate Simulation" in current_mode:
-            data_to_write = {
-                "Bx": self.entry_Bx.get(), 
-                "By": self.entry_By.get(), 
-                "Bz": self.entry_Bz.get()
-            }
+            gen_sim( self.file_select )
+            #data_to_write = {
+                #"Bx": self.entry_Bx.get(), 
+                #"By": self.entry_By.get(), 
+               # "Bz": self.entry_Bz.get()
+            #}
         elif "Manuel" in current_mode:
             # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
             data_to_write = {
-                "Bx": self.entry_x_p.get(), 
-                "By": self.entry_y_p.get(), 
-                "Bz": self.entry_z_p.get()  
+                "x_pos": self.entry_x_p.get(),
+                "x_neg": self.entry_x_n.get(),
+                "y_pos": self.entry_y_p.get(),
+                "y_neg": self.entry_y_n.get(),
+                "z_pos": self.entry_z_p.get(),
+                "z_neg": self.entry_z_n.get()
             }
         # Zero mode can also be handled if needed, but we'll stick to the provided structure for now
         
