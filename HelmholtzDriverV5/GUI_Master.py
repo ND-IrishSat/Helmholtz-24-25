@@ -184,7 +184,7 @@ class ModeGui():
         self.clicked_Mode = StringVar()
         self.clicked_Mode.set(modes[0])
         self.drop_Mode = OptionMenu(
-            self.frame, self.clicked_Mode, *modes, command=self.mode_ctrl)
+            self.frame, self.clicked_Mode, *modes, command=lambda *_: self.mode_ctrl())
 
         self.drop_Mode.config(width=15)
 
@@ -198,12 +198,14 @@ class ModeGui():
         else:
             if "Generate Simulation" in self.clicked_Mode.get():
                 self._hide_input_widgets()
-
                 self.public_sim()
 
                 print("Generate Simulation mode selected")
             elif "Zero" in self.clicked_Mode.get():
                 self.initialize_magnetic_field()
+                self._hide_input_widgets()
+                self.publish_manual()
+
                 print("Zero mode selected")
             elif "Manuel" in self.clicked_Mode.get():
                 # Put on the grid all the elements
