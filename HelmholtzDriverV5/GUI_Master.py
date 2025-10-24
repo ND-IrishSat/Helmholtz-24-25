@@ -38,7 +38,7 @@ class ModeGui():
         # Threading initialization
         self.msg_q=msg_q
         self.stop_event=stop_event
-        self.hardware_thread = None
+        self.hw_thread = None
 
         self.axises = ["x_pos", "x_neg", "y_pos", "y_neg", "z_pos", "z_neg"]
         self.default_pwm = "000"

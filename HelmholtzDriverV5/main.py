@@ -36,16 +36,10 @@ RootMaster.root.protocol("WM_DELETE_WINDOW", on_close)
 RootMaster.root.mainloop()
 
 '''
-Traceback (most recent call last):
-  File "/usr/lib/python3.11/tkinter/__init__.py", line 1948, in __call__
-    return self.func(*args)
-           ^^^^^^^^^^^^^^^^
-  File "/home/irishsat/Helmholtz-24-25/HelmholtzDriverV5/GUI_Master.py", line 261, in Gen_Sim_ctrl
-    gen_sim( self.file_select, self.serial)
-  File "/home/irishsat/Helmholtz-24-25/HelmholtzDriverV5/ui_genSim.py", line 123, in gen_sim
-    magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
-                         ^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/serial/serialposix.py", line 595, in read
-    raise SerialException(
-serial.serialutil.SerialException: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
+['-', 'zeroed.csv', 'magFieldsOut.csv', 'desired_field.csv', 'runZeroed.csv', 'runPySolReal.csv']
+Generate Simulation mode selected
+zeroed.csv
+STATUS: gen_sim starting: zeroed.csv
+Serial read error: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
+ERROR: gen_sim failed: SerialException('device reports readiness to read but returned no data (device disconnected or multiple access on port?)')
 '''
