@@ -234,16 +234,16 @@ class ModeGui():
             print("gen_sim already running"); return
         # disable button during run
         self.btn_Gen_Sim.config(state="disabled")
-
         if self.stop_event: 
             self.stop_event.clear()
         self.hw_thread = threading.Thread(target=self._gen_sim_worker, args=(file_name,))
         self.hw_thread.start()
+
     def _gen_sim_worker(self, file_name: str):
         try:
             if self.msg_q: 
                 self.msg_q.put(("status", f"gen_sim starting: {file_name}"))
-            gen_sim(file_name)  # blocking call moved off the UI thread
+            gen_sim(file_name, self.serial)  # blocking call moved off the UI thread
             if self.msg_q: 
                 self.msg_q.put(("done", None))
         except Exception as e:
@@ -251,6 +251,8 @@ class ModeGui():
                 self.msg_q.put(("error", f"gen_sim failed: {e!r}"))
         finally:
             # re-enable the button back on the UI thread
+            if self.stop_event:
+                self.stop_event.clear()
             self.root.after(0, lambda: self.btn_Gen_Sim.config(state="normal"))
 
     def Gen_Sim_ctrl(self):
@@ -258,9 +260,11 @@ class ModeGui():
         data_to_write = {}
 
         if "Generate Simulation" in current_mode:
-            gen_sim( self.file_select, self.serial)
+            # pause the background reader and spawn the worker
+            if self.stop_event:
+                self.stop_event.set()
+            self._start_gen_sim(self.file_select)
             return
-        
         elif "Manuel" in current_mode:
             # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
             data_to_write = {

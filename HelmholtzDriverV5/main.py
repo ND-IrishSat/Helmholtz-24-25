@@ -12,6 +12,7 @@ def serial_reader_loop(ser_ctrl: SerialCtrl):
     while True:
         if stop_event.is_set():
             time.sleep(0.02)
+            continue
         vals = ser_ctrl.read_value()
         if vals is not None:
             msg_q.put(("serial", vals))
