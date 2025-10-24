@@ -8,9 +8,8 @@ from pathlib import Path
 import csv
 import numpy as np
 
-import queue, threading, time
-msg_q = queue.Queue()
-stop_event = threading.Event()
+import threading
+from queue import Empty
 
 from ui_genSim import gen_sim
 
@@ -30,13 +29,17 @@ class RootGUI():
 
 # Manuel/Auto Selection
 class ModeGui():
-    def __init__(self, root, serial):
+    def __init__(self, root, serial, msg_q=None, stop_event=None):
         '''
         Initialize the mode selection GUI
         '''
-        # 1. Initialize instance attributes
         self.root = root
         self.serial = serial
+        # Threading initialization
+        self.msg_q=msg_q
+        self.stop_event=stop_event
+        self.hardware_thread = None
+
         self.axises = ["x_pos", "x_neg", "y_pos", "y_neg", "z_pos", "z_neg"]
         self.default_pwm = "000"
         self.entry_data: Dict[str, StringVar] = {}
@@ -129,24 +132,6 @@ class ModeGui():
             self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.file_ctrl())
 
         self.drop_file.config(width=15)
-        # Mapping from internal B-field name to external label text
-#         sim_widgets_map = {
-#             'Bx': 'Desired Bx:', 
-#             'By': 'Desired By:', 
-#             'Bz': 'Desired Bz:'
-#         }
-# 
-#         self.sim_widgets: Dict[str, tuple] = {}
-#         
-#         for key, text in sim_widgets_map.items():
-#             label = Label(self.input_frame, text=text, bg="white", width=15, anchor="w")
-#             entry = Entry(self.input_frame, textvariable=self.entry_field_data[key], width=20)
-#             self.sim_widgets[key] = (label, entry)
-#         
-#         # Set instance attributes for Bx, By, Bz entries for Gen_Sim_ctrl if needed
-#         self.label_Bx, self.entry_Bx = self.sim_widgets['Bx']
-#         self.label_By, self.entry_By = self.sim_widgets['By']
-#         self.label_Bz, self.entry_Bz = self.sim_widgets['Bz']
 
     def _hide_input_widgets(self):
         for widgets in self.input_frame.winfo_children():
@@ -185,17 +170,6 @@ class ModeGui():
         '''
         self.drop_file.grid(column=0, row=0, padx=5, pady=5)
 
-     
-        # Internal layout for input frame
-#         self.label_Bx.grid(row=0, column=0, sticky="w", padx=5, pady=5)
-#         self.entry_Bx.grid(row=0, column=1, padx=5, pady=5)
-# 
-#         self.label_By.grid(row=1, column=0, sticky="w", padx=5, pady=5)
-#         self.entry_By.grid(row=1, column=1, padx=5, pady=5)
-#         
-#         self.label_Bz.grid(row=2, column=0, sticky="w", padx=5, pady=5)
-#         self.entry_Bz.grid(row=2, column=1, padx=5, pady=5)
-
     def ModeOptionMenu(self):
         '''
         Method to Get the available modes and list them into the drop menu
@@ -225,7 +199,6 @@ class ModeGui():
             if "Generate Simulation" in self.clicked_Mode.get():
                 self._hide_input_widgets()
                 self.public_sim()
-                #gen_sim( self.file_select )
                 
                 print("Generate Simulation mode selected")
             elif "Zero" in self.clicked_Mode.get():
@@ -253,22 +226,41 @@ class ModeGui():
         self.file_select = self.clicked_file.get()
         print(self.file_select)
 
+    # Chat generated helper functions
+    def _start_gen_sim(self, file_name: str):
+        if not file_name or file_name == "-":
+            print("Pick a CSV file first"); return
+        if self.hw_thread and self.hw_thread.is_alive():
+            print("gen_sim already running"); return
+        # disable button during run
+        self.btn_Gen_Sim.config(state="disabled")
+
+        if self.stop_event: 
+            self.stop_event.clear()
+        self.hw_thread = threading.Thread(target=self._gen_sim_worker, args=(file_name,))
+        self.hw_thread.start()
+    def _gen_sim_worker(self, file_name: str):
+        try:
+            if self.msg_q: 
+                self.msg_q.put(("status", f"gen_sim starting: {file_name}"))
+            gen_sim(file_name)  # blocking call moved off the UI thread
+            if self.msg_q: 
+                self.msg_q.put(("done", None))
+        except Exception as e:
+            if self.msg_q: 
+                self.msg_q.put(("error", f"gen_sim failed: {e!r}"))
+        finally:
+            # re-enable the button back on the UI thread
+            self.root.after(0, lambda: self.btn_Gen_Sim.config(state="normal"))
+
     def Gen_Sim_ctrl(self):
-        # NOTE: This method currently uses self.entry_x_p, self.entry_y_p, self.entry_z_p 
-        # which are the PWM values from the Manual mode.
-        # If in "Generate Simulation" mode, you likely want to use the B-field entries (self.entry_Bx, etc.)
-        
         current_mode = self.clicked_Mode.get()
         data_to_write = {}
 
         if "Generate Simulation" in current_mode:
             gen_sim( self.file_select )
-            #data_to_write = {
-                #"Bx": self.entry_Bx.get(), 
-                #"By": self.entry_By.get(), 
-               # "Bz": self.entry_Bz.get()
-            #}
-            data_to_write=None
+            return
+        
         elif "Manuel" in current_mode:
             # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
             data_to_write = {
@@ -290,7 +282,7 @@ class ModeGui():
                 writer.writerow([0, data_to_write["Bx"], data_to_write["By"], data_to_write["Bz"]])
             print(f"Generate csv in {current_mode} mode with values: {data_to_write}")
         else:
-             print("No data to write for selected mode.")
+            print("No data to write for selected mode.")
 
     def initialize_magnetic_field(self):
         for axis in self.axises:
@@ -303,7 +295,7 @@ class ModeGui():
             self.entry_field_data[field].set(self.default_field)
             
 class GraphGui():
-    def __init__(self, root, serial):
+    def __init__(self, root, serial, msg_q=None):
         '''
         Graph GUI - RIGHT SIDE of the window
         All graphs placed in column=1 (right column)
@@ -311,6 +303,8 @@ class GraphGui():
         self.root = root
         self.serial = serial
         
+        self.msg_q = msg_q
+
         # Container frame for all graphs - RIGHT SIDE (row=0, column=1)
         self.container_frame = Frame(root, bg="white")
         self.container_frame.grid(row=0, column=1, rowspan=3, padx=10, pady=10, sticky="nsew")
@@ -402,45 +396,92 @@ class GraphGui():
         self.ControlFrames[self.totalframes].append(
             Button(self.ControlFrames[self.totalframes][0], text="-",
                    bg="white", width=btnW, height=btnH))
-        self.ControlFrames[self.totalframes][2].grid(
-            column=0, row=1, padx=5, pady=5)
-        
+        self.ControlFrames[self.totalframes][2].grid(column=0, row=1, padx=5, pady=5)
+
+    def _append_point(self, x, y, z):
+        self.xmag.append(x); self.ymag.append(y); self.zmag.append(z)
+        self.time.append(len(self.time) * 0.1)
+        self.tot.append((x*x + y*y + z*z) ** 0.5)
+    
     def update_plot(self):
-        
-        value = self.serial.read_value()
-        if value is not None:
+
+        WINDOW = 2000
+        for arr in (self.time, self.xmag, self.ymag, self.zmag, self.tot):
+            if len(arr) > WINDOW: del arr[:-WINDOW]
+
+        # 1) Drain messages that arrived since last tick
+        drained = 0
+        while drained < 1000:  # safety cap per tick
             try:
-                self.xmag.append(value[0])
-                self.ymag.append(value[1])
-                self.zmag.append(value[2])
-            except:
-                self.xmag.append(self.xmag[len(self.xmag) - 1])
-                self.ymag.append(self.ymag[len(self.ymag) - 1])
-                self.zmag.append(self.xmag[len(self.zmag) - 1])
-            self.time.append(len(self.time) * 0.1)
-            self.tot.append( np.sqrt((self.xmag[len(self.xmag) - 1]**2) + (self.ymag[len(self.ymag) - 1]**2) + (self.zmag[len(self.zmag) - 1]**2)   ) )
-            print(value)
-            
-            # Creates a window size of 100 points on the graph
-            # Keep only last 100 points
-            # does not work!!! do not uncomment
-            # if len(self.time) > 100:
-            #    self.time.pop(0)
-            #    self.xmag.pop(0)
-            #    self.ymag.pop(0)
-            #    self.zmag.pop(0)
-            #    self.tot.pop(0)
+                msg, payload = self.msg_q.get_nowait()
+            except Empty:
+                break
+            drained += 1
+            if msg == "serial":
+                try:
+                    x, y, z = payload
+                    self._append_point(x, y, z)
+                except Exception:
+                    # fallback to last values if malformed
+                    if self.xmag:
+                        self._append_point(self.xmag[-1], self.ymag[-1], self.zmag[-1])
+            elif msg == "status":
+                print("STATUS:", payload)
+            elif msg == "error":
+                print("ERROR:", payload)
+            elif msg == "done":
+                print("DONE")
 
-            # Show Data on graph
-            self.figs[self.totalframes][1].clear()
-            self.figs[self.totalframes][1].plot(self.time, self.xmag, color='green', label='X Field')
-            self.figs[self.totalframes][1].plot(self.time, self.ymag, color='red', label='Y Field')
-            self.figs[self.totalframes][1].plot(self.time, self.zmag, color='blue', label='Z Field')
-            self.figs[self.totalframes][1].plot(self.time, self.tot, color='black', label='Total Field')
-            self.figs[self.totalframes][1].legend(loc ='upper left')
-            self.figs[self.totalframes][2].draw()            
+        # 2) Draw latest data
+        if self.time:
+            ax = self.figs[self.totalframes][1]
+            ax.clear()
+            ax.plot(self.time, self.xmag, color='green', label='X Field')
+            ax.plot(self.time, self.ymag, color='red', label='Y Field')
+            ax.plot(self.time, self.zmag, color='blue', label='Z Field')
+            ax.plot(self.time, self.tot, color='black', label='Total Field')
+            ax.legend(loc ='upper left')
+            self.figs[self.totalframes][2].draw()
 
+        # 3) Schedule next tick
         self.root.after(100, self.update_plot)
+
+    # def update_plot(self):
+        
+    #     value = self.serial.read_value()
+    #     if value is not None:
+    #         try:
+    #             self.xmag.append(value[0])
+    #             self.ymag.append(value[1])
+    #             self.zmag.append(value[2])
+    #         except:
+    #             self.xmag.append(self.xmag[len(self.xmag) - 1])
+    #             self.ymag.append(self.ymag[len(self.ymag) - 1])
+    #             self.zmag.append(self.xmag[len(self.zmag) - 1])
+    #         self.time.append(len(self.time) * 0.1)
+    #         self.tot.append( np.sqrt((self.xmag[len(self.xmag) - 1]**2) + (self.ymag[len(self.ymag) - 1]**2) + (self.zmag[len(self.zmag) - 1]**2)   ) )
+    #         print(value)
+            
+    #         # Creates a window size of 100 points on the graph
+    #         # Keep only last 100 points
+    #         # does not work!!! do not uncomment
+    #         # if len(self.time) > 100:
+    #         #    self.time.pop(0)
+    #         #    self.xmag.pop(0)
+    #         #    self.ymag.pop(0)
+    #         #    self.zmag.pop(0)
+    #         #    self.tot.pop(0)
+
+    #         # Show Data on graph
+    #         self.figs[self.totalframes][1].clear()
+    #         self.figs[self.totalframes][1].plot(self.time, self.xmag, color='green', label='X Field')
+    #         self.figs[self.totalframes][1].plot(self.time, self.ymag, color='red', label='Y Field')
+    #         self.figs[self.totalframes][1].plot(self.time, self.zmag, color='blue', label='Z Field')
+    #         self.figs[self.totalframes][1].plot(self.time, self.tot, color='black', label='Total Field')
+    #         self.figs[self.totalframes][1].legend(loc ='upper left')
+    #         self.figs[self.totalframes][2].draw()            
+
+    #     self.root.after(100, self.update_plot)
 
 if __name__ != "__main__":
     pass
