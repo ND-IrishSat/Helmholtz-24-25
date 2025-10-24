@@ -5,6 +5,9 @@ class SerialCtrl:
         self.ser = serial.Serial(port, baudrate, timeout=timeout)
         self.ser.flushInput()
         self.previous_value = [0,0,0]
+        
+    def give_serial(self):
+        return self.ser
     
     # Python decorator; method does not require an instance of the class to be called and cannot access instance-specific data
     @staticmethod
@@ -24,7 +27,7 @@ class SerialCtrl:
                 self.previous_value = mag_array
                 return mag_array
             else:
-                return previous_value
+                return self.previous_value
             
         except Exception as e:
             print(f"Serial read error: {e}")

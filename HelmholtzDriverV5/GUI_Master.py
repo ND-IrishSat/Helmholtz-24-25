@@ -220,7 +220,7 @@ class ModeGui():
 
         # Create graphs if they don't exist
         if self.graphs is None:
-            self.graphs = GraphGui(self.root, self.serial)
+            self.graphs = GraphGui(self.root, self.serial, self.msg_q)
             
     def file_ctrl(self):
         self.file_select = self.clicked_file.get()
@@ -258,7 +258,7 @@ class ModeGui():
         data_to_write = {}
 
         if "Generate Simulation" in current_mode:
-            gen_sim( self.file_select )
+            gen_sim( self.file_select, self.serial)
             return
         
         elif "Manuel" in current_mode:
@@ -404,10 +404,6 @@ class GraphGui():
         self.tot.append((x*x + y*y + z*z) ** 0.5)
     
     def update_plot(self):
-
-        WINDOW = 2000
-        for arr in (self.time, self.xmag, self.ymag, self.zmag, self.tot):
-            if len(arr) > WINDOW: del arr[:-WINDOW]
 
         # 1) Drain messages that arrived since last tick
         drained = 0

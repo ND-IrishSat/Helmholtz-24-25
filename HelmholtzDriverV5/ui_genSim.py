@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import numpy as np
+import serial
 
 from PySol.sol_sim import generate_orbit_data
 from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, refresh_buffers, readMagnetometerValues # UART code 
@@ -19,7 +20,7 @@ def isValidString(s: str) -> bool:
 
 ########################################################################################## Settings
 
-def gen_sim( file_name ):
+def gen_sim( file_name , nanoSer=None):
     pidTries = 30 # number of tries the pid can take to get the desired value before it moves on to next value
     pidDelay = 100 # number of miliseconds between each pid iteration
 
@@ -52,11 +53,13 @@ def gen_sim( file_name ):
     df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
 
     ##########################################################################################
+    nanoSer = nanoSer.give_serial()
+    
+    if nanoSer is None: 
+        time.sleep(1)
+        nanoSer = serial.Serial('/dev/serial/by-id/usb-Arduino_LLC_Arduino_NANO_33_IoT_8845351E50304D48502E3120FF0E180B-if00',115200)
 
-    terminals = initiateUART(True, True)
-    time.sleep(1)
-    nanoSer = terminals[0]
-    R4Ser = terminals[1]
+    R4Ser = serial.Serial('/dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_F412FA74EB4C-if01', 9600)
 
     # initial duty cycles, for manual mode set desired ones here
     Xp, Xn = 0.0, 0.0
@@ -115,9 +118,9 @@ def gen_sim( file_name ):
         ################################################################################################################## 
         # magnetometer reading                                                                                           #
         ################################################################################################################## 
-        refresh_buffers(nanoSer, R4Ser)
+        # refresh_buffers(nanoSer, R4Ser)
 
-        magnetometerOutput = readMagnetometerValues(nanoSer)
+        magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
         
         if magnetometerOutput:
             if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
