@@ -8,7 +8,7 @@ from pathlib import Path
 import csv
 import numpy as np
 
-from generateSimulation import gen_sim
+from ui_genSim import gen_sim
 
 class RootGUI():
     def __init__(self):
