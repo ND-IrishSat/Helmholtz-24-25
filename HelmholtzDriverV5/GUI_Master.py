@@ -8,6 +8,10 @@ from pathlib import Path
 import csv
 import numpy as np
 
+import queue, threading, time
+msg_q = queue.Queue()
+stop_event = threading.Event()
+
 from ui_genSim import gen_sim
 
 class RootGUI():
@@ -221,7 +225,7 @@ class ModeGui():
             if "Generate Simulation" in self.clicked_Mode.get():
                 self._hide_input_widgets()
                 self.public_sim()
-                gen_sim( self.file_select )
+                #gen_sim( self.file_select )
                 
                 print("Generate Simulation mode selected")
             elif "Zero" in self.clicked_Mode.get():
@@ -264,6 +268,7 @@ class ModeGui():
                 #"By": self.entry_By.get(), 
                # "Bz": self.entry_Bz.get()
             #}
+            data_to_write=None
         elif "Manuel" in current_mode:
             # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
             data_to_write = {
@@ -296,7 +301,7 @@ class ModeGui():
         for field in self.fields:
             self.entry_field_data[field] = StringVar()
             self.entry_field_data[field].set(self.default_field)
-
+            
 class GraphGui():
     def __init__(self, root, serial):
         '''
