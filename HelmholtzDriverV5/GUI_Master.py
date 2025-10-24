@@ -221,7 +221,7 @@ class ModeGui():
             if "Generate Simulation" in self.clicked_Mode.get():
                 self._hide_input_widgets()
                 self.public_sim()
-                # gen_sim( self.file_select )
+                gen_sim( self.file_select )
                 
                 print("Generate Simulation mode selected")
             elif "Zero" in self.clicked_Mode.get():
