@@ -263,7 +263,8 @@ class ModeGui():
             # pause the background reader and spawn the worker
             if self.stop_event:
                 self.stop_event.set()
-            self._start_gen_sim(self.file_select)
+            # let the reader thread exit its current read() cycle
+            self.root.after(1100, lambda: self._start_gen_sim(self.file_select))
             return
         elif "Manuel" in current_mode:
             # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
@@ -408,7 +409,6 @@ class GraphGui():
         self.tot.append((x*x + y*y + z*z) ** 0.5)
     
     def update_plot(self):
-
         # 1) Drain messages that arrived since last tick
         drained = 0
         while drained < 1000:  # safety cap per tick

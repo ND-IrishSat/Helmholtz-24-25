@@ -34,12 +34,3 @@ def on_close():
 
 RootMaster.root.protocol("WM_DELETE_WINDOW", on_close)
 RootMaster.root.mainloop()
-
-'''
-['-', 'zeroed.csv', 'magFieldsOut.csv', 'desired_field.csv', 'runZeroed.csv', 'runPySolReal.csv']
-Generate Simulation mode selected
-zeroed.csv
-STATUS: gen_sim starting: zeroed.csv
-Serial read error: device reports readiness to read but returned no data (device disconnected or multiple access on port?)
-ERROR: gen_sim failed: SerialException('device reports readiness to read but returned no data (device disconnected or multiple access on port?)')
-'''

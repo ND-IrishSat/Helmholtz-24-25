@@ -53,11 +53,10 @@ def gen_sim(file_name , nanoSer=None):
     df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
 
     ##########################################################################################
-    # Use the existing SerialCtrl -> underlying serial.Serial
-    if hasattr(nanoSer, "give_serial"):
-        nanoSer = nanoSer.give_serial()
-    if nanoSer is None: 
+    # Use the existing SerialCtrl -> underlying serial.Serial    
+    if nanoSer is None or not hasattr(nanoSer, "read_value"):
         raise RuntimeError("No magnetometer serial provided")
+    
     R4Ser = serial.Serial('/dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_F412FA74EB4C-if01', 9600)
 
     # initial duty cycles, for manual mode set desired ones here
@@ -119,7 +118,7 @@ def gen_sim(file_name , nanoSer=None):
         ################################################################################################################## 
         # refresh_buffers(nanoSer, R4Ser)
 
-        magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
+        magnetometerOutput = nanoSer.read_value()
         
         if magnetometerOutput:
             if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
