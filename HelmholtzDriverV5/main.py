@@ -34,3 +34,27 @@ def on_close():
 
 RootMaster.root.protocol("WM_DELETE_WINDOW", on_close)
 RootMaster.root.mainloop()
+
+
+'''
+['-', 'zeroed.csv', 'magFieldsOut.csv', 'desired_field.csv', 'runZeroed.csv', 'runPySolReal.csv']
+Generate Simulation mode selected
+zeroed.csv
+STATUS: gen_sim starting: zeroed.csv
+ERROR: gen_sim failed: ValueError('Data must be 1-dimensional, got ndarray of shape (1, 9) instead')
+Serial read error: 'NoneType' object cannot be interpreted as an integer
+
+This is the newest error code
+'''
+
+'''
+['-', 'zeroed.csv', 'magFieldsOut.csv', 'desired_field.csv', 'runZeroed.csv', 'runPySolReal.csv']
+Generate Simulation mode selected
+zeroed.csv
+STATUS: gen_sim starting: zeroed.csv
+ERROR: gen_sim failed: ValueError('Data must be 1-dimensional, got ndarray of shape (1, 9) instead')
+Serial read error: could not convert string to float: '-81.5-81.53'
+STATUS: gen_sim starting: zeroed.csv
+ERROR: gen_sim failed: ValueError('Data must be 1-dimensional, got ndarray of shape (1, 9) instead')
+Serial read error: 'NoneType' object cannot be interpreted as an integer
+'''

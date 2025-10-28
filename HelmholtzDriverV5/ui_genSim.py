@@ -211,9 +211,8 @@ def gen_sim(file_name , nanoSer=None, msg_q=None):
                                  "PWM_Y+": pwmPosOutputY[bestIndex], "PWM_Y-": pwmNegOutputY[bestIndex],
                                  "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex],}])
             
-            
-            df = pd.concat([df, row], ignore_index=True)        
-        
+            # astype() is a numpy method that casts the data type of an array to a specific type. 
+            df = pd.concat([df, df.astype(row)], ignore_index=True)        
             if(simulationPos >= len(dataFrame) or runValuesCount >= runValues):
                 break
             else:
