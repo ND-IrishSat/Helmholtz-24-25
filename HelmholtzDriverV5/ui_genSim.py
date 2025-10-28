@@ -9,6 +9,8 @@ import os
 import numpy as np
 import serial
 
+from queue import Empty
+
 from PySol.sol_sim import generate_orbit_data
 from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, refresh_buffers, readMagnetometerValues # UART code 
 from Dependencies.PID import xPID, yPID, zPID # PID code
@@ -20,7 +22,15 @@ def isValidString(s: str) -> bool:
 
 ########################################################################################## Settings
 
-def gen_sim(file_name , nanoSer=None):
+def gen_sim(file_name , nanoSer=None, msg_q=None):
+    if msg_q is None:
+        raise RuntimeError("msg_q required for magnetometer data")
+    if nanoSer is None or not hasattr(nanoSer, "read_value"):
+        raise RuntimeError("No magnetometer serial provided")
+    
+    R4Ser = serial.Serial('/dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_F412FA74EB4C-if01', 9600)
+
+    
     pidTries = 30 # number of tries the pid can take to get the desired value before it moves on to next value
     pidDelay = 100 # number of miliseconds between each pid iteration
 
@@ -53,12 +63,7 @@ def gen_sim(file_name , nanoSer=None):
     df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
 
     ##########################################################################################
-    # Use the existing SerialCtrl -> underlying serial.Serial    
-    if nanoSer is None or not hasattr(nanoSer, "read_value"):
-        raise RuntimeError("No magnetometer serial provided")
     
-    R4Ser = serial.Serial('/dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_F412FA74EB4C-if01', 9600)
-
     # initial duty cycles, for manual mode set desired ones here
     Xp, Xn = 0.0, 0.0
     Yp, Yn = 0.0, 0.0
@@ -118,21 +123,33 @@ def gen_sim(file_name , nanoSer=None):
         ################################################################################################################## 
         # refresh_buffers(nanoSer, R4Ser)
 
-        magnetometerOutput = nanoSer.read_value()
-        
-        if magnetometerOutput:
-            if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
-               magX = round(float(magnetometerOutput[0]), 2)
-               magY = round(float(magnetometerOutput[1]), 2)
-               magZ = round(float(magnetometerOutput[2]), 2)
-               
-               trueMagOutputX.append(magX)
-               trueMagOutputY.append(magY)
-               trueMagOutputZ.append(magZ)
-            else:
-               trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
-               trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
-               trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
+        # Drain all available magnetometer readings from queue
+        got_new_reading = False
+        while True:
+            try:
+                msg_type, payload = msg_q.get_nowait()
+                if msg_type == "serial":
+                    try:
+                        magX = round(float(payload[0]), 2)
+                        magY = round(float(payload[1]), 2)
+                        magZ = round(float(payload[2]), 2)
+                        got_new_reading = True
+                    except (ValueError, IndexError, TypeError):
+                        pass
+            except Empty:
+                break
+
+        # Appends to history if we got a new reading
+        if got_new_reading:
+            trueMagOutputX.append(magX)
+            trueMagOutputY.append(magY)
+            trueMagOutputZ.append(magZ)
+        else:
+            # No new data, repeat last value
+            trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
+            trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
+            trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
+
         ##################################################################################################################
         magRow = pd.DataFrame([{"X": magX, "Y": magY, "Z": magZ,}])
         totalMag = pow(((magX * magX) + (magY * magY) + (magZ * magZ)), 0.5)

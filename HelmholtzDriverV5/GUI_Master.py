@@ -243,9 +243,11 @@ class ModeGui():
         try:
             if self.msg_q: 
                 self.msg_q.put(("status", f"gen_sim starting: {file_name}"))
-            gen_sim(file_name, self.serial)  # blocking call moved off the UI thread
+
+            gen_sim(file_name, nanoSer=self.serial, msg_q=self.msg_q)  # blocking call moved off the UI thread
             if self.msg_q: 
                 self.msg_q.put(("done", None))
+                
         except Exception as e:
             if self.msg_q: 
                 self.msg_q.put(("error", f"gen_sim failed: {e!r}"))
