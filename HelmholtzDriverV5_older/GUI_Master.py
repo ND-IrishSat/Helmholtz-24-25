@@ -258,12 +258,16 @@ class ModeGui():
         data_to_write = {}
 
         if "Generate Simulation" in current_mode:
+            ######## STOP UPDATING PLOT
+            
             gen_sim( self.file_select )
             #data_to_write = {
                 #"Bx": self.entry_Bx.get(), 
                 #"By": self.entry_By.get(), 
                # "Bz": self.entry_Bz.get()
             #}
+               
+            ####### ADD ARRAY TO GRAPH
         elif "Manuel" in current_mode:
             # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
             data_to_write = {

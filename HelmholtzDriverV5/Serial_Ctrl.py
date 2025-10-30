@@ -25,8 +25,10 @@ class SerialCtrl:
             if line and self.isValidString(line[0]) and len(line)== 3:
                 mag_array = [float(value) for value in line]
                 self.previous_value = mag_array
+                print(mag_array)
                 return mag_array
             else:
+                print(self.previous_value)
                 return self.previous_value
             
         except Exception as e:

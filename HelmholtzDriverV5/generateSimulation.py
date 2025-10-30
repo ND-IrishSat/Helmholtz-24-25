@@ -107,6 +107,7 @@ def gen_sim( file_name ):
     simulationOutputX = [0]
     simulationOutputY = [0]
     simulationOutputZ = [0]
+    totalSimOut = [0]
     simulationPos = startPos
     # magnetometer values from the moment PID calculations run
     pidMagOutputX = [0]
@@ -171,7 +172,7 @@ def gen_sim( file_name ):
         simulationOutputX.append(currentFields[0])
         simulationOutputY.append(currentFields[1])
         simulationOutputZ.append(currentFields[2])
-        
+        totalSimOut.append(pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5))
         if(millis() - pidTime > pidDelay):
 
             pidMagOutputX.append(magX)
@@ -238,6 +239,8 @@ def gen_sim( file_name ):
     df.to_csv(outputFileName, index=True)
     #fftFrame.to_csv(fftOutput, index=True)
     sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
+    
+    return totalMagOutput, totalSimOut, realTimeVector
 # Plots data
 
 # plt.ylim(0,55)
