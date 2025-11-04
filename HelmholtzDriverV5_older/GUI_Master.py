@@ -328,16 +328,11 @@ class GraphGui():
         self.tot = []
         
         # Add the first chart automatically
-        self.AddChannelMaster()
+        self.AddMasterFrame()
+        self.AddGraph()
         
         # Update Chart
         self.update_plot()
-
-    def AddChannelMaster(self):
-        '''Add a complete chart with controls'''
-        self.AddMasterFrame()
-        self.AddGraph()
-        self.AddBtnFrame()
 
     def AddMasterFrame(self):
         '''Create a new frame for a chart'''
@@ -376,36 +371,8 @@ class GraphGui():
         # Configure grid weights for resizing
         self.frames[self.totalframes].grid_columnconfigure(1, weight=1)
         self.frames[self.totalframes].grid_rowconfigure(0, weight=1)
-
-    def AddBtnFrame(self):
-        '''Add control buttons for the chart'''
-        btnH = 2
-        btnW = 4
-        
-        self.ControlFrames.append([])
-        
-        # Control frame on the left side of the graph (column=0)
-        self.ControlFrames[self.totalframes].append(
-            LabelFrame(self.frames[self.totalframes], pady=5, bg="white", text="Controls"))
-        self.ControlFrames[self.totalframes][0].grid(
-            column=0, row=0, padx=5, pady=5, sticky="n")
-
-        # Add button
-        self.ControlFrames[self.totalframes].append(
-            Button(self.ControlFrames[self.totalframes][0], text="+",
-                   bg="white", width=btnW, height=btnH))
-        self.ControlFrames[self.totalframes][1].grid(
-            column=0, row=0, padx=5, pady=5)
-        
-        # Remove button
-        self.ControlFrames[self.totalframes].append(
-            Button(self.ControlFrames[self.totalframes][0], text="-",
-                   bg="white", width=btnW, height=btnH))
-        self.ControlFrames[self.totalframes][2].grid(
-            column=0, row=1, padx=5, pady=5)
         
     def update_plot(self):
-        
         value = self.serial.read_value()
         if value is not None:
             try:

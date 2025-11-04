@@ -11,6 +11,25 @@ class SerialCtrl:
     
     def read_value(self):
         try:
+            self.ser.reset_input_buffer()
+            self.ser.reset_output_buffer()
+            
+            line = self.ser.readline().decode('utf-8').strip().split()
+                 
+            if line and self.isValidString(line[0]) and len(line) == 3:
+                mag_array = [float(x) for x in line]
+                self.previous_value = mag_array
+                return mag_array
+            
+            return self.previous_value
+        
+        except Exception as e:
+            print(f"serial errors : {e}")
+            
+        return self.previous_value
+    
+    def read_value_1(self):
+        try:
             # Clean Start
             self.ser.reset_input_buffer()
             self.ser.reset_output_buffer()

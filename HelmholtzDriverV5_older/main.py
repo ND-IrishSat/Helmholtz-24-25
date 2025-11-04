@@ -8,3 +8,4 @@ ModeMaster = ModeGui(RootMaster.root, MySerial)
 GraphMaster = GraphGui(RootMaster.root, MySerial)
 
 RootMaster.root.mainloop()
+
