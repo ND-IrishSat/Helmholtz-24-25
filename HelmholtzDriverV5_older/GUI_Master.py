@@ -1,3 +1,5 @@
+### Values seems to be repeated;
+
 from tkinter import *
 
 import matplotlib.pyplot as plt
@@ -79,7 +81,8 @@ class ModeGui():
         # We should implement a function for this as when changing mode i.e. Manual, Generate Sim, Run Sim.
         # They will not use the literals x, y, z but their desired magnetic field while only manual requiring
         # literal x, y, z. (Literals is a variable and it's negative: for example: x, -x)
-       
+        self._initialize_magnetic_field()
+
         self.manual_widgets_maps = {
             'x_pos': 'X+:', 'x_neg': 'X-:', 
             'y_pos': 'Y+:', 'y_neg': 'Y-:', 
@@ -101,7 +104,6 @@ class ModeGui():
         self.label_z_p, self.entry_z_p = self.manual_widgets['z_pos']
         self.label_z_n, self.entry_z_n = self.manual_widgets['z_neg']
 
-        self._initialize_magnetic_field()
 
     def _create_sim_widgets(self):
         """Creates the 3 Label/Entry pairs for Simulation Mode (B-field inputs)."""
@@ -130,11 +132,6 @@ class ModeGui():
         for axis in self.axises:
             self.entry_data[axis] = StringVar()
             self.entry_data[axis].set(self.default_pwm)
-    
-    def _initialize_desired_field(self):
-        for field in self.fields:
-            self.entry_field_data[field] = StringVar()
-            self.entry_field_data[field].set(self.default_field)
 
     def publish_manual(self):
         '''
@@ -188,7 +185,6 @@ class ModeGui():
                 print("Generate Simulation mode selected")
                 # Hides the existing input widgets to change
                 self._hide_input_widgets()
-
                 # Places the .csv drop box used to be self.public_sim() 
                 self.drop_file.grid(column=0, row=0, padx=5, pady=5)
             elif "Zero" in self.clicked_Mode.get():
@@ -249,8 +245,6 @@ class ModeGui():
         else:
              print("No data to write for selected mode.")
 
-    
-
 class GraphGui():
     def __init__(self, root, serial):
         '''
@@ -259,6 +253,7 @@ class GraphGui():
         '''
         self.root = root
         self.serial = serial
+        self.paused_serial = False
         
         # Container frame for all graphs - RIGHT SIDE (row=0, column=1)
         self.container_frame = Frame(root, bg="white")
@@ -324,18 +319,20 @@ class GraphGui():
         
     def update_plot(self):
         value = self.serial.read_value()
+        print(value)
         if value is not None:
             try:
                 self.xmag.append(value[0])
                 self.ymag.append(value[1])
                 self.zmag.append(value[2])
             except:
+                print("could not append new values")
                 self.xmag.append(self.xmag[len(self.xmag) - 1])
                 self.ymag.append(self.ymag[len(self.ymag) - 1])
                 self.zmag.append(self.xmag[len(self.zmag) - 1])
             self.time.append(len(self.time) * 0.1)
             self.tot.append( np.sqrt((self.xmag[len(self.xmag) - 1]**2) + (self.ymag[len(self.ymag) - 1]**2) + (self.zmag[len(self.zmag) - 1]**2)   ) )
-            print(value)
+            #print(value)
             
             # Creates a window size of 100 points on the graph
             # Keep only last 100 points
@@ -355,8 +352,9 @@ class GraphGui():
             self.figs[self.totalframes][1].plot(self.time, self.tot, color='black', label='Total Field')
             self.figs[self.totalframes][1].legend(loc ='upper left')
             self.figs[self.totalframes][2].draw()            
-
-        self.root.after(100, self.update_plot)
+        
+            if not self.paused_serial:
+                self.root.after(100, self.update_plot)
 
 if __name__ != "__main__":
     pass
