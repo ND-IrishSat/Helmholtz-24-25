@@ -224,7 +224,12 @@ class ModeGui():
             totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select)
             print("simulation complete")
             print(f"first item in totalMagOutput : {totalMagOutput[0]}")
-            # self.graphs.paused_serial = False
+            
+            if self.graphs is not None:
+                # opens up the serial port; changes back the sentinel value; and restarts the plots
+                self.serial.serial_open()
+                self.graphs.paused_serial = False
+                self.graphs.update_plot()
             return
         elif "Manuel" in current_mode:
             # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
@@ -357,8 +362,8 @@ class GraphGui():
             self.figs[self.totalframes][1].legend(loc ='upper left')
             self.figs[self.totalframes][2].draw()            
         
-            if not self.paused_serial:
-                self.root.after(100, self.update_plot)
+        if not self.paused_serial:
+            self.root.after(100, self.update_plot)
 
 if __name__ != "__main__":
     pass
