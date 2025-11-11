@@ -42,29 +42,9 @@ class SerialCtrl:
             
         return None
     
-    def read_value_1(self):
+    def serial_close(self):
         try:
-            # Clean Start
-            self.ser.reset_input_buffer()
-            self.ser.reset_output_buffer()
-            
-            line = self.ser.readline().decode('utf-8').strip().split()
-            # if we were to read in the values they would be read as .5 which would induce a large error
-            # thus the isValidString is need to prevent large jump in values
-            # spilt needs to be before the valid string
-            if line and self.isValidString(line[0]):
-                # Check that Data is here 
-                mag_array = [float(x) for x in line]
-                
-                if len(mag_array) == 3:
-                    self.previous_value = mag_array
-                    return mag_array
-                else:
-                    return None
-            else:
-                return self.previous_value
-          
+            if self.ser and self.ser.is_open:
+                self.ser.close()
         except Exception as e:
-            print(f"Serial read error: {e}")
-        return None
-    
+            print(f"serial closing error {e}")

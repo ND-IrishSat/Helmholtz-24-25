@@ -214,6 +214,10 @@ class ModeGui():
         # If in "Generate Simulation" mode, you likely want to use the B-field entries (self.entry_Bx, etc.)
         
         current_mode = self.clicked_Mode.get()
+        
+        if self.graphs is not None:
+            self.graphs.paused_serial = True
+            self.serial.serial_close()
 
         if "Generate Simulation" in current_mode:
             ######## STOP UPDATING PLOT
@@ -329,7 +333,7 @@ class GraphGui():
                 print("could not append new values")
                 self.xmag.append(self.xmag[len(self.xmag) - 1])
                 self.ymag.append(self.ymag[len(self.ymag) - 1])
-                self.zmag.append(self.xmag[len(self.zmag) - 1])
+                self.zmag.append(self.zmag[len(self.zmag) - 1])
             self.time.append(len(self.time) * 0.1)
             self.tot.append( np.sqrt((self.xmag[len(self.xmag) - 1]**2) + (self.ymag[len(self.ymag) - 1]**2) + (self.zmag[len(self.zmag) - 1]**2)   ) )
             #print(value)
@@ -337,7 +341,7 @@ class GraphGui():
             # Creates a window size of 100 points on the graph
             # Keep only last 100 points
             # does not work!!! do not uncomment
-            # if len(self.time) > 100:
+            # if len(self.xmag) > 100:
             #    self.time.pop(0)
             #    self.xmag.pop(0)
             #    self.ymag.pop(0)
