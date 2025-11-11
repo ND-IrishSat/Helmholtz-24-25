@@ -11,22 +11,36 @@ class SerialCtrl:
     
     def read_value(self):
         try:
-            self.ser.reset_input_buffer()
-            self.ser.reset_output_buffer()
+            # Checks if there is any new data available
+            if self.ser.in_waiting == 0:
+                return None
             
-            line = self.ser.readline().decode('utf-8').strip().split()
-                 
-            if line and self.isValidString(line[0]) and len(line) == 3:
-                mag_array = [float(x) for x in line]
-                self.previous_value = mag_array
-                return mag_array
+            latest_valid_data = None
             
-            return self.previous_value
-        
+            # reads and keeps the most recent valid data
+            while self.ser.in_waiting > 0:
+                line = self.ser.readline().decode('utf-8').strip()
+                # skips empty lines
+                if not line:
+                    return None
+                
+                # parses and does string validation
+                line_parts = line.split()
+                if line_parts and self.isValidString(line_parts[0]) and len(line_parts) == 3:
+                    try:
+                        mag_array = [float(x) for x in line_parts]
+                        latest_valid_data = mag_array
+                    except ValueError:
+                        continue
+            if latest_valid_data is not None:
+                self.previous_value = latest_valid_data
+                return latest_valid_data
+            
+            return None
         except Exception as e:
             print(f"serial errors : {e}")
             
-        return self.previous_value
+        return None
     
     def read_value_1(self):
         try:
