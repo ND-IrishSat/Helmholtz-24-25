@@ -276,6 +276,9 @@ class GraphGui():
         self.zmag = []
         self.tot = []
         
+        # Sliding window size (number of points to display)
+        self.window_size = 100
+        
         # Add the first chart automatically
         self.AddMasterFrame()
         self.AddGraph()
@@ -338,22 +341,20 @@ class GraphGui():
             self.tot.append( np.sqrt((self.xmag[len(self.xmag) - 1]**2) + (self.ymag[len(self.ymag) - 1]**2) + (self.zmag[len(self.zmag) - 1]**2)   ) )
             #print(value)
             
-            # Creates a window size of 100 points on the graph
-            # Keep only last 100 points
-            # does not work!!! do not uncomment
-            # if len(self.xmag) > 100:
-            #    self.time.pop(0)
-            #    self.xmag.pop(0)
-            #    self.ymag.pop(0)
-            #    self.zmag.pop(0)
-            #    self.tot.pop(0)
+            # keep all data but only plot the last window_size points
+            start_idx = max(0, len(self.time) - self.window_size)
+            time_window = self.time[start_idx:]
+            xmag_window = self.xmag[start_idx:]
+            ymag_window = self.ymag[start_idx:]
+            zmag_window = self.zmag[start_idx:]
+            tot_window = self.tot[start_idx:]
 
-            # Show Data on graph
+            # Show Data on graph (only last window_size points)
             self.figs[self.totalframes][1].clear()
-            self.figs[self.totalframes][1].plot(self.time, self.xmag, color='green', label='X Field')
-            self.figs[self.totalframes][1].plot(self.time, self.ymag, color='red', label='Y Field')
-            self.figs[self.totalframes][1].plot(self.time, self.zmag, color='blue', label='Z Field')
-            self.figs[self.totalframes][1].plot(self.time, self.tot, color='black', label='Total Field')
+            self.figs[self.totalframes][1].plot(time_window, xmag_window, color='green', label='X Field')
+            self.figs[self.totalframes][1].plot(time_window, ymag_window, color='red', label='Y Field')
+            self.figs[self.totalframes][1].plot(time_window, zmag_window, color='blue', label='Z Field')
+            self.figs[self.totalframes][1].plot(time_window, tot_window, color='black', label='Total Field')
             self.figs[self.totalframes][1].legend(loc ='upper left')
             self.figs[self.totalframes][2].draw()            
         
