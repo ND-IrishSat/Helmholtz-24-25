@@ -4,7 +4,7 @@ class SerialCtrl:
     def __init__(self, port='/dev/serial/by-id/usb-Arduino_LLC_Arduino_NANO_33_IoT_8845351E50304D48502E3120FF0E180B-if00', baudrate=115200, timeout=1):
         self.ser = serial.Serial(port, baudrate, timeout=timeout)
         self.ser.flushInput()
-        self.previous_value = [0,0,0]
+        self.previous_value = [0.0,0.0,0.0]
         
     def isValidString(self, s: str) -> bool:
         return "." in s and not s.startswith(".")
@@ -39,7 +39,6 @@ class SerialCtrl:
             return None
         except Exception as e:
             print(f"serial errors : {e}")
-            
         return None
     
     def serial_close(self):

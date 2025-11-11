@@ -1,5 +1,3 @@
-### Values seems to be repeated;
-
 from tkinter import *
 
 import matplotlib.pyplot as plt
@@ -40,7 +38,9 @@ class ModeGui():
         self.fields = ["Bx","By", "Bz"]
         self.default_field = "0"
         self.entry_field_data: Dict[str, StringVar] = {}
+        self.file_select = ""
         self.graphs = None
+        
         
         # Optional Graphic parameters
         self.padx = 10
@@ -220,11 +220,11 @@ class ModeGui():
             self.serial.serial_close()
 
         if "Generate Simulation" in current_mode:
-            ######## STOP UPDATING PLOT
-            
-            gen_sim( self.file_select )
-               
-            ####### ADD ARRAY TO GRAPH
+            print("simulation started")
+            totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select)
+            print("simulation complete")
+            print(f"first item in totalMagOutput : {totalMagOutput[0]}")
+            # self.graphs.paused_serial = False
             return
         elif "Manuel" in current_mode:
             # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
@@ -247,7 +247,7 @@ class ModeGui():
                 writer.writerow([0, data_to_write["Bx"], data_to_write["By"], data_to_write["Bz"]])
             print(f"Generate csv in {current_mode} mode with values: {data_to_write}")
         else:
-             print("No data to write for selected mode.")
+            print("No data to write for selected mode.")
 
 class GraphGui():
     def __init__(self, root, serial):
@@ -339,7 +339,6 @@ class GraphGui():
                 self.zmag.append(self.zmag[len(self.zmag) - 1])
             self.time.append(len(self.time) * 0.1)
             self.tot.append( np.sqrt((self.xmag[len(self.xmag) - 1]**2) + (self.ymag[len(self.ymag) - 1]**2) + (self.zmag[len(self.zmag) - 1]**2)   ) )
-            #print(value)
             
             # keep all data but only plot the last window_size points
             start_idx = max(0, len(self.time) - self.window_size)

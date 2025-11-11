@@ -70,9 +70,9 @@ def gen_sim( file_name ):
     currentFields[2] = dataFrame.loc[startPos, 'Bz']
 
     # Dataframe created to store the final outputs data: target fields
-    df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
+    #df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
     #fftFrame = pd.DataFrame(columns=["X", "Y", "Z"])
-
+    df_rows = []
 
     ##########################################################################################
 
@@ -222,13 +222,17 @@ def gen_sim( file_name ):
             runValuesCount += 1
             err_best = 10000
 
-            row = pd.DataFrame([{"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[2], 
+            # row = pd.DataFrame([{"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[2], 
+            #                     "PWM_X+": pwmPosOutputX[bestIndex], "PWM_X-": pwmNegOutputX[bestIndex],
+            #                     "PWM_Y+": pwmPosOutputY[bestIndex], "PWM_Y-": pwmNegOutputY[bestIndex],
+            #                     "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex],}])
+            row = {"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[2], 
                                  "PWM_X+": pwmPosOutputX[bestIndex], "PWM_X-": pwmNegOutputX[bestIndex],
                                  "PWM_Y+": pwmPosOutputY[bestIndex], "PWM_Y-": pwmNegOutputY[bestIndex],
-                                 "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex],}])
+                                 "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex]}
+            df_rows.append(row)
             
-            
-            df = pd.concat([df, row], ignore_index=True)        
+            # df = pd.concat([df, row], ignore_index=True)        
         
             if(simulationPos >= len(dataFrame) or runValuesCount >= runValues):
                 break
@@ -238,23 +242,9 @@ def gen_sim( file_name ):
                 currentFields[2] = dataFrame.loc[simulationPos, 'Bz']
 
     # Creates output CSV file
+    df = pd.DataFrame(df_rows)
     df.to_csv(outputFileName, index=True)
     #fftFrame.to_csv(fftOutput, index=True)
     sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
     
     return totalMagOutput, totalSimOut, realTimeVector
-# Plots data
-
-# plt.ylim(0,55)
-# plt.plot(result,totalMagOutput, color = "red")
-# fig, ax = plt.subplots(3)
-# # 
-# ax[0].plot(realTimeVector,trueMagOutputX, color = "blue", label = "Real")
-# ax[0].plot(realTimeVector, simulationOutputX, color = "black", label = "PySOL")
-# # # 
-# ax[1].plot(realTimeVector,trueMagOutputY, color = "blue")
-# ax[1].plot(realTimeVector, simulationOutputY,  color = "black")
-# # # 
-# ax[2].plot(realTimeVector,trueMagOutputZ, color = "blue")
-# ax[2].plot(realTimeVector, simulationOutputZ, color = "black")
-# plt.show()
