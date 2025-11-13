@@ -7,9 +7,20 @@ from typing import Dict
 from pathlib import Path 
 import csv
 import numpy as np
+import threading
 
 from generateSimulation import gen_sim
+from runSimulation import run_sim
 
+#CageON = False
+
+def run_cage(file_name):
+    #if(CageON):
+    print("RUNNING CAGE")
+    run_sim(file_name)
+      
+      #CageON = False
+        
 class RootGUI():
     def __init__(self):
         '''Initializing the root GUI and other comps of the program'''
@@ -38,7 +49,7 @@ class ModeGui():
         self.fields = ["Bx","By", "Bz"]
         self.default_field = "0"
         self.entry_field_data: Dict[str, StringVar] = {}
-        self.file_select = ""
+        self.file_select = "zeroed.csv"
         self.graphs = None
         
         
@@ -190,7 +201,7 @@ class ModeGui():
             elif "Zero" in self.clicked_Mode.get():
                 print("Zero mode selected")
                 self._hide_input_widgets()
-                self.publish_manual()
+                # self.publish_manual()
                 
             elif "Manuel" in self.clicked_Mode.get():
                 # Put on the grid all the elements
@@ -214,22 +225,32 @@ class ModeGui():
         # If in "Generate Simulation" mode, you likely want to use the B-field entries (self.entry_Bx, etc.)
         
         current_mode = self.clicked_Mode.get()
-        
-        if self.graphs is not None:
-            self.graphs.paused_serial = True
-            self.serial.serial_close()
+    
 
         if "Generate Simulation" in current_mode:
+            
+            if self.graphs is not None:
+                self.graphs.paused_serial = True
+                self.serial.serial_close()
+            
             print("simulation started")
             totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select)
             print("simulation complete")
             print(f"first item in totalMagOutput : {totalMagOutput[0]}")
             
-            if self.graphs is not None:
-                # opens up the serial port; changes back the sentinel value; and restarts the plots
-                self.serial.serial_open()
-                self.graphs.paused_serial = False
-                self.graphs.update_plot()
+            self.graphs.set_graph(totalMagOutput, totalSimOut, realTimeVector)
+                
+                    # Write to CSV only if data is available
+            if data_to_write:
+                with open("desired_field.csv", mode ="w", newline="", encoding="utf-8") as file:
+                    writer = csv.writer(file)
+                    # If using Generate Simulation mode, the headers should match the B-field data
+                    writer.writerow(["","Bx","By","Bz"])
+                    writer.writerow([0, data_to_write["Bx"], data_to_write["By"], data_to_write["Bz"]])
+                print(f"Generate csv in {current_mode} mode with values: {data_to_write}")
+            else:
+                print("No data to write for selected mode.")
+                    
             return
         elif "Manuel" in current_mode:
             # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
@@ -242,17 +263,15 @@ class ModeGui():
                 "z_neg": self.entry_z_n.get()
             }
         # Zero mode can also be handled if needed, but we'll stick to the provided structure for now
-        
-        # Write to CSV only if data is available
-        if data_to_write:
-            with open("desired_field.csv", mode ="w", newline="", encoding="utf-8") as file:
-                writer = csv.writer(file)
-                # If using Generate Simulation mode, the headers should match the B-field data
-                writer.writerow(["","Bx","By","Bz"])
-                writer.writerow([0, data_to_write["Bx"], data_to_write["By"], data_to_write["Bz"]])
-            print(f"Generate csv in {current_mode} mode with values: {data_to_write}")
-        else:
-            print("No data to write for selected mode.")
+        elif "Zero" in current_mode:
+            print("Zeroing field")
+
+            #CageON = True
+            threading.Thread(target=run_cage, args=("runZeroed.csv",), daemon=True).start()
+            
+            
+            
+
 
 class GraphGui():
     def __init__(self, root, serial):
@@ -364,6 +383,14 @@ class GraphGui():
         
         if not self.paused_serial:
             self.root.after(100, self.update_plot)
+            
+    def set_graph(self, totalMag, simMag, timeVector):
+        # Show Data on graph (only last window_size points)
+        self.figs[self.totalframes][1].clear()
+        self.figs[self.totalframes][1].plot(timeVector, totalMag, color='green', label='Total Mag Field')
+        self.figs[self.totalframes][1].plot(timeVector, simMag, color='red', label='Simulated Field')
+        self.figs[self.totalframes][1].legend(loc ='upper left')
+        self.figs[self.totalframes][2].draw()
 
 if __name__ != "__main__":
     pass
