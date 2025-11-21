@@ -11,7 +11,7 @@ def isValidString(s: str) -> bool:
 
 print("Started.\n")
 
-def run_sim(file_name):
+def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
     #dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
     dataFrame = pd.read_csv(file_name) # magnetic fields dataframe
 
@@ -21,10 +21,10 @@ def run_sim(file_name):
     runTime = 5000 # # if loop is true, the simulation will only loop for this number of miliseconds
 
     timeLimit = True
-    totalrunTime = 40000 # Time for total sim if timeLimit is true
+    totalrunTime = runTime_In # Time for total sim if timeLimit is true
 
-    startPosition = 0 # index of the dataframe to start in
-    runSpeed = 100 # time in miliseconds between each change in field, so 1000 is real time
+    startPosition = startPos_In # index of the dataframe to start in
+    runSpeed = runSpeed_In # time in miliseconds between each change in field, so 1000 is real time
 
     ################################################################################
 
@@ -73,7 +73,7 @@ def run_sim(file_name):
     pwmTime = t0
 
     while(True):
-        print("Running...\n")
+        #print("Running...\n")
 
         ##################################################################################################### magnetometer reading 
 #         nanoSer.reset_input_buffer()
@@ -136,14 +136,17 @@ def run_sim(file_name):
         realTimeVector.append(realTime)
         
         if(loop and (millis() - t0 > runTime)):
+            print("Broke")
             break
         if(timeLimit and (millis() - t0 > totalrunTime)):
+            print("Broke")
             break   
         elif(not loop and simulationPosition >= len(dataFrame) - 1):
+            print("Broke")
             break
 
 
-    print("Done.\n")
+    #print("Done.\n")
     # sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
     # 
     # fig, ax = plt.subplots(4)

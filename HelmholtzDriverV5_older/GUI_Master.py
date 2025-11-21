@@ -14,10 +14,10 @@ from runSimulation import run_sim
 
 #CageON = False
 
-def run_cage(file_name):
+def run_cage(file_name, runTime, runSpeed, startPos):
     #if(CageON):
     print("RUNNING CAGE")
-    run_sim(file_name)
+    run_sim(file_name, runTime, runSpeed, startPos)
       
       #CageON = False
         
@@ -43,15 +43,13 @@ class ModeGui():
         # Initialize instance attributes
         self.root = root
         self.serial = serial
-        self.axises = ["x_pos", "x_neg", "y_pos", "y_neg", "z_pos", "z_neg"]
-        self.default_pwm = "000"
+        self.runEntry = ["runTime", "runSpeed", "startPos"]
         self.entry_data: Dict[str, StringVar] = {}
         self.fields = ["Bx","By", "Bz"]
         self.default_field = "0"
         self.entry_field_data: Dict[str, StringVar] = {}
         self.file_select = "zeroed.csv"
         self.graphs = None
-        
         
         # Optional Graphic parameters
         self.padx = 10
@@ -65,7 +63,7 @@ class ModeGui():
         self.input_frame = LabelFrame(root, text="Input Desired PWM/Field Values", padx=5, pady=5, bg="white")
         
         # Create input widgets (must happen AFTER StringVar init)
-        self._create_manual_widgets()
+        self._create_run_widgets()
         self._create_sim_widgets()
         
         # Setup the Drop option menu and the button
@@ -86,34 +84,31 @@ class ModeGui():
         
         # Set initial input state to Manual
         self._hide_input_widgets()
-        self.publish_manual()
+        self.publish_run()
         
-    def _create_manual_widgets(self):
+    def _create_run_widgets(self):
         # We should implement a function for this as when changing mode i.e. Manual, Generate Sim, Run Sim.
         # They will not use the literals x, y, z but their desired magnetic field while only manual requiring
         # literal x, y, z. (Literals is a variable and it's negative: for example: x, -x)
-        self._initialize_magnetic_field()
+        self._init_runSim_field()
 
-        self.manual_widgets_maps = {
-            'x_pos': 'X+:', 'x_neg': 'X-:', 
-            'y_pos': 'Y+:', 'y_neg': 'Y-:', 
-            'z_pos': 'Z+:', 'z_neg': 'Z-:'
+        self.run_widgets_maps = {
+            'runTime': 'Run Time:',
+            'runSpeed': 'Run Speed:', 
+            'startPos': 'Start Position:'
         }
 
-        self.manual_widgets: Dict[str, tuple] = {}
+        self.run_widgets: Dict[str, tuple] = {}
 
-        for key, text in self.manual_widgets_maps.items(): 
+        for key, text in self.run_widgets_maps.items(): 
             label = Label(self.input_frame, text=text, bg="white", width=15, anchor="w")
             entry = Entry(self.input_frame, textvariable=self.entry_data[key], width=20)
-            self.manual_widgets[key] = (label, entry)
+            self.run_widgets[key] = (label, entry)
 
         # Set instance attributes for the old code to still work (_run_gen_sim uses these)
-        self.label_x_p, self.entry_x_p = self.manual_widgets['x_pos']
-        self.label_x_n, self.entry_x_n = self.manual_widgets['x_neg']
-        self.label_y_p, self.entry_y_p = self.manual_widgets['y_pos']
-        self.label_y_n, self.entry_y_n = self.manual_widgets['y_neg']
-        self.label_z_p, self.entry_z_p = self.manual_widgets['z_pos']
-        self.label_z_n, self.entry_z_n = self.manual_widgets['z_neg']
+        self.label_runTime, self.entry_runTime = self.run_widgets['runTime']
+        self.label_runSpeed, self.entry_runSpeed = self.run_widgets['runSpeed']
+        self.label_startPos, self.entry_startPos = self.run_widgets['startPos']
 
 
     def _create_sim_widgets(self):
@@ -139,34 +134,32 @@ class ModeGui():
             # basically widget do not get deleted it just becomes invisible and loses its position and can be retrieve 
             widgets.grid_forget()
 
-    def _initialize_magnetic_field(self):
-        for axis in self.axises:
-            self.entry_data[axis] = StringVar()
-            self.entry_data[axis].set(self.default_pwm)
+    def _init_runSim_field(self):
+        self.entry_data["runTime"] = StringVar()
+        self.entry_data["runTime"].set(40000)
+        
+        self.entry_data["runSpeed"] = StringVar()
+        self.entry_data["runSpeed"].set(100)
+        
+        self.entry_data["startPos"] = StringVar()
+        self.entry_data["startPos"].set(0)
 
-    def publish_manual(self):
+
+    def publish_run(self):
         '''
         Method to display all the Widget of the main frame
         LEFT COLUMN LAYOUT (column=0)
         '''              
         # Internal layout for input frame
-        self.label_x_p.grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        self.entry_x_p.grid(row=0, column=1, padx=5, pady=5)
+        self.label_runTime.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.entry_runTime.grid(row=0, column=1, padx=5, pady=5)
 
-        self.label_x_n.grid(row=1, column=0, sticky="w", padx=5, pady=5)
-        self.entry_x_n.grid(row=1, column=1, padx=5, pady=5)
+        self.label_runSpeed.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.entry_runSpeed.grid(row=1, column=1, padx=5, pady=5)
         
-        self.label_y_p.grid(row=2, column=0, sticky="w", padx=5, pady=5)
-        self.entry_y_p.grid(row=2, column=1, padx=5, pady=5)
-        
-        self.label_y_n.grid(row=3, column=0, sticky="w", padx=5, pady=5)
-        self.entry_y_n.grid(row=3, column=1, padx=5, pady=5)
-        
-        self.label_z_p.grid(row=4, column=0, sticky="w", padx=5, pady=5)
-        self.entry_z_p.grid(row=4, column=1, padx=5, pady=5)
-        
-        self.label_z_n.grid(row=5, column=0, sticky="w", padx=5, pady=5)
-        self.entry_z_n.grid(row=5, column=1, padx=5, pady=5)
+        self.label_startPos.grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.entry_startPos.grid(row=2, column=1, padx=5, pady=5)
+    
 
     def ModeOptionMenu(self):
         '''
@@ -175,7 +168,7 @@ class ModeGui():
         # Generate the list of available modes
         # via the new requirement we will still need the mannuel mode, the zero is an addition, which should be easy
         # the generate sim will just be connecting to pysol
-        modes: list[str] = ["-", "Manuel", "Zero", "Generate Simulation"]
+        modes: list[str] = ["-", "Run Simulation", "Zero", "Generate Simulation"]
 
         self.clicked_Mode = StringVar()
         self.clicked_Mode.set(modes[0])
@@ -201,15 +194,17 @@ class ModeGui():
             elif "Zero" in self.clicked_Mode.get():
                 print("Zero mode selected")
                 self._hide_input_widgets()
-                # self.publish_manual()
+                self.publish_run()
                 
-            elif "Manuel" in self.clicked_Mode.get():
+                self.entry_runTime.focus()
+                
+            elif "Run Simulation" in self.clicked_Mode.get():
                 # Put on the grid all the elements
                 self._hide_input_widgets()
-                self.publish_manual()
+                self.publish_run()
 
-                self.entry_x_p.focus()
-                print("Manual mode selected")
+                self.entry_runTime.focus()
+                print("Run Simulation mode selected")
 
             self.btn_Gen_Sim["state"] = "active"
 
@@ -252,22 +247,27 @@ class ModeGui():
                 print("No data to write for selected mode.")
                     
             return
-        elif "Manuel" in current_mode:
-            # testing using a diction to hold data; right now using just manual entries to write when it's manuel mode
-            data_to_write = {
-                "x_pos": self.entry_x_p.get(),
-                "x_neg": self.entry_x_n.get(),
-                "y_pos": self.entry_y_p.get(),
-                "y_neg": self.entry_y_n.get(),
-                "z_pos": self.entry_z_p.get(),
-                "z_neg": self.entry_z_n.get()
-            }
+        elif "Run Simulation" in current_mode:
+            print("Running PySol Sim")
+            
+            runTime = int(self.entry_runTime.get())
+            runSpeed = int(self.entry_runSpeed.get())
+            startPos = int(self.entry_startPos.get())
+            print("Run Time (s): ", runTime/1000)
+            print("Run Speed (ms/): ", runSpeed)
+            print("Start Position: ", startPos)
+            
+            threading.Thread(target=run_cage, args=("runPySolReal.csv", runTime, runSpeed, startPos,), daemon=True).start()
+            
         # Zero mode can also be handled if needed, but we'll stick to the provided structure for now
         elif "Zero" in current_mode:
             print("Zeroing field")
-
+            runTime = 20000
+            runSpeed = 100
+            startPos = 0
+            
             #CageON = True
-            threading.Thread(target=run_cage, args=("runZeroed.csv",), daemon=True).start()
+            threading.Thread(target=run_cage, args=("runZeroed.csv", runTime, runSpeed, startPos,), daemon=True).start()
             
             
             

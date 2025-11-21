@@ -9,3 +9,4 @@ GraphMaster = GraphGui(RootMaster.root, MySerial)
 
 RootMaster.root.mainloop()
 
+# zero.csv -> runZeroed.csv
