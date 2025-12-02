@@ -225,28 +225,27 @@ class ModeGui():
         if "Generate Simulation" in current_mode:
             
             if self.graphs is not None:
+                # if the graph is displaying something, pause it and close the serial connection
                 self.graphs.paused_serial = True
                 self.serial.serial_close()
             
             print("simulation started")
             totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select)
             print("simulation complete")
-            print(f"first item in totalMagOutput : {totalMagOutput[0]}")
+            # print(f"first item in totalMagOutput : {totalMagOutput[0]}")
             
             self.graphs.set_graph(totalMagOutput, totalSimOut, realTimeVector)
-                
-                    # Write to CSV only if data is available
-            if data_to_write:
-                with open("desired_field.csv", mode ="w", newline="", encoding="utf-8") as file:
-                    writer = csv.writer(file)
-                    # If using Generate Simulation mode, the headers should match the B-field data
-                    writer.writerow(["","Bx","By","Bz"])
-                    writer.writerow([0, data_to_write["Bx"], data_to_write["By"], data_to_write["Bz"]])
-                print(f"Generate csv in {current_mode} mode with values: {data_to_write}")
-            else:
-                print("No data to write for selected mode.")
+            
+            # Write to CSV only if data is available,
+            with open("desired_field_test.csv", mode ="w", newline="", encoding="utf-8") as file:
+                writer = csv.writer(file)
+                # if using generate simulation mode, the headers should match the B-field data
+                writer.writerow(["","Bx","By","Bz"])
+                writer.writerow([0, totalMagOutput[0], totalMagOutput[1], totalMagOutput[2]])
+                print(f"Generate csv in {current_mode} mode with values: {totalMagOutput[0], totalMagOutput[1], totalMagOutput[2]}")
                     
-            return
+            self.serial.serial_open()
+            
         elif "Run Simulation" in current_mode:
             print("Running PySol Sim")
             
@@ -267,12 +266,8 @@ class ModeGui():
             startPos = 0
             
             #CageON = True
-            threading.Thread(target=run_cage, args=("runZeroed.csv", runTime, runSpeed, startPos,), daemon=True).start()
+            threading.Thread(target=run_cage, args=("runZeroed.csv", runTime, runSpeed, startPos,), daemon=True).start()    
             
-            
-            
-
-
 class GraphGui():
     def __init__(self, root, serial):
         '''
