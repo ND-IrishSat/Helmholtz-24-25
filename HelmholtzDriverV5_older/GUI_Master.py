@@ -247,6 +247,7 @@ class ModeGui():
             self.serial.serial_open()
             
         elif "Run Simulation" in current_mode:
+            self.graphs.update_plot()
             print("Running PySol Sim")
             
             runTime = int(self.entry_runTime.get())

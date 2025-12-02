@@ -136,13 +136,16 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
         realTimeVector.append(realTime)
         
         if(loop and (millis() - t0 > runTime)):
-            print("Broke")
+            print("Broke_1")
+            sendPWMValues(0,0,0,0,0,0,R4Ser)
             break
         if(timeLimit and (millis() - t0 > totalrunTime)):
-            print("Broke")
+            print("Broke_2")
+            sendPWMValues(0,0,0,0,0,0,R4Ser)
             break   
         elif(not loop and simulationPosition >= len(dataFrame) - 1):
-            print("Broke")
+            print("Broke_3")
+            sendPWMValues(0,0,0,0,0,0,R4Ser)
             break
 
 
