@@ -47,12 +47,13 @@ def gen_sim( file_name ):
     #generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_dir = os.path.join(script_dir, "PySol")
-    os.makedirs(output_dir, exist_ok=True)
+    # output_dir = os.path.join(script_dir, "PySol")
+    output_dir = os.path.join(script_dir, "run_csv")
+    # os.makedirs(output_dir, exist_ok=True)
             
     # Full path to output file
-    output_path = os.path.join(output_dir, "outputs")
-    output_path = os.path.join(output_path, file_name)
+    # output_path = os.path.join(output_dir, "outputs")
+    output_path = os.path.join(output_dir, file_name)
 
     dataFrame = 0
 

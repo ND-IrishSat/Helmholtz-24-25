@@ -68,7 +68,7 @@ class ModeGui():
         
         # Setup the Drop option menu and the button
         self.ModeOptionMenu()
-        self.btn_Gen_Sim = Button(self.frame, text="Generate Sim", width=15, state="disabled", command=self._run_gen_sim)
+        self.btn_Gen_Sim = Button(self.frame, text="Execute", width=15, state="disabled", command=self._run_gen_sim)
 
         # Layout the main frames on the root window
         # Mode frame at TOP LEFT (row=0, column=0)
@@ -114,7 +114,7 @@ class ModeGui():
     def _create_sim_widgets(self):
         """Creates the 3 Label/Entry pairs for Simulation Mode (B-field inputs)."""
         
-        self.csv_files = list(Path.cwd().glob("*.csv"))
+        self.csv_files = list((Path.cwd() / "gen_csv").glob("*.csv"))
         
         self.file_list = ["-"]
         for file in self.csv_files:
@@ -149,7 +149,21 @@ class ModeGui():
         '''
         Method to display all the Widget of the main frame
         LEFT COLUMN LAYOUT (column=0)
-        '''              
+        '''
+        
+        self.run_csv_files = list((Path.cwd() / "run_csv").glob("*.csv"))
+        
+        self.run_file_list = ["-"]
+        for file in self.run_csv_files:
+            self.run_file_list.append(file.name)
+        
+        self.clicked_runfile = StringVar()
+        self.clicked_file.set(self.run_file_list[0])
+        self.drop_runfile = OptionMenu(
+            self.input_frame, self.clicked_runfile, *self.run_file_list, command=lambda *_: self.run_file_ctrl())
+
+        self.drop_runfile.config(width=15)
+        
         # Internal layout for input frame
         self.label_runTime.grid(row=0, column=0, sticky="w", padx=5, pady=5)
         self.entry_runTime.grid(row=0, column=1, padx=5, pady=5)
@@ -159,6 +173,8 @@ class ModeGui():
         
         self.label_startPos.grid(row=2, column=0, sticky="w", padx=5, pady=5)
         self.entry_startPos.grid(row=2, column=1, padx=5, pady=5)
+        
+        self.drop_runfile.grid(row=3, column=0, padx=5, pady=5)
     
 
     def ModeOptionMenu(self):
@@ -213,7 +229,15 @@ class ModeGui():
             self.graphs = GraphGui(self.root, self.serial)
             
     def file_ctrl(self):
-        self.file_select = self.clicked_file.get()
+        parent = "gen_csv/"
+        data = self.clicked_file.get()
+        self.file_select = parent + data
+        print(self.file_select)
+        
+    def run_file_ctrl(self):
+        parent = "run_csv/"
+        data = self.clicked_runfile.get()
+        self.file_select = parent + data
         print(self.file_select)
 
     def _run_gen_sim(self):
@@ -247,8 +271,10 @@ class ModeGui():
             self.serial.serial_open()
             
         elif "Run Simulation" in current_mode:
+            self.graphs.paused_serial = False
             self.graphs.update_plot()
-            print("Running PySol Sim")
+            print("Running Run Sim")
+            print("Serial Flag: " , self.graphs.paused_serial)
             
             runTime = int(self.entry_runTime.get())
             runSpeed = int(self.entry_runSpeed.get())
@@ -257,7 +283,7 @@ class ModeGui():
             print("Run Speed (ms/): ", runSpeed)
             print("Start Position: ", startPos)
             
-            threading.Thread(target=run_cage, args=("runPySolReal.csv", runTime, runSpeed, startPos,), daemon=True).start()
+            threading.Thread(target=run_cage, args=(self.file_select, runTime, runSpeed, startPos,), daemon=True).start()
             
         # Zero mode can also be handled if needed, but we'll stick to the provided structure for now
         elif "Zero" in current_mode:

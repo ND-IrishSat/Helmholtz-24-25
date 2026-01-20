@@ -9,9 +9,11 @@ import pandas as pd
 def isValidString(s: str) -> bool:
     return "." in s and not s.startswith(".")
 
-print("Started.\n")
-
 def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
+    print("Started.\n")
+    print("Run Time (s): ", runTime_In/1000)
+    print("Run Speed (ms/): ", runSpeed_In)
+    print("Start Position: ", startPos_In)
     #dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
     dataFrame = pd.read_csv(file_name) # magnetic fields dataframe
 
@@ -139,14 +141,14 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
             print("Broke_1")
             sendPWMValues(0,0,0,0,0,0,R4Ser)
             break
-        if(timeLimit and (millis() - t0 > totalrunTime)):
+        elif(timeLimit and (millis() - t0 > totalrunTime)):
             print("Broke_2")
             sendPWMValues(0,0,0,0,0,0,R4Ser)
             break   
-        elif(not loop and simulationPosition >= len(dataFrame) - 1):
-            print("Broke_3")
-            sendPWMValues(0,0,0,0,0,0,R4Ser)
-            break
+#         elif(not loop and simulationPosition >= len(dataFrame) - 1):
+#             print("Broke_3")
+#             sendPWMValues(0,0,0,0,0,0,R4Ser)
+#             break
 
 
     #print("Done.\n")
