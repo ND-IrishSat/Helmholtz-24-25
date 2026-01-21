@@ -50,8 +50,6 @@ class ModeGui():
         self.entry_field_data: Dict[str, StringVar] = {}
         self.file_select = "zeroed.csv"
         self.graphs = None
-        
-        # Optional Graphic parameters
         self.padx = 10
         self.pady = 5
 
@@ -113,21 +111,25 @@ class ModeGui():
 
     def _create_sim_widgets(self):
         """Creates the 3 Label/Entry pairs for Simulation Mode (B-field inputs)."""
-        
+        # Goes to current working directory and find all the .csv in `gen_csv/`
         self.csv_files = list((Path.cwd() / "gen_csv").glob("*.csv"))
-        
+        # Drop down file list
         self.file_list = ["-"]
         for file in self.csv_files:
             self.file_list.append(file.name)
-        
-        print(self.file_list)
-        
+                
         self.clicked_file = StringVar()
         self.clicked_file.set(self.file_list[0])
         self.drop_file = OptionMenu(
-            self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.file_ctrl())
+            self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.gen_file_ctrl())
 
         self.drop_file.config(width=15)
+
+    def gen_file_ctrl(self):
+        parent = "gen_csv/"
+        data = self.clicked_file.get()
+        self.file_select = parent + data
+        print(self.file_select)    
 
     def _hide_input_widgets(self):
         for widgets in self.input_frame.winfo_children():
@@ -143,7 +145,6 @@ class ModeGui():
         
         self.entry_data["startPos"] = StringVar()
         self.entry_data["startPos"].set(0)
-
 
     def publish_run(self):
         '''
@@ -227,12 +228,6 @@ class ModeGui():
         # Create graphs if they don't exist
         if self.graphs is None:
             self.graphs = GraphGui(self.root, self.serial)
-            
-    def file_ctrl(self):
-        parent = "gen_csv/"
-        data = self.clicked_file.get()
-        self.file_select = parent + data
-        print(self.file_select)
         
     def run_file_ctrl(self):
         parent = "run_csv/"
@@ -242,26 +237,23 @@ class ModeGui():
 
     def _run_gen_sim(self):
         # If in "Generate Simulation" mode, you likely want to use the B-field entries (self.entry_Bx, etc.)
-        
         current_mode = self.clicked_Mode.get()
-    
 
         if "Generate Simulation" in current_mode:
-            
+            # if the graph is displaying something, pause it and close the serial connection`
             if self.graphs is not None:
-                # if the graph is displaying something, pause it and close the serial connection
                 self.graphs.paused_serial = True
                 self.serial.serial_close()
             
             print("simulation started")
-            totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select)
+            totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select) # file_select is updated as user choose an item from the drop down menu 
             print("simulation complete")
             # print(f"first item in totalMagOutput : {totalMagOutput[0]}")
             
             self.graphs.set_graph(totalMagOutput, totalSimOut, realTimeVector)
             
             # Write to CSV only if data is available,
-            with open("desired_field_test.csv", mode ="w", newline="", encoding="utf-8") as file:
+            with open("run_csv/new_data.csv", mode ="w", newline="", encoding="utf-8") as file:
                 writer = csv.writer(file)
                 # if using generate simulation mode, the headers should match the B-field data
                 writer.writerow(["","Bx","By","Bz"])
@@ -323,7 +315,7 @@ class GraphGui():
         self.tot = []
         
         # Sliding window size (number of points to display)
-        self.window_size = 100
+        self.window_size = 50
         
         # Add the first chart automatically
         self.AddMasterFrame()
@@ -396,6 +388,8 @@ class GraphGui():
 
             # Show Data on graph (only last window_size points)
             self.figs[self.totalframes][1].clear()
+            self.figs[self.totalframes][1].set_ylabel("Magnetic Field (uT")
+            self.figs[self.totalframes][1].set_xlabel("Time (mS)")
             self.figs[self.totalframes][1].plot(time_window, xmag_window, color='green', label='X Field')
             self.figs[self.totalframes][1].plot(time_window, ymag_window, color='red', label='Y Field')
             self.figs[self.totalframes][1].plot(time_window, zmag_window, color='blue', label='Z Field')
@@ -409,6 +403,8 @@ class GraphGui():
     def set_graph(self, totalMag, simMag, timeVector):
         # Show Data on graph (only last window_size points)
         self.figs[self.totalframes][1].clear()
+        self.figs[self.totalframes][1].set_ylabel("Magnetic Field (uT)")
+        self.figs[self.totalframes][1].set_xlabel("Time (mS)")
         self.figs[self.totalframes][1].plot(timeVector, totalMag, color='green', label='Total Mag Field')
         self.figs[self.totalframes][1].plot(timeVector, simMag, color='red', label='Simulated Field')
         self.figs[self.totalframes][1].legend(loc ='upper left')

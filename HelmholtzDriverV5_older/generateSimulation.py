@@ -30,7 +30,7 @@ def gen_sim( file_name ):
     usingPYSOL = False
 
     inputFileName = file_name
-    outputFileName = "runZeroed.csv"
+    outputFileName = "run_csv/runZeroed1.csv"
     fftOutput = "magFieldsOut.csv"
 
     ########################################################################################## pysol initialization
@@ -45,14 +45,11 @@ def gen_sim( file_name ):
     generate_RAM = False
 
     #generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
-
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # output_dir = os.path.join(script_dir, "PySol")
-    output_dir = os.path.join(script_dir, "run_csv")
-    # os.makedirs(output_dir, exist_ok=True)
-            
+    
     # Full path to output file
-    # output_path = os.path.join(output_dir, "outputs")
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_dir = os.path.join(script_dir, "run_csv")
+    os.makedirs(output_dir, exist_ok=True) # required to work
     output_path = os.path.join(output_dir, file_name)
 
     dataFrame = 0
