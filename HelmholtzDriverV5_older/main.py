@@ -1,4 +1,5 @@
-from GUI_Master import RootGUI,  ModeGui, GraphGui
+from Mode_GUI import RootGUI, ModeGui
+from Graph_GUI import GraphGui
 from Serial_Ctrl import SerialCtrl
 
 RootMaster = RootGUI()
