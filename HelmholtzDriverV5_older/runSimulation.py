@@ -56,14 +56,19 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
     simulationY = []
     simulationZ = []
     simulationTotal = []
-    simulationPosition = 0
-
-    currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
-    currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
-    currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
-    currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
-    currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
-    currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
+    simulationPosition = startPosition # 0 -> startPosition to use the starting position parameter
+    
+    if simulationPosition >= len(dataFrame):
+        print(f"Error: Start position {simulationPosition} is larger DF length {len(dataFrame)}")
+        return
+    
+    # loc -> iloc for integer-based indexing 
+    currentPWMVals[0] = dataFrame.iloc[simulationPosition, 'PWM_X+']
+    currentPWMVals[1] = dataFrame.iloc[simulationPosition, 'PWM_X-']
+    currentPWMVals[2] = dataFrame.iloc[simulationPosition, 'PWM_Y+']
+    currentPWMVals[3] = dataFrame.iloc[simulationPosition, 'PWM_Y-']
+    currentPWMVals[4] = dataFrame.iloc[simulationPosition, 'PWM_Z+']
+    currentPWMVals[5] = dataFrame.iloc[simulationPosition, 'PWM_Z-']
 
     sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
     time.sleep(1)
@@ -114,18 +119,18 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
             if(loop):
                 simulationPosition = 0
             
-            currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
-            currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
-            currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
-            currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
-            currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
-            currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
+            currentPWMVals[0] = dataFrame.iloc[simulationPosition, 'PWM_X+']
+            currentPWMVals[1] = dataFrame.iloc[simulationPosition, 'PWM_X-']
+            currentPWMVals[2] = dataFrame.iloc[simulationPosition, 'PWM_Y+']
+            currentPWMVals[3] = dataFrame.iloc[simulationPosition, 'PWM_Y-']
+            currentPWMVals[4] = dataFrame.iloc[simulationPosition, 'PWM_Z+']
+            currentPWMVals[5] = dataFrame.iloc[simulationPosition, 'PWM_Z-']
 
             sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
 
-            currentFields[0] = dataFrame.loc[simulationPosition, 'SIMX']
-            currentFields[1] = dataFrame.loc[simulationPosition, 'SIMY']
-            currentFields[2] = dataFrame.loc[simulationPosition, 'SIMZ']
+            currentFields[0] = dataFrame.iloc[simulationPosition, 'SIMX']
+            currentFields[1] = dataFrame.iloc[simulationPosition, 'SIMY']
+            currentFields[2] = dataFrame.iloc[simulationPosition, 'SIMZ']
             
 #         simTotal = pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5)
 # 
