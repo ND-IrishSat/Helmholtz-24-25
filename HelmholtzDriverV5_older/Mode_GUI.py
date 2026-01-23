@@ -10,11 +10,20 @@ from runSimulation import run_sim
 from Graph_GUI import GraphGui
 
 def run_cage(file_name, runTime, runSpeed, startPos):
-    #if(CageON):
-    print("RUNNING CAGE")
-    run_sim(file_name, runTime, runSpeed, startPos)
-      
-    #CageON = False
+    """
+    Wrapper function to run the simulation in a thread with proper error handling.
+    """
+    try:
+        print("RUNNING CAGE")
+        run_sim(file_name, runTime, runSpeed, startPos)
+        print("Cage simulation completed successfully")
+    except Exception as e:
+        print(f"ERROR in run_cage thread: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        #CageON = False
+        pass
         
 class RootGUI():
     def __init__(self):
@@ -47,6 +56,7 @@ class ModeGui():
         self.graphs = None
         self.padx = 10
         self.pady = 5
+        self.simulation_thread = None  # Track the simulation thread
 
         ### Program main frames
         # Mode selection frame - TOP LEFT (row=0, column=0)
@@ -279,5 +289,15 @@ class ModeGui():
             runSpeed = 100
             startPos = 0
             
+            # Stop any existing simulation thread before starting a new one
+            if self.simulation_thread is not None and self.simulation_thread.is_alive():
+                print("Warning: Previous simulation thread is still running")
+            
             #CageON = True
-            threading.Thread(target=run_cage, args=("runZeroed.csv", runTime, runSpeed, startPos,), daemon=True).start()
+            self.simulation_thread = threading.Thread(
+                target=run_cage, 
+                args=("runZeroed.csv", runTime, runSpeed, startPos,), 
+                daemon=True,
+                name="ZeroThread"
+            )
+            self.simulation_thread.start()

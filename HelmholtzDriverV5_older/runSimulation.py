@@ -10,14 +10,19 @@ def isValidString(s: str) -> bool:
     return "." in s and not s.startswith(".")
 
 def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
-    print("Started.\n")
-    print("Run Time (s): ", runTime_In/1000)
-    print("Run Speed (ms/): ", runSpeed_In)
-    print("Start Position: ", startPos_In)
-    #dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
-    dataFrame = pd.read_csv(file_name) # magnetic fields dataframe
+    """
+    Run the simulation with proper error handling.
+    This function is called from a thread, so all exceptions must be caught.
+    """
+    try:
+        print("Started.\n")
+        print("Run Time (s): ", runTime_In/1000)
+        print("Run Speed (ms/): ", runSpeed_In)
+        print("Start Position: ", startPos_In)
+        #dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
+        dataFrame = pd.read_csv(file_name) # magnetic fields dataframe
 
-    ################################################################################ Run parameters
+        ################################################################################ Run parameters
 
     loop = False # if true, simulation will loop 1 value
     runTime = 5000 # # if loop is true, the simulation will only loop for this number of miliseconds
@@ -62,13 +67,14 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
         print(f"Error: Start position {simulationPosition} is larger DF length {len(dataFrame)}")
         return
     
-    # loc -> iloc for integer-based indexing 
-    currentPWMVals[0] = dataFrame.iloc[simulationPosition, 'PWM_X+']
-    currentPWMVals[1] = dataFrame.iloc[simulationPosition, 'PWM_X-']
-    currentPWMVals[2] = dataFrame.iloc[simulationPosition, 'PWM_Y+']
-    currentPWMVals[3] = dataFrame.iloc[simulationPosition, 'PWM_Y-']
-    currentPWMVals[4] = dataFrame.iloc[simulationPosition, 'PWM_Z+']
-    currentPWMVals[5] = dataFrame.iloc[simulationPosition, 'PWM_Z-']
+    # Use iloc with proper syntax: iloc[row][column_name] or loc[row, column_name]
+    # iloc only accepts integer positions, so we use loc which works with integer index and column names
+    currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
+    currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
+    currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
+    currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
+    currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
+    currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
 
     sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
     time.sleep(1)
@@ -119,18 +125,25 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
             if(loop):
                 simulationPosition = 0
             
-            currentPWMVals[0] = dataFrame.iloc[simulationPosition, 'PWM_X+']
-            currentPWMVals[1] = dataFrame.iloc[simulationPosition, 'PWM_X-']
-            currentPWMVals[2] = dataFrame.iloc[simulationPosition, 'PWM_Y+']
-            currentPWMVals[3] = dataFrame.iloc[simulationPosition, 'PWM_Y-']
-            currentPWMVals[4] = dataFrame.iloc[simulationPosition, 'PWM_Z+']
-            currentPWMVals[5] = dataFrame.iloc[simulationPosition, 'PWM_Z-']
+            # Check bounds before accessing DataFrame to prevent IndexError
+            if simulationPosition >= len(dataFrame):
+                print(f"Warning: Simulation position {simulationPosition} exceeds DataFrame length {len(dataFrame)}. Stopping.")
+                sendPWMValues(0,0,0,0,0,0,R4Ser)
+                break
+            
+            # Use loc for integer index with column names (works correctly)
+            currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
+            currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
+            currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
+            currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
+            currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
+            currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
 
             sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
 
-            currentFields[0] = dataFrame.iloc[simulationPosition, 'SIMX']
-            currentFields[1] = dataFrame.iloc[simulationPosition, 'SIMY']
-            currentFields[2] = dataFrame.iloc[simulationPosition, 'SIMZ']
+            currentFields[0] = dataFrame.loc[simulationPosition, 'SIMX']
+            currentFields[1] = dataFrame.loc[simulationPosition, 'SIMY']
+            currentFields[2] = dataFrame.loc[simulationPosition, 'SIMZ']
             
 #         simTotal = pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5)
 # 
@@ -155,8 +168,23 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
 #             sendPWMValues(0,0,0,0,0,0,R4Ser)
 #             break
 
-
-    #print("Done.\n")
+    except KeyboardInterrupt:
+        print("Simulation interrupted by user")
+        try:
+            sendPWMValues(0,0,0,0,0,0,R4Ser)
+        except:
+            pass
+    except Exception as e:
+        print(f"ERROR in run_sim: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        try:
+            sendPWMValues(0,0,0,0,0,0,R4Ser)
+        except:
+            pass
+    finally:
+        #print("Done.\n")
+        pass
     # sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
     # 
     # fig, ax = plt.subplots(4)
