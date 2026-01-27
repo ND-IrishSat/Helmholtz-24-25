@@ -82,7 +82,7 @@ class GraphGui():
         
     def update_plot(self):
         value = self.serial.read_value()
-        print(value)
+        print("M: ", value)
         if value is not None:
             try:
                 self.xmag.append(value[0])

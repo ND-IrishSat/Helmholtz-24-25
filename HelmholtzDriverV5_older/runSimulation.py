@@ -19,8 +19,7 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
 
     ################################################################################ Run parameters
 
-    loop = False # if true, simulation will loop 1 value
-    runTime = 5000 # # if loop is true, the simulation will only loop for this number of miliseconds
+    loop = True # if true, simulation will loop 1 value
 
     timeLimit = True
     totalrunTime = runTime_In # Time for total sim if timeLimit is true
@@ -56,19 +55,18 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
     simulationY = []
     simulationZ = []
     simulationTotal = []
-    simulationPosition = startPosition # 0 -> startPosition to use the starting position parameter
+    simulationPosition = 0 
     
     if simulationPosition >= len(dataFrame):
         print(f"Error: Start position {simulationPosition} is larger DF length {len(dataFrame)}")
         return
     
-    # loc -> iloc for integer-based indexing 
-    currentPWMVals[0] = dataFrame.iloc[simulationPosition, 'PWM_X+']
-    currentPWMVals[1] = dataFrame.iloc[simulationPosition, 'PWM_X-']
-    currentPWMVals[2] = dataFrame.iloc[simulationPosition, 'PWM_Y+']
-    currentPWMVals[3] = dataFrame.iloc[simulationPosition, 'PWM_Y-']
-    currentPWMVals[4] = dataFrame.iloc[simulationPosition, 'PWM_Z+']
-    currentPWMVals[5] = dataFrame.iloc[simulationPosition, 'PWM_Z-']
+    currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
+    currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
+    currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
+    currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
+    currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
+    currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
 
     sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
     time.sleep(1)
@@ -80,37 +78,7 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
     pwmTime = t0
 
     while(True):
-        #print("Running...\n")
-
-        ##################################################################################################### magnetometer reading 
-#         nanoSer.reset_input_buffer()
-#         nanoSer.reset_output_buffer()
-#         
-#         R4Ser.reset_input_buffer()
-#         R4Ser.reset_output_buffer()
-#         magnetometerOutput = nanoSer.readline().decode('utf-8').strip().split()
-#         if magnetometerOutput:
-#             if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
-#                 magX = round(float(magnetometerOutput[0]), 2)
-#                 magY = round(float(magnetometerOutput[1]), 2)
-#                 magZ = round(float(magnetometerOutput[2]), 2)
-#                 trueMagOutputX.append(magX)
-#                 trueMagOutputY.append(magY)
-#                 trueMagOutputZ.append(magZ)
-#             else:
-#                 trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
-#                 trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
-#                 trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
-# 
-#                 magX = trueMagOutputX[len(trueMagOutputX) - 1]
-#                 magY = trueMagOutputY[len(trueMagOutputY) - 1]
-#                 magZ = trueMagOutputZ[len(trueMagOutputZ) - 1]
-# 
-#                
-        #####################################################################################################
-#         totalMag = pow(((magX * magX) + (magY * magY) + (magZ * magZ)), 0.5)
-#         totalMagOutput.append(totalMag)
-
+        
         if(millis() - pwmTime >= runSpeed):
             pwmTime = millis()
 
@@ -119,18 +87,18 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
             if(loop):
                 simulationPosition = 0
             
-            currentPWMVals[0] = dataFrame.iloc[simulationPosition, 'PWM_X+']
-            currentPWMVals[1] = dataFrame.iloc[simulationPosition, 'PWM_X-']
-            currentPWMVals[2] = dataFrame.iloc[simulationPosition, 'PWM_Y+']
-            currentPWMVals[3] = dataFrame.iloc[simulationPosition, 'PWM_Y-']
-            currentPWMVals[4] = dataFrame.iloc[simulationPosition, 'PWM_Z+']
-            currentPWMVals[5] = dataFrame.iloc[simulationPosition, 'PWM_Z-']
+            currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
+            currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
+            currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
+            currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
+            currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
+            currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
 
             sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
 
-            currentFields[0] = dataFrame.iloc[simulationPosition, 'SIMX']
-            currentFields[1] = dataFrame.iloc[simulationPosition, 'SIMY']
-            currentFields[2] = dataFrame.iloc[simulationPosition, 'SIMZ']
+            currentFields[0] = dataFrame.loc[simulationPosition, 'SIMX']
+            currentFields[1] = dataFrame.loc[simulationPosition, 'SIMY']
+            currentFields[2] = dataFrame.loc[simulationPosition, 'SIMZ']
             
 #         simTotal = pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5)
 # 
@@ -142,37 +110,8 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
         realTime += 1
         realTimeVector.append(realTime)
         
-        if(loop and (millis() - t0 > runTime)):
-            print("Broke_1")
-            sendPWMValues(0,0,0,0,0,0,R4Ser)
-            break
-        elif(timeLimit and (millis() - t0 > totalrunTime)):
-            print("Broke_2")
+        
+        if((millis() - t0) > totalrunTime):
+            print("RUN SIM EXIT")
             sendPWMValues(0,0,0,0,0,0,R4Ser)
             break   
-#         elif(not loop and simulationPosition >= len(dataFrame) - 1):
-#             print("Broke_3")
-#             sendPWMValues(0,0,0,0,0,0,R4Ser)
-#             break
-
-
-    #print("Done.\n")
-    # sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
-    # 
-    # fig, ax = plt.subplots(4)
-    # 
-    # ax[0].plot(realTimeVector,trueMagOutputX, color = "red", label = "Real")
-    # ax[0].plot(realTimeVector, simulationX, color = "blue", label = "PySOL")
-    # 
-    # ax[1].plot(realTimeVector,trueMagOutputY, color = "red")
-    # ax[1].plot(realTimeVector, simulationY,  color = "blue")
-    # 
-    # ax[2].plot(realTimeVector,trueMagOutputZ, color = "red")
-    # ax[2].plot(realTimeVector, simulationZ, color = "blue")
-    # 
-    # ax[3].plot(realTimeVector, totalMagOutput, color = "red")
-    # ax[3].plot(realTimeVector, simulationTotal, color = "blue")
-    # 
-    # plt.show()
-
-

@@ -133,10 +133,10 @@ class ModeGui():
 
     def _init_runSim_field(self):
         self.entry_data["runTime"] = StringVar()
-        self.entry_data["runTime"].set(40000)
+        self.entry_data["runTime"].set(10000)
         
         self.entry_data["runSpeed"] = StringVar()
-        self.entry_data["runSpeed"].set(100)
+        self.entry_data["runSpeed"].set(1000)
         
         self.entry_data["startPos"] = StringVar()
         self.entry_data["startPos"].set(0)
