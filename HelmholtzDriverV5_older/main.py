@@ -11,3 +11,8 @@ GraphMaster = GraphGui(RootMaster.root, MySerial)
 RootMaster.root.mainloop()
 
 # zero.csv -> runZeroed.csv
+
+# POTENTIAL UPDATE FIX
+# Make updating the plot happen inside of a thread
+# Make a thread that cycles every 100ms
+# Run update_plot only if paused serial is false

@@ -3,7 +3,7 @@ from tkinter import *
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-import numpy as np
+import numpy as np     
 
 class GraphGui():
     def __init__(self, root, serial):
@@ -82,7 +82,7 @@ class GraphGui():
         
     def update_plot(self):
         value = self.serial.read_value()
-        print("M: ", value)
+        print(value)
         if value is not None:
             try:
                 self.xmag.append(value[0])

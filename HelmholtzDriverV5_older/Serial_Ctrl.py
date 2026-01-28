@@ -21,6 +21,7 @@ class SerialCtrl:
         return "." in s and not s.startswith(".")
     
     def read_value(self):
+        print("a")
         try:
             # Checks if there is any new data available
             if self.ser.in_waiting == 0:

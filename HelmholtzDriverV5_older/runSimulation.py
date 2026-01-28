@@ -101,7 +101,7 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
             currentFields[2] = dataFrame.loc[simulationPosition, 'SIMZ']
             
 #         simTotal = pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5)
-# 
+#  
 #         simulationX.append(currentFields[0])
 #         simulationY.append(currentFields[1])
 #         simulationZ.append(currentFields[2])
@@ -109,7 +109,6 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
         
         realTime += 1
         realTimeVector.append(realTime)
-        
         
         if((millis() - t0) > totalrunTime):
             print("RUN SIM EXIT")
