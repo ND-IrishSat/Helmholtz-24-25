@@ -5,17 +5,33 @@ class SerialCtrl:
         self.port = port
         self.baudrate = baudrate
         self.timeout= timeout
-        self.ser = serial.Serial(port, baudrate, timeout=timeout)
+        self.ser = serial.Serial(self.port, baudrate, timeout=timeout)
         self.ser.flushInput()
         self.previous_value = [0.0,0.0,0.0]
     
     def serial_open(self):
+        if self.ser and self.ser.is_open:
+            print(f"SO. serial Port is already opened; port: {self.port}")
+            return
+        try:
+            # if ser object exists open up the port, else open a new port. Reset the buffer 
+            if self.ser:
+                self.ser.open()
+            else:
+                self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
+            self.ser.reset_input_buffer()
+            
+        except Exception as e:
+            print(f"SO. serial port opening failure: {e}")
+            self.ser = None
+        '''
         try:
             if not self.ser or not self.ser.is_open:
                 self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
                 self.ser.flushInput()
         except Exception as e:
             print(f"serial opening error {e}")
+        '''
 
     def isValidString(self, s: str) -> bool:
         return "." in s and not s.startswith(".")
@@ -50,7 +66,7 @@ class SerialCtrl:
             
             return None
         except Exception as e:
-            print(f"serial errors : {e}")
+            print(f"RV. serial errors : {e}")
         return None
     
     def serial_close(self):
@@ -58,4 +74,6 @@ class SerialCtrl:
             if self.ser and self.ser.is_open:
                 self.ser.close()
         except Exception as e:
-            print(f"serial closing error {e}")
+            print(f"SC. serial closing error {e}")
+        finally:
+            self.ser = None

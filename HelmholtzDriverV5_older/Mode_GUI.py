@@ -236,8 +236,13 @@ class ModeGui():
 
         if "Generate Simulation" in current_mode:
             # if the graph is displaying something, pause it and close the serial connection`
+            # if self.graphs is not None:
+            #    self.graphs.paused_serial = True
+            #    self.serial.serial_close()
+            
             if self.graphs is not None:
                 self.graphs.paused_serial = True
+            if self.serial is not None:
                 self.serial.serial_close()
             
             print("simulation started")
@@ -258,7 +263,7 @@ class ModeGui():
             self.serial.serial_open()
             
         elif "Run Simulation" in current_mode:
-            self.graphs.paused_serial = False
+            # self.graphs.paused_serial = False
             self.graphs.update_plot()
             print("Running Run Sim")
             print("Serial Flag: " , self.graphs.paused_serial)
@@ -269,8 +274,8 @@ class ModeGui():
             print("Run Time (s): ", runTime/1000)
             print("Run Speed (ms/): ", runSpeed)
             print("Start Position: ", startPos)
-            
-            threading.Thread(target=run_cage, args=(self.file_select, runTime, runSpeed, startPos,), daemon=True).start()
+            # copied from above - run_sim(file_name, runTime, runSpeed, startPos)
+            threading.Thread(target=run_sim, args=(self.file_select, runTime, runSpeed, startPos,), daemon=True).start()
             
         # Zero mode can also be handled if needed, but we'll stick to the provided structure for now
         elif "Zero" in current_mode:
@@ -280,4 +285,5 @@ class ModeGui():
             startPos = 0
             
             #CageON = True
-            threading.Thread(target=run_cage, args=("runZeroed.csv", runTime, runSpeed, startPos,), daemon=True).start()
+            threading.Thread(target=run_rim, args=("runZeroed.csv", runTime, runSpeed, startPos,), daemon=True).start()
+            # threading.Thread(target=run_cage, args=("runZeroed.csv", runTime, runSpeed, startPos,), daemon=True).start()
