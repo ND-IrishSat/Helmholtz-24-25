@@ -3,19 +3,20 @@ from tkinter import *
 from typing import Dict
 from pathlib import Path 
 import csv
-import threading
+from multiprocessing import Process
 
 from generateSimulation import gen_sim
 from runSimulation import run_sim
 from Graph_GUI import GraphGui
 
-def run_cage(file_name, runTime, runSpeed, startPos):
-    #if(CageON):
-    print("RUNNING CAGE")
-    run_sim(file_name, runTime, runSpeed, startPos)
-      
-    #CageON = False
-        
+# def run_cage(file_name, runTime, runSpeed, startPos):
+#     #if(CageON):
+#     print("RUNNING CAGE")
+#     run_sim(file_name, runTime, runSpeed, startPos)
+#       
+#     #CageON = False
+#
+
 class RootGUI():
     def __init__(self):
         '''Initializing the root GUI and other comps of the program'''
@@ -274,7 +275,8 @@ class ModeGui():
             print("Run Speed (ms/): ", runSpeed)
             print("Start Position: ", startPos)
             # copied from above - run_sim(file_name, runTime, runSpeed, startPos)
-            threading.Thread(target=run_sim, args=(self.file_select, runTime, runSpeed, startPos,), daemon=True).start()
+            p = Process(target=run_sim, args=(self.file_select, runTime, runSpeed, startPos))
+            p.start()
             
         # Zero mode can also be handled if needed, but we'll stick to the provided structure for now
         elif "Zero" in current_mode:
@@ -282,7 +284,3 @@ class ModeGui():
             runTime = 20000
             runSpeed = 100
             startPos = 0
-            
-            #CageON = True
-            threading.Thread(target=run_rim, args=("runZeroed.csv", runTime, runSpeed, startPos,), daemon=True).start()
-            # threading.Thread(target=run_cage, args=("runZeroed.csv", runTime, runSpeed, startPos,), daemon=True).start()
