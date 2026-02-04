@@ -5,6 +5,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 import numpy as np     
 
+# def UI_contrl():
+#     
+
 class GraphGui():
     def __init__(self, root, serial):
         '''

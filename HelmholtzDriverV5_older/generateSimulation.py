@@ -147,7 +147,6 @@ def gen_sim( file_name ):
         refresh_buffers(nanoSer, R4Ser)
 
         magnetometerOutput = readMagnetometerValues(nanoSer)
-        
         if magnetometerOutput:
             if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
                magX = round(float(magnetometerOutput[0]), 2)
