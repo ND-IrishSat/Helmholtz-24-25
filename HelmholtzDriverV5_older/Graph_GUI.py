@@ -3,12 +3,27 @@ from tkinter import *
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
+import threading
 import numpy as np     
-
-# def UI_contrl():
-#     
+import time
 
 class GraphGui():
+    def UI_contrl(self):
+        next_time = time.time()
+        while True:
+            # Check if Paused_Serial is True
+            if not self.paused_serial:
+                self.update_plot()
+                
+            # Loop function every 100 ms
+            next_time += 0.1
+            sleep_time = next_time - time.time()
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+            else:
+                next_time = time.time()
+
+    
     def __init__(self, root, serial):
         '''
         Graph GUI - RIGHT SIDE of the window
@@ -42,8 +57,8 @@ class GraphGui():
         self.AddMasterFrame()
         self.AddGraph()
         
-        # Update Chart
-        self.update_plot()
+        # Start UI_Contr Thread
+        threading.Thread(target=self.UI_contrl, daemon=True).start()
 
     def AddMasterFrame(self):
         '''Create a new frame for a chart'''
@@ -117,9 +132,7 @@ class GraphGui():
             self.figs[self.totalframes][1].plot(time_window, tot_window, color='black', label='Total Field')
             self.figs[self.totalframes][1].legend(loc ='upper left')
             self.figs[self.totalframes][2].draw()            
-        
-        if not self.paused_serial:
-            self.root.after(100, self.update_plot)
+    
             
     def set_graph(self, totalMag, simMag, timeVector):
         # Show Data on graph (only last window_size points)

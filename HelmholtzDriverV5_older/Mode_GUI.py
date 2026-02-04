@@ -263,8 +263,7 @@ class ModeGui():
             self.serial.serial_open()
             
         elif "Run Simulation" in current_mode:
-            # self.graphs.paused_serial = False
-            # self.graphs.update_plot()
+            self.graphs.paused_serial = False
             print("Running Run Sim")
             print("Serial Flag: " , self.graphs.paused_serial)
             
