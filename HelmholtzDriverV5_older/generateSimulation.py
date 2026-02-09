@@ -30,7 +30,7 @@ def gen_sim( file_name ):
     usingPYSOL = False
 
     inputFileName = file_name
-    outputFileName = "run_csv/runZeroed1.csv"
+    outputFileName = "run_csv/runZeroed2.csv"
     fftOutput = "magFieldsOut.csv"
 
     ########################################################################################## pysol initialization

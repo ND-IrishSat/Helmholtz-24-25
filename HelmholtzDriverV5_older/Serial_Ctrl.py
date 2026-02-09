@@ -66,7 +66,7 @@ class SerialCtrl:
             return None
         except Exception as e:
             print(f"RV. serial errors : {e}")
-        return None
+            return self.previous_value
     
     def serial_close(self):
         try:

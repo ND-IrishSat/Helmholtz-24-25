@@ -19,7 +19,7 @@ def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
 
     ################################################################################ Run parameters
 
-    loop = True # if true, simulation will loop 1 value
+    loop = False # if true, simulation will loop 1 value
 
     timeLimit = True
     totalrunTime = runTime_In # Time for total sim if timeLimit is true
