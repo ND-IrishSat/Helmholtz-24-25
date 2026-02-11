@@ -20,11 +20,11 @@ def isValidString(s: str) -> bool:
 ########################################################################################## Settings
 
 def gen_sim( file_name ):
-    pidTries = 30 # number of tries the pid can take to get the desired value before it moves on to next value
+    pidTries = 1 # number of tries the pid can take to get the desired value before it moves on to next value
     pidDelay = 100 # number of miliseconds between each pid iteration
-
+    #30, 100
     startPos = 0 # starting position in simulation
-    runValues = 2950 # number of values to run through for PYSOL
+    runValues = 5400 # number of values to run through for PYSOL
 
     # If we're going to make the UI interact with this, we have to set this true;
     usingPYSOL = False
