@@ -24,48 +24,55 @@ class SerialCtrl:
         except Exception as e:
             print(f"SO. serial port opening failure: {e}")
             self.ser = None
-        '''
-        try:
-            if not self.ser or not self.ser.is_open:
-                self.ser = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
-                self.ser.flushInput()
-        except Exception as e:
-            print(f"serial opening error {e}")
-        '''
 
     def isValidString(self, s: str) -> bool:
         return "." in s and not s.startswith(".")
     
     def read_value(self):
         try:
+            # commented below out in attempts to only check for most recent data
             # Checks if there is any new data available
-            if self.ser.in_waiting == 0:
-                return None
+            # if self.ser.in_waiting == 0:
+            #    return None
             
             latest_valid_data = None
-            
             # reads and keeps the most recent valid data
             while self.ser.in_waiting > 0:
                 line = self.ser.readline().decode('utf-8').strip()
                 # skips empty lines
                 if not line:
-                    return None
+                    continue # changed from returning none to continue
                 
                 # parses and does string validation
                 line_parts = line.split()
                 if line_parts and self.isValidString(line_parts[0]) and len(line_parts) == 3:
                     try:
                         mag_array = [float(x) for x in line_parts]
+                        #buffer=40
+                        # CHECKS IF ANY VALUES SUDDENTLY JUMPED
+                        #if self.previous_value[0] != 0.0:
+                        #    if mag_array[0] < self.previous_value[0]-buffer or mag_array[0] > self.previous_value[0] + buffer:
+                        #        print("x. jump occured")
+                        #        return self.previous_value
+                        #    if mag_array[1] < self.previous_value[1]-buffer or mag_array[1] > self.previous_value[1] + buffer:
+                        #        print("y. jump occured")
+                        #        return self.previous_value
+                        #    if mag_array[2] < self.previous_value[2]-buffer or mag_array[2] > self.previous_value[2] + buffer:
+                        #        print(f"z. jump occured {mag_array[2]} vs. {self.previous_value[2]}")
+                        #        return self.previous_value
+                        
                         latest_valid_data = mag_array
                     except ValueError:
                         continue
+                    
             if latest_valid_data is not None:
                 self.previous_value = latest_valid_data
+                # print(f"previous value is now : {self.previous_value}")
                 return latest_valid_data
             
             return None
         except Exception as e:
-            print(f"RV. serial errors : {e}")
+            print(f"RV. serial errors : {e}\n------------------------\nwill return {self.previous_value}\n------------------------\n")
             return self.previous_value
     
     def serial_close(self):
@@ -73,6 +80,6 @@ class SerialCtrl:
             if self.ser and self.ser.is_open:
                 self.ser.close()
         except Exception as e:
-            print(f"SC. serial closing error {e}")
+            print(f"SC. serial closing error {e}\n")
         finally:
             self.ser = None
