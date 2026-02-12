@@ -45,13 +45,14 @@ class GraphGui():
         
         # Value Arrays
         self.time = []
+        self.idx = 0
         self.xmag = []
         self.ymag = []
         self.zmag = []
         self.tot = []
         
         # Sliding window size (number of points to display)
-        self.window_size = 50
+        self.window_size = 500
         
         # Add the first chart automatically
         self.AddMasterFrame()
@@ -124,12 +125,15 @@ class GraphGui():
 
             # Show Data on graph (only last window_size points)
             self.figs[self.totalframes][1].clear()
-            self.figs[self.totalframes][1].set_ylabel("Magnetic Field (uT")
+            self.figs[self.totalframes][1].set_ylabel("Magnetic Field (uT)")
             self.figs[self.totalframes][1].set_xlabel("Time (mS)")
-            self.figs[self.totalframes][1].plot(time_window, xmag_window, color='green', label='X Field')
-            self.figs[self.totalframes][1].plot(time_window, ymag_window, color='red', label='Y Field')
-            self.figs[self.totalframes][1].plot(time_window, zmag_window, color='blue', label='Z Field')
+            self.figs[self.totalframes][1].set_ylim(20, 60)
+            #self.figs[self.totalframes][1].plot(time_window, xmag_window, color='green', label='X Field')
+            #self.figs[self.totalframes][1].plot(time_window, ymag_window, color='red', label='Y Field')
+            #self.figs[self.totalframes][1].plot(time_window, zmag_window, color='blue', label='Z Field')
             self.figs[self.totalframes][1].plot(time_window, tot_window, color='black', label='Total Field')
+            #self.figs[self.totalframes][1].plot(self.time, self.tot, color='black', label='Total Field')
+
             self.figs[self.totalframes][1].legend(loc ='upper left')
             self.figs[self.totalframes][2].draw()            
     
