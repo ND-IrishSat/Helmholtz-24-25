@@ -101,7 +101,7 @@ class GraphGui():
         
     def update_plot(self):
         value = self.serial.read_value()
-        print(f"update plot: {value}")
+        # print(f"update plot: {value}")
         
         if value is not None:
             try:
@@ -125,10 +125,10 @@ class GraphGui():
             
             if abs(current_magnetic_field) < abs(self.previous_magnetic_field) - 30 or abs(current_magnetic_field) > abs(self.previous_magnetic_field) + 30:
                 print("jump occured: {current_magnetic_field} vs {previous_magnetic_field}")
-                current_magnetic_field = self.previous_magetic_field
+                current_magnetic_field = self.previous_magnetic_field
                 
             self.tot.append(current_magnetic_field)
-            print(f"\t\t\tupdate plot: {current_magnetic_field}")
+            #print(f"\t\t\tupdate plot: {current_magnetic_field}")
             # keep all data but only plot the last window_size points
             start_idx = max(0, len(self.time) - self.window_size)
             time_window = self.time[start_idx:]

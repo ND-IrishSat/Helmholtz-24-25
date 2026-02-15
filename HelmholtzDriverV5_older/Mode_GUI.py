@@ -97,21 +97,34 @@ class ModeGui():
         self.entry_data["pidDelay"] = StringVar()
         self.entry_data["pidDelay"].set(100)
         
+    def gen_file_ctrl(self):
+        parent = "gen_csv/"
+        data = self.clicked_file.get()
+        self.file_select = parent + data
+        print(f"gen_file_ctrl: {self.file_select}")
+    
+    def run_file_ctrl(self):
+        parent = "run_csv/"
+        data = self.clicked_file.get()
+        print(f"run file ctrl: clicked file: {data}")
+        self.file_select = parent + data
+        print(f"run_file_ctrl: {self.file_select}")
+        
     def _create_run_widgets(self):
         # Goes to current working directory and find all the .csv in `run_csv/`
-        self.run_csv_files = list((Path.cwd() / "run_csv").glob("*.csv"))
-        self.run_file_list = ["-"]
-        for file in self.run_csv_files:
-            self.run_file_list.append(file.name)
+        self.csv_files = list((Path.cwd() / "run_csv").glob("*.csv"))
+        self.file_list = ["-"]
+        for file in self.csv_files:
+            self.file_list.append(file.name)
 
         # Tinkter Objects for the interactables
-        self.clicked_runfile = StringVar()
-        self.clicked_file.set(self.run_file_list[0])
+        self.clicked_file = StringVar()
+        self.clicked_file.set(self.file_list[0])
 
         self.drop_file_label = Label(self.input_frame, text="Run Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
-        self.drop_runfile = OptionMenu(self.input_frame, self.clicked_runfile, *self.run_file_list, command=lambda *_: self.run_file_ctrl())
+        self.drop_runfile = OptionMenu(self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.run_file_ctrl())
         self.drop_runfile.config(width=self.widget_width)
-
+        
         self.run_widgets_maps = {
             'runTime': 'Run Time:',
             'runSpeed': 'Run Speed:', 
@@ -131,7 +144,6 @@ class ModeGui():
         self.label_startPos, self.entry_startPos = self.run_widgets['startPos']
 
     def _create_sim_widgets(self):
-
         # Goes to current working directory and find all the .csv in `gen_csv/`
         self.csv_files = list((Path.cwd() / "gen_csv").glob("*.csv"))
         # Drop down file list
@@ -152,11 +164,7 @@ class ModeGui():
         self.pid_delay_label = Label(self.input_frame, text="PID Delay (mS)", bg="white", width=self.widget_width, anchor="w")
         self.pid_delay_entry = Entry(self.input_frame, textvariable=self.entry_data['pidDelay'], width=self.widget_width)
 
-    def gen_file_ctrl(self):
-        parent = "gen_csv/"
-        data = self.clicked_file.get()
-        self.file_select = parent + data
-        print(self.file_select)    
+
 
     def _hide_input_widgets(self):
         for widgets in self.input_frame.winfo_children():
@@ -240,12 +248,6 @@ class ModeGui():
         # Create graphs if they don't exist
         if self.graphs is None:
             self.graphs = GraphGui(self.root, self.serial)
-        
-    def run_file_ctrl(self):
-        parent = "run_csv/"
-        data = self.clicked_runfile.get()
-        self.file_select = parent + data
-        print(self.file_select)
 
     def _run_gen_sim(self):
         # If in "Generate Simulation" mode, you likely want to use the B-field entries (self.entry_Bx, etc.)
