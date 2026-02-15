@@ -106,16 +106,13 @@ class ModeGui():
         self.entry_data["pidDelay"].set(100)
         
     def gen_file_ctrl(self):
-        parent = "gen_csv/"
         data = self.clicked_file.get()
-        self.file_select = parent + data
+        self.file_select = f"gen_csv/{data}"
         print(f"gen_file_ctrl: {self.file_select}")
     
     def run_file_ctrl(self):
-        parent = "run_csv/"
-        data = self.run_clicked_file.get()
-        print(f"run file ctrl: clicked file: {data}")
-        self.file_select = parent + data
+        data = self.run_clicked_file.get()        
+        self.file_select = f"run_csv/{data}"
         print(f"run_file_ctrl: {self.file_select}")
         
     def _create_run_widgets(self):
@@ -125,11 +122,10 @@ class ModeGui():
         for file in self.run_csv_files:
             self.run_file_list.append(file.name)
 
-        # Tinkter Objects for the interactables
-        self.run_clicked_file.set(self.run_csv_files[0])
+        self.run_clicked_file.set('-')
 
         self.drop_runfile_label = Label(self.input_frame, text="Run Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
-        self.drop_runfile = OptionMenu(self.input_frame, self.run_clicked_file, *self.run_file_list, command=lambda *_: self.run_file_ctrl)
+        self.drop_runfile = OptionMenu(self.input_frame, self.run_clicked_file, *self.run_file_list, command=lambda *_: self.run_file_ctrl())
         self.drop_runfile.config(width=self.widget_width)
         
         self.run_widgets_maps = {
@@ -153,16 +149,15 @@ class ModeGui():
     def _create_sim_widgets(self):
         # Goes to current working directory and find all the .csv in `gen_csv/`
         self.csv_files = list((Path.cwd() / "gen_csv").glob("*.csv"))
-        # Drop down file list
         self.file_list = ["-"]
+        # Drop down file list
         for file in self.csv_files:
             self.file_list.append(file.name)      
         # Tinkter Objects for the interactables
-        
-        self.clicked_file.set(self.file_list[0])
+        self.clicked_file.set('-')
 
         self.drop_file_label = Label(self.input_frame, text="Gen Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
-        self.drop_file = OptionMenu(self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.gen_file_ctrl)
+        self.drop_file = OptionMenu(self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.gen_file_ctrl())
         self.drop_file.config(width=self.widget_width)
 
         self.pid_tries_label = Label(self.input_frame, text="PID Attempts (#)", bg="white", width=self.widget_width, anchor="w")
@@ -184,8 +179,9 @@ class ModeGui():
         
         self.label_startPos.grid(row=2, column=0, sticky="w", padx=self.widget_padx, pady=self.widget_pady)
         self.entry_startPos.grid(row=2, column=1, padx=self.widget_padx, pady=self.widget_pady)
-        
-        self.drop_runfile.grid(row=3, column=0, padx=self.widget_padx, pady=self.widget_pady)
+
+        self.drop_runfile_label.grid(row=3, column=0, padx=self.widget_padx, pady=self.widget_pady)
+        self.drop_runfile.grid(row=3, column=1, padx=self.widget_padx, pady=self.widget_pady)
     
     def publish_gen(self):
         '''Internal Layout for generate simulation input frame '''
@@ -197,7 +193,8 @@ class ModeGui():
         self.pid_delay_label.grid(row=2, column=0, padx=self.widget_padx, pady=self.widget_pady)
         self.pid_delay_entry.grid(row=2, column=1, padx=self.widget_padx, pady=self.widget_pady)
 
-        self.drop_file.grid(row=3, column=0, padx=self.widget_padx, pady=self.widget_pady)
+        self.drop_file_label.grid(row=3, column=0, padx=self.widget_padx, pady=self.widget_pady)
+        self.drop_file.grid(row=3, column=1, padx=self.widget_padx, pady=self.widget_pady)
 
     def ModeOptionMenu(self):
         '''
