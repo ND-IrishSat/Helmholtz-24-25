@@ -125,7 +125,7 @@ class GraphGui():
             
             if abs(current_magnetic_field) < abs(self.previous_magnetic_field) - 30 or abs(current_magnetic_field) > abs(self.previous_magnetic_field) + 30:
                 print("jump occured: {current_magnetic_field} vs {previous_magnetic_field}")
-                current_magnetic_field = previous_magetic_field
+                current_magnetic_field = self.previous_magetic_field
                 
             self.tot.append(current_magnetic_field)
             print(f"\t\t\tupdate plot: {current_magnetic_field}")

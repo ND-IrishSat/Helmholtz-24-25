@@ -9,7 +9,20 @@ import pandas as pd
 def isValidString(s: str) -> bool:
     return "." in s and not s.startswith(".")
 
-def run_sim(file_name, runTime_In, runSpeed_In, startPos_In):
+def run_sim(file_name, runTime_In=10000, runSpeed_In=1000, startPos_In=0):
+    '''
+    Docstring for run_sim
+
+    Description:
+        WIP
+    Args:
+        file_name :
+        runTime_In (int: Default=10000) :
+        runSpeed_In (int: Default=1000) :
+        startPos_In (int: Default=0)    : 
+    Returns:
+        WIP
+    '''
     print("Started.\n")
     print("Run Time (s): ", runTime_In/1000)
     print("Run Speed (ms/): ", runSpeed_In)

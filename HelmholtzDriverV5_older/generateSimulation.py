@@ -21,6 +21,8 @@ def isValidString(s: str) -> bool:
 
 def gen_sim( file_name, pidTries=30, pidDelay=100):
     '''
+    Docstring for run_sim
+    
     Description:
         WIP
     Args:

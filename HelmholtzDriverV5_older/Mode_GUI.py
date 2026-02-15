@@ -38,7 +38,13 @@ class ModeGui():
         self.default_field = "0"
         self.entry_field_data: Dict[str, StringVar] = {}
         self.file_select = "zeroed.csv"
+
+        # Default Parameters for Gen Sim
+        self.pidTries = 30
+        self.pidDelay = 100
+
         self.graphs = None
+        self.widget_width = 20
         self.padx = 10
         self.pady = 5
 
@@ -77,6 +83,7 @@ class ModeGui():
         # We should implement a function for this as when changing mode i.e. Manual, Generate Sim, Run Sim.
         # They will not use the literals x, y, z but their desired magnetic field while only manual requiring
         # literal x, y, z. (Literals is a variable and it's negative: for example: x, -x)
+        self.input_frame.config(text="Run Simulation Parameters")
         self._init_runSim_field()
 
         self.run_widgets_maps = {
@@ -99,7 +106,16 @@ class ModeGui():
 
 
     def _create_sim_widgets(self):
-        """Creates the 3 Label/Entry pairs for Simulation Mode (B-field inputs)."""
+        '''
+        Docstring for _create_sim_widgets
+        Creates the 3 Label/Entry pairs for Simulation Mode (B-field inputs).
+        
+        :param self: Description
+        '''
+        self.input_frame.config(text="Generate Simulation Parameters")
+        
+
+
         # Goes to current working directory and find all the .csv in `gen_csv/`
         self.csv_files = list((Path.cwd() / "gen_csv").glob("*.csv"))
         # Drop down file list
@@ -107,12 +123,17 @@ class ModeGui():
         for file in self.csv_files:
             self.file_list.append(file.name)
                 
-        self.clicked_file = StringVar()
-        self.clicked_file.set(self.file_list[0])
-        self.drop_file = OptionMenu(
-            self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.gen_file_ctrl())
+        self.clicked_file = StringVar().set(self.file_list[0])
 
-        self.drop_file.config(width=15)
+        self.drop_file = OptionMenu(self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.gen_file_ctrl())
+        self.drop_file.config(width=self.widget_width)
+
+        pid_tries_label = Label(self.input_frame, text="PID Attempts (#)", bg="white", width=self.widget_width, anchor="w")
+        pid_tries_entry = Entry(self.input_frame, textvariable="", width=self.widget_width)
+
+        pid_delay_label = Label(self.input_frame, text="PID Delay (mS)", bg="white", width=self.widget_width, anchor="w")
+        pid_delay_entry = Entry(self.input_frame, textvariable="", width=self.widget_width)
+
 
     def gen_file_ctrl(self):
         parent = "gen_csv/"
@@ -134,6 +155,9 @@ class ModeGui():
         
         self.entry_data["startPos"] = StringVar()
         self.entry_data["startPos"].set(0)
+
+    def _init_genSim_fields(self):
+        pass
 
     def publish_run(self):
         '''
@@ -238,7 +262,12 @@ class ModeGui():
                 self.graphs.paused_serial = True
             if self.serial is not None:
                 self.serial.serial_close()
-            
+
+            '''
+            runTime = int(self.entry_runTime.get())
+            runSpeed = int(self.entry_runSpeed.get())
+            startPos = int(self.entry_startPos.get())
+            '''
             print("simulation started")
             totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select, pidTries=1, pidDelay=30) # file_select is updated as user choose an item from the drop down menu 
             print("simulation complete")
