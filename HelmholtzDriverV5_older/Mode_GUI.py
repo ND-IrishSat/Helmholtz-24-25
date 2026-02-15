@@ -42,6 +42,9 @@ class ModeGui():
         # Default Parameters for Gen Sim
         self.pidTries = 30
         self.pidDelay = 100
+        
+        self.run_clicked_file = StringVar()
+        self.clicked_file = StringVar()
 
         self.graphs = None
         self.widget_width = 20
@@ -81,6 +84,11 @@ class ModeGui():
         self._hide_input_widgets()
         self.publish_run()
     
+    def _hide_input_widgets(self):
+        ''' Widget do not get deleted it just becomes invisible and loses its position and can be retrieve '''
+        for widgets in self.input_frame.winfo_children():
+            widgets.grid_forget()
+            
     def _init_input_fields(self):
         self.entry_data["runTime"] = StringVar()
         self.entry_data["runTime"].set(10000)
@@ -105,24 +113,23 @@ class ModeGui():
     
     def run_file_ctrl(self):
         parent = "run_csv/"
-        data = self.clicked_file.get()
+        data = self.run_clicked_file.get()
         print(f"run file ctrl: clicked file: {data}")
         self.file_select = parent + data
         print(f"run_file_ctrl: {self.file_select}")
         
     def _create_run_widgets(self):
         # Goes to current working directory and find all the .csv in `run_csv/`
-        self.csv_files = list((Path.cwd() / "run_csv").glob("*.csv"))
-        self.file_list = ["-"]
-        for file in self.csv_files:
-            self.file_list.append(file.name)
+        self.run_csv_files = list((Path.cwd() / "run_csv").glob("*.csv"))
+        self.run_file_list = ["-"]
+        for file in self.run_csv_files:
+            self.run_file_list.append(file.name)
 
         # Tinkter Objects for the interactables
-        self.clicked_file = StringVar()
-        self.clicked_file.set(self.file_list[0])
+        self.run_clicked_file.set(self.run_csv_files[0])
 
-        self.drop_file_label = Label(self.input_frame, text="Run Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
-        self.drop_runfile = OptionMenu(self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.run_file_ctrl())
+        self.drop_runfile_label = Label(self.input_frame, text="Run Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
+        self.drop_runfile = OptionMenu(self.input_frame, self.run_clicked_file, *self.run_file_list, command=lambda *_: self.run_file_ctrl)
         self.drop_runfile.config(width=self.widget_width)
         
         self.run_widgets_maps = {
@@ -151,11 +158,11 @@ class ModeGui():
         for file in self.csv_files:
             self.file_list.append(file.name)      
         # Tinkter Objects for the interactables
-        self.clicked_file = StringVar()
+        
         self.clicked_file.set(self.file_list[0])
 
         self.drop_file_label = Label(self.input_frame, text="Gen Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
-        self.drop_file = OptionMenu(self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.gen_file_ctrl())
+        self.drop_file = OptionMenu(self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.gen_file_ctrl)
         self.drop_file.config(width=self.widget_width)
 
         self.pid_tries_label = Label(self.input_frame, text="PID Attempts (#)", bg="white", width=self.widget_width, anchor="w")
@@ -163,16 +170,6 @@ class ModeGui():
 
         self.pid_delay_label = Label(self.input_frame, text="PID Delay (mS)", bg="white", width=self.widget_width, anchor="w")
         self.pid_delay_entry = Entry(self.input_frame, textvariable=self.entry_data['pidDelay'], width=self.widget_width)
-
-
-
-    def _hide_input_widgets(self):
-        for widgets in self.input_frame.winfo_children():
-            # basically widget do not get deleted it just becomes invisible and loses its position and can be retrieve 
-            widgets.grid_forget()
-
-    def _init_genSim_fields(self):
-        pass
 
     def publish_run(self):
         ''' Internal layout for run simulation input frame '''
