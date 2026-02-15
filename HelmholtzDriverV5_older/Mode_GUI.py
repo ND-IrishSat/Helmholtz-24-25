@@ -45,6 +45,7 @@ class ModeGui():
 
         self.graphs = None
         self.widget_width = 20
+        self.widget_pady = self.widget_padx = 5
         self.padx = 10
         self.pady = 5
 
@@ -56,6 +57,7 @@ class ModeGui():
         self.input_frame = LabelFrame(root, text="Input Desired PWM/Field Values", padx=5, pady=5, bg="white")
         
         # Create input widgets (must happen AFTER StringVar init)
+        self._init_input_fields()
         self._create_run_widgets()
         self._create_sim_widgets()
         
@@ -78,12 +80,37 @@ class ModeGui():
         # Set initial input state to Manual
         self._hide_input_widgets()
         self.publish_run()
+    
+    def _init_input_fields(self):
+        self.entry_data["runTime"] = StringVar()
+        self.entry_data["runTime"].set(10000)
+        
+        self.entry_data["runSpeed"] = StringVar()
+        self.entry_data["runSpeed"].set(1000)
+        
+        self.entry_data["startPos"] = StringVar()
+        self.entry_data["startPos"].set(0)
+
+        self.entry_data["pidTries"] = StringVar()
+        self.entry_data["pidTries"].set(30)
+        
+        self.entry_data["pidDelay"] = StringVar()
+        self.entry_data["pidDelay"].set(100)
         
     def _create_run_widgets(self):
-        # We should implement a function for this as when changing mode i.e. Manual, Generate Sim, Run Sim.
-        # They will not use the literals x, y, z but their desired magnetic field while only manual requiring
-        # literal x, y, z. (Literals is a variable and it's negative: for example: x, -x)
-        self._init_runSim_field()
+        # Goes to current working directory and find all the .csv in `run_csv/`
+        self.run_csv_files = list((Path.cwd() / "run_csv").glob("*.csv"))
+        self.run_file_list = ["-"]
+        for file in self.run_csv_files:
+            self.run_file_list.append(file.name)
+
+        # Tinkter Objects for the interactables
+        self.clicked_runfile = StringVar()
+        self.clicked_file.set(self.run_file_list[0])
+
+        self.drop_file_label = Label(self.input_frame, text="Run Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
+        self.drop_runfile = OptionMenu(self.input_frame, self.clicked_runfile, *self.run_file_list, command=lambda *_: self.run_file_ctrl())
+        self.drop_runfile.config(width=self.widget_width)
 
         self.run_widgets_maps = {
             'runTime': 'Run Time:',
@@ -104,30 +131,26 @@ class ModeGui():
         self.label_startPos, self.entry_startPos = self.run_widgets['startPos']
 
     def _create_sim_widgets(self):
-        '''
-        Docstring for _create_sim_widgets
-        Creates the 3 Label/Entry pairs for Simulation Mode (B-field inputs).
-        
-        :param self: Description
-        '''
+
         # Goes to current working directory and find all the .csv in `gen_csv/`
         self.csv_files = list((Path.cwd() / "gen_csv").glob("*.csv"))
         # Drop down file list
         self.file_list = ["-"]
         for file in self.csv_files:
-            self.file_list.append(file.name)
-                
+            self.file_list.append(file.name)      
+        # Tinkter Objects for the interactables
         self.clicked_file = StringVar()
         self.clicked_file.set(self.file_list[0])
 
+        self.drop_file_label = Label(self.input_frame, text="Gen Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
         self.drop_file = OptionMenu(self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.gen_file_ctrl())
         self.drop_file.config(width=self.widget_width)
 
         self.pid_tries_label = Label(self.input_frame, text="PID Attempts (#)", bg="white", width=self.widget_width, anchor="w")
-        self.pid_tries_entry = Entry(self.input_frame, textvariable="", width=self.widget_width)
+        self.pid_tries_entry = Entry(self.input_frame, textvariable=self.entry_data['pidTries'], width=self.widget_width)
 
         self.pid_delay_label = Label(self.input_frame, text="PID Delay (mS)", bg="white", width=self.widget_width, anchor="w")
-        self.pid_delay_entry = Entry(self.input_frame, textvariable="", width=self.widget_width)
+        self.pid_delay_entry = Entry(self.input_frame, textvariable=self.entry_data['pidDelay'], width=self.widget_width)
 
     def gen_file_ctrl(self):
         parent = "gen_csv/"
@@ -140,39 +163,12 @@ class ModeGui():
             # basically widget do not get deleted it just becomes invisible and loses its position and can be retrieve 
             widgets.grid_forget()
 
-    def _init_runSim_field(self):
-        self.entry_data["runTime"] = StringVar()
-        self.entry_data["runTime"].set(10000)
-        
-        self.entry_data["runSpeed"] = StringVar()
-        self.entry_data["runSpeed"].set(1000)
-        
-        self.entry_data["startPos"] = StringVar()
-        self.entry_data["startPos"].set(0)
-
     def _init_genSim_fields(self):
         pass
 
     def publish_run(self):
-        '''
-        Method to display all the Widget of the main frame
-        LEFT COLUMN LAYOUT (column=0)
-        '''
+        ''' Internal layout for run simulation input frame '''
         self.input_frame.config(text="Running Simulation Parameters")
-        self.run_csv_files = list((Path.cwd() / "run_csv").glob("*.csv"))
-        
-        self.run_file_list = ["-"]
-        for file in self.run_csv_files:
-            self.run_file_list.append(file.name)
-        
-        self.clicked_runfile = StringVar()
-        self.clicked_file.set(self.run_file_list[0])
-
-        self.drop_runfile = OptionMenu(
-            self.input_frame, self.clicked_runfile, *self.run_file_list, command=lambda *_: self.run_file_ctrl()
-        )
-        self.drop_runfile.config(width=15)
-        self.widget_pady = self.widget_padx = 5
 
         # Internal layout for input frame
         self.label_runTime.grid(row=0, column=0, sticky="w", padx=self.widget_padx, pady=self.widget_pady)
@@ -187,19 +183,16 @@ class ModeGui():
         self.drop_runfile.grid(row=3, column=0, padx=self.widget_padx, pady=self.widget_pady)
     
     def publish_gen(self):
-        '''
-        Internal Layout for input frame
-        '''
-
+        '''Internal Layout for generate simulation input frame '''
         self.input_frame.config(text="Generate Simulation Parameters")
-
-        self.drop_file.grid(row=0, column=0, padx=self.widget_padx, pady=self.widget_pady)
 
         self.pid_tries_label.grid(row=1, column=0, padx=self.widget_padx, pady=self.widget_pady)
         self.pid_tries_entry.grid(row=1, column=1, padx=self.widget_padx, pady=self.widget_pady)
 
         self.pid_delay_label.grid(row=2, column=0, padx=self.widget_padx, pady=self.widget_pady)
         self.pid_delay_entry.grid(row=2, column=1, padx=self.widget_padx, pady=self.widget_pady)
+
+        self.drop_file.grid(row=3, column=0, padx=self.widget_padx, pady=self.widget_pady)
 
     def ModeOptionMenu(self):
         '''
@@ -228,7 +221,7 @@ class ModeGui():
             if "Generate Simulation" in self.clicked_Mode.get():
                 # print("Generate Simulation mode selected")
                 self._hide_input_widgets() # Places the .csv drop box used to  self.public_sim() 
-                self.publish_gen() #self.drop_file.grid(column=0, row=0, padx=5, pady=5)
+                self.publish_gen() # self.drop_file.grid(column=0, row=0, padx=5, pady=5)
 
             elif "Zero" in self.clicked_Mode.get():
                 # print("Zero mode selected")
