@@ -9,13 +9,6 @@ from generateSimulation import gen_sim
 from runSimulation import run_sim
 from Graph_GUI import GraphGui
 
-# def run_cage(file_name, runTime, runSpeed, startPos):
-#     #if(CageON):
-#     print("RUNNING CAGE")
-#     run_sim(file_name, runTime, runSpeed, startPos)
-#       
-#     #CageON = False
-#
 
 class RootGUI():
     def __init__(self):
@@ -247,7 +240,7 @@ class ModeGui():
                 self.serial.serial_close()
             
             print("simulation started")
-            totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select) # file_select is updated as user choose an item from the drop down menu 
+            totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select, pidTries=1, pidDelay=30) # file_select is updated as user choose an item from the drop down menu 
             print("simulation complete")
             # print(f"first item in totalMagOutput : {totalMagOutput[0]}")
             
