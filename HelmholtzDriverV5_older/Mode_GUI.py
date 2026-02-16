@@ -163,7 +163,7 @@ class ModeGui():
         self.pid_tries_label = Label(self.input_frame, text="PID Attempts (#)", bg="white", width=self.widget_width, anchor="w")
         self.pid_tries_entry = Entry(self.input_frame, textvariable=self.entry_data['pidTries'], width=self.widget_width)
 
-        self.pid_delay_label = Label(self.input_frame, text="PID Delay (mS)", bg="white", width=self.widget_width, anchor="w")
+        self.pid_delay_label = Label(self.input_frame, text="PID Delay (ms, min 65) ", bg="white", width=self.widget_width, anchor="w")
         self.pid_delay_entry = Entry(self.input_frame, textvariable=self.entry_data['pidDelay'], width=self.widget_width)
 
     def publish_run(self):
@@ -263,8 +263,16 @@ class ModeGui():
             runSpeed = int(self.entry_runSpeed.get())
             startPos = int(self.entry_startPos.get())
             '''
+            
+            pidTries = int(self.pid_tries_entry.get())
+            pidDelay = int(self.pid_delay_entry.get())
+            if (pidDelay < 65):
+                pidDelay = 65
+            
             print("simulation started")
-            totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select, pidTries=1, pidDelay=30) # file_select is updated as user choose an item from the drop down menu 
+            print("PID TRIES: ", pidTries)
+            print("PID Delay: ", pidDelay)
+            totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select, pidTries, pidDelay) # file_select is updated as user choose an item from the drop down menu 
             print("simulation complete")
             # print(f"first item in totalMagOutput : {totalMagOutput[0]}")
             
@@ -288,6 +296,17 @@ class ModeGui():
             runTime = int(self.entry_runTime.get())
             runSpeed = int(self.entry_runSpeed.get())
             startPos = int(self.entry_startPos.get())
+             
+            # come back to this when working on the actual vs. simulated file. 
+            #df = pd.read_csv(self.file_select)
+            #num_vals = len(df)
+            
+            #endPos = (runTime / runSpeed) + startPos
+            #if endPos > num_vals:
+            #    endPos = num_vals
+            
+            #sim_vals = df.iloc[startPos:endPos, 1:4]
+            
             print("Run Time (s): ", runTime/1000)
             print("Run Speed (ms/): ", runSpeed)
             print("Start Position: ", startPos)
