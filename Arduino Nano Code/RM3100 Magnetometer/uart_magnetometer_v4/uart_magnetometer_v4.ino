@@ -15,6 +15,7 @@
 
 
 #include <Arduino.h>
+#include <stdlib.h>
 #include <SPI.h>
 
 //pin definitions
@@ -46,7 +47,6 @@ const float soft_iron[3][3] = {
   {-0.0266,    0.0080,    0.9806}
 };
 
-
 uint8_t revid;
 uint16_t cycleCount;
 float gain;
@@ -59,16 +59,6 @@ void setup() {
   SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));  
 
   Serial.begin(115200);
-  // while(true) {
-  //   if (Serial.available()) {
-  //       String command = Serial.readStringUntil('\n');
-  //       if (command == "IDENTIFY") {
-  //           Serial.println("NANO");
-  //           break;
-  //       }
-  //   }
-  // }  
-  
   delay(100);
 
   revid = readReg(RM3100_REVID_REG);
@@ -104,17 +94,21 @@ void setup() {
   digitalWrite(PIN_CS, LOW);
 }
 
+float simulated_magnetic_field = 0.0f; // Default zero, but will be updated.
+
 void loop() {
-  long x = 0;
-  long y = 0;
-  long z = 0;
+  // Checks if it gets a new simulated_magnetic_field
+  // We'll write from it from a pi and communicate serially
+  while (Serial.available() > 0){  
+    pollSerialForSimulatedField(Serial.read());
+  }
+  
+  // Else run the program
+  long x = 0, y = 0, z = 0;
   uint8_t x2,x1,x0,y2,y1,y0,z2,z1,z0;
 
-  // Mag Data Array {x, y , z}
-  float magData[3] = {0, 0, 0};
-  // float xMag = 0;
-  // float yMag = 0;
-  // float zMag = 0;
+  // Mag Data Array {x, y, z, simulated_magnetic_field}; Updated to hold four values
+  float magData[4] = {0.0, 0.0, 0.0, simulated_magnetic_field};
 
   //wait until data is ready using 1 of two methods (chosen in options at top of code)
   if(useDRDYPin){ 
@@ -126,7 +120,7 @@ void loop() {
   
   //read measurements
   digitalWrite(PIN_CS, LOW);
-  delay(0.0001);
+  delayMicroseconds(1); // delay(0.0001); apperently delay is mS as an int. So 0.0001 becomes a 0
   SPI.transfer(0xA4);
   x2 = SPI.transfer(0xA5);
   x1 = SPI.transfer(0xA6);
@@ -144,13 +138,13 @@ void loop() {
 
   //special bit manipulation since there is not a 24 bit signed int data type
   if (x2 & 0x80){
-      x = 0xFF;
+    x = 0xFF;
   }
   if (y2 & 0x80){
-      y = 0xFF;
+    y = 0xFF;
   }
   if (z2 & 0x80){
-      z = 0xFF;
+    z = 0xFF;
   }
 
   //format results into single 32 bit signed value
@@ -164,18 +158,40 @@ void loop() {
   magData[0] = (float)(x)/gain;
   magData[1] = (float)(y)/gain;
   magData[2] = (float)(z)/gain; 
-
-  float normData[3];
+  magData[3] = simulated_magnetic_field; 
 
   // Perform calibration
+  // float normData[3];
   //magCalFunc(magData, normData);
 
-  Serial.print(magData[0]);
-  Serial.print(" ");
-  Serial.print(magData[1]);
-  Serial.print(" ");
-  Serial.println(magData[2]);
+  Serial.print(magData[0]); Serial.print(" ");
+  Serial.print(magData[1]); Serial.print(" ");
+  Serial.print(magData[2]); Serial.print(" "); 
+  Serial.println(magData[3]); // Additional print statement to echo back the simulated values
+}
 
+const unsigned int MAX_INPUT=50;
+void pollSerialForSimulatedField(const byte inByte) 
+{
+  // Inspired by Buffering Input by Nick Gammon @ https://www.gammon.com.au/serial
+  static char input_line[MAX_INPUT];
+  static unsigned int input_pos = 0;   
+
+  switch(inByte) 
+  {
+    case '\n': // end of text
+      input_line[input_pos] = 0;                    // terminating null byte
+      simulated_magnetic_field = atof(input_line);  // Process_data; string to float
+      input_pos = 0;                                // Reset Buffer for Next Time
+      break;
+    case '\r': // discard carriage return
+      break;
+    default:
+      // keep adding if not full ... allow for terminating null byte
+      if (input_pos < (MAX_INPUT - 1))
+        input_line[input_pos++] = inByte;
+      break;
+  }
 }
 
 //addr is the 7 bit value of the register's address (without the R/W bit)
@@ -221,19 +237,17 @@ void changeCycleCount(uint16_t newCC){
 
 // Calibration Function
 void magCalFunc(const float mag_data[3], float normData[3]) {
-    float hi_cal[3];
+  float hi_cal[3];
 
-    // Apply hard-iron offsets
-    for (int i = 0; i < 3; i++) {
-        hi_cal[i] = mag_data[i] - hard_iron[i];
-    }
+  // Apply hard-iron offsets
+  for (int i = 0; i < 3; i++) {
+    hi_cal[i] = mag_data[i] - hard_iron[i];
+  }
 
-    // Apply soft-iron scaling
-    for (int i = 0; i < 3; i++) {
-        normData[i] = (soft_iron[i][0] * hi_cal[0]) + 
-                      (soft_iron[i][1] * hi_cal[1]) + 
-                      (soft_iron[i][2] * hi_cal[2]);
-    }
+  // Apply soft-iron scaling
+  for (int i = 0; i < 3; i++) {
+    normData[i] = (soft_iron[i][0] * hi_cal[0]) + 
+                  (soft_iron[i][1] * hi_cal[1]) + 
+                  (soft_iron[i][2] * hi_cal[2]);
+  }
 }
-
-
