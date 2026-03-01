@@ -28,6 +28,10 @@ def sendPWMValues(x1, x2, y1, y2, z1, z2, R4Ser):
     ''' Writes literal values for x, y, and z pwm values to the Arduino R4 '''
     data = f"{x1} {x2} {y1} {y2} {z1} {z2}\n"
     R4Ser.write(data.encode('utf-8'))
+    
+def sendSIMValues(simulated_magenetic_field, nanoSer):
+    sim_mag_field_packet = f"{simulated_magenetic_field}\n"
+    nanoSer.write(sim_mag_field_packet.encode('utf-8'))
 
 def readPWMValues(R4Ser):
     #pwmString = R4Ser.readline().decode('utf-8').strip()

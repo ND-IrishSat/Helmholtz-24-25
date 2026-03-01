@@ -49,6 +49,7 @@ class GraphGui():
         self.xmag = []
         self.ymag = []
         self.zmag = []
+        self.sim = []
         self.tot = []
         
         # Sliding window size (number of points to display)
@@ -101,20 +102,21 @@ class GraphGui():
         
     def update_plot(self):
         value = self.serial.read_value()
-        # print(f"update plot: {value}")
+        print(f"update plot: {value}")
         
         if value is not None:
             try:
                 self.xmag.append(value[0])
                 self.ymag.append(value[1])
                 self.zmag.append(value[2])
+                self.sim.append(value[3])
             except:
-                print("could not append new values")
+                print("UP. Could not append new values")
                 self.xmag.append(self.xmag[len(self.xmag) - 1])
                 self.ymag.append(self.ymag[len(self.ymag) - 1])
                 self.zmag.append(self.zmag[len(self.zmag) - 1])
+                self.sim.append(self.sim[len(self.sim) - 1])
             
-            self.time.append(len(self.time) * 0.1)
             current_magnetic_field = np.sqrt((self.xmag[len(self.xmag) - 1]**2) + (self.ymag[len(self.xmag) - 1]**2) + (self.zmag[len(self.xmag) - 1]**2))
             
             # 2/12 attempt to filter
@@ -128,37 +130,41 @@ class GraphGui():
                 current_magnetic_field = self.previous_magnetic_field
                 
             self.tot.append(current_magnetic_field)
-            #print(f"\t\t\tupdate plot: {current_magnetic_field}")
+            self.time.append(len(self.time) * 0.1)
+
             # keep all data but only plot the last window_size points
             start_idx = max(0, len(self.time) - self.window_size)
             time_window = self.time[start_idx:]
             xmag_window = self.xmag[start_idx:]
             ymag_window = self.ymag[start_idx:]
             zmag_window = self.zmag[start_idx:]
-            tot_window = self.tot[start_idx:]
+            sim_window  = self.sim[start_idx:]
+            tot_window  = self.tot[start_idx:]
 
             # Show Data on graph (only last window_size points)
             self.figs[self.totalframes][1].clear()
             self.figs[self.totalframes][1].set_ylabel("Magnetic Field (uT)")
             self.figs[self.totalframes][1].set_xlabel("Time (S)")
-            self.figs[self.totalframes][1].set_ylim(25, 55)
+            self.figs[self.totalframes][1].set_ylim(-5, 45)
+            self.figs[self.totalframes][1].plot(time_window, tot_window, color='black', label='Total Field')
+            self.figs[self.totalframes][1].plot(time_window, sim_window, color='red', label='Simulated Field')
+            self.figs[self.totalframes][1].legend(loc='upper left')
+            self.figs[self.totalframes][2].draw()
+            
+            # Used to show case the x, y, and z magnetic fields
             #self.figs[self.totalframes][1].plot(time_window, xmag_window, color='green', label='X Field')
             #self.figs[self.totalframes][1].plot(time_window, ymag_window, color='red', label='Y Field')
-            #self.figs[self.totalframes][1].plot(time_window, zmag_window, color='blue', label='Z Field')
-            self.figs[self.totalframes][1].plot(time_window, tot_window, color='black', label='Total Field')
-            #self.figs[self.totalframes][1].plot(self.time, self.tot, color='black', label='Total Field')
+            #self.figs[self.totalframes][1].plot(time_window, zmag_window, color='blue', label='Z Field')     
 
-            self.figs[self.totalframes][1].legend(loc ='upper left')
-            self.figs[self.totalframes][2].draw()
         else:
             # Appends the last object in the list
             print ("print value was None")
-            
             self.xmag.append(self.xmag[len(self.xmag) - 1])
             self.ymag.append(self.ymag[len(self.ymag) - 1])
             self.zmag.append(self.zmag[len(self.zmag) - 1])
-            self.time.append(len(self.time) * 0.1)
+            self.sim.append(self.sim[len(self.sim) - 1])
             self.tot.append(self.tot[len(self.tot) - 1])
+            self.time.append(len(self.time) * 0.1)
 
             # keep all data but only plot the last window_size points
             start_idx = max(0, len(self.time) - self.window_size)
@@ -166,17 +172,18 @@ class GraphGui():
             xmag_window = self.xmag[start_idx:]
             ymag_window = self.ymag[start_idx:]
             zmag_window = self.zmag[start_idx:]
-            tot_window = self.tot[start_idx:]
-                
+            sim_window  = self.sim[start_idx:]
+            tot_window  = self.tot[start_idx:]
+
+            # Show Data on graph (only last window_size points)
             self.figs[self.totalframes][1].clear()
             self.figs[self.totalframes][1].set_ylabel("Magnetic Field (uT)")
             self.figs[self.totalframes][1].set_xlabel("Time (S)")
-            self.figs[self.totalframes][1].set_ylim(25, 55)
+            self.figs[self.totalframes][1].set_ylim(-5, 45)
             self.figs[self.totalframes][1].plot(time_window, tot_window, color='black', label='Total Field')
-            self.figs[self.totalframes][1].legend(loc ='upper left')
+            self.figs[self.totalframes][1].plot(time_window, sim_window, color='red', label='Simulated Field')
+            self.figs[self.totalframes][1].legend(loc='upper left')
             self.figs[self.totalframes][2].draw()
-        
-    
             
     def set_graph(self, totalMag, simMag, timeVector):
         # Show Data on graph (only last window_size points)

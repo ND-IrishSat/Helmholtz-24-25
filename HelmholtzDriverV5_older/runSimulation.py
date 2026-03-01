@@ -1,10 +1,12 @@
-from Dependencies.R4UART import sendPWMValues, initiateUART # UART code 
+from Dependencies.R4UART import initiateUART, sendPWMValues, sendSIMValues # UART code 
 from Dependencies.extraneous import millis
 
 import time
 import matplotlib.pyplot as plt
 
 import pandas as pd
+
+from math import sqrt
 
 def isValidString(s: str) -> bool:
     return "." in s and not s.startswith(".")
@@ -53,7 +55,7 @@ def run_sim(file_name, runTime_In=10000, runSpeed_In=1000, startPos_In=0):
 
     terminals = initiateUART(True, True)
     time.sleep(1)
-    #nanoSer = terminals[0]
+    nanoSer = terminals[0]
     R4Ser = terminals[1]
 
     sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
@@ -82,6 +84,12 @@ def run_sim(file_name, runTime_In=10000, runSpeed_In=1000, startPos_In=0):
     currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
 
     sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
+    simulated_X = float(dataFrame.loc[simulationPosition, 'SIMX'])
+    simulated_Y = float(dataFrame.loc[simulationPosition, 'SIMY'])
+    simulated_Z = float(dataFrame.loc[simulationPosition, 'SIMZ'])
+    simulated_tot = sqrt((simulated_X*simulated_X) + (simulated_Y*simulated_Y) + (simulated_Z*simulated_Z))
+    sendSIMValues(simulated_tot, nanoSer)
+    
     time.sleep(1)
 
     realTimeVector = []
@@ -108,9 +116,15 @@ def run_sim(file_name, runTime_In=10000, runSpeed_In=1000, startPos_In=0):
 
             sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
 
-            currentFields[0] = dataFrame.loc[simulationPosition, 'SIMX']
-            currentFields[1] = dataFrame.loc[simulationPosition, 'SIMY']
-            currentFields[2] = dataFrame.loc[simulationPosition, 'SIMZ']
+            # currentFields[0] = dataFrame.loc[simulationPosition, 'SIMX']
+            # currentFields[1] = dataFrame.loc[simulationPosition, 'SIMY']
+            # currentFields[2] = dataFrame.loc[simulationPosition, 'SIMZ']
+            
+            simulated_X = float(dataFrame.loc[simulationPosition, 'SIMX'])
+            simulated_Y = float(dataFrame.loc[simulationPosition, 'SIMY'])
+            simulated_Z = float(dataFrame.loc[simulationPosition, 'SIMZ'])
+            simulated_tot = sqrt((simulated_X*simulated_X) + (simulated_Y*simulated_Y) + (simulated_Z*simulated_Z))
+            sendSIMValues(simulated_tot, nanoSer)
             
 #         simTotal = pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5)
 #         simulationX.append(currentFields[0])
@@ -124,4 +138,5 @@ def run_sim(file_name, runTime_In=10000, runSpeed_In=1000, startPos_In=0):
         if((millis() - t0) > totalrunTime):
             print("RUN SIM EXIT")
             sendPWMValues(0,0,0,0,0,0,R4Ser)
+            sendSIMValues(0.0, nanoSer)
             break   

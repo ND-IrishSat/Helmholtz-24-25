@@ -30,11 +30,6 @@ class SerialCtrl:
     
     def read_value(self):
         try:
-            # commented below out in attempts to only check for most recent data
-            # Checks if there is any new data available
-            # if self.ser.in_waiting == 0:
-            #    return None
-            
             latest_valid_data = None
             # reads and keeps the most recent valid data
             while self.ser.in_waiting > 0:
@@ -45,23 +40,11 @@ class SerialCtrl:
                 
                 # parses and does string validation
                 line_parts = line.split()
-                if line_parts and self.isValidString(line_parts[0]) and len(line_parts) == 3:
+                if line_parts and self.isValidString(line_parts[0]) and len(line_parts) == 4:
                     try:
                         mag_array = [float(x) for x in line_parts]
-                        #buffer=40
-                        # CHECKS IF ANY VALUES SUDDENTLY JUMPED
-                        #if self.previous_value[0] != 0.0:
-                        #    if mag_array[0] < self.previous_value[0]-buffer or mag_array[0] > self.previous_value[0] + buffer:
-                        #        print("x. jump occured")
-                        #        return self.previous_value
-                        #    if mag_array[1] < self.previous_value[1]-buffer or mag_array[1] > self.previous_value[1] + buffer:
-                        #        print("y. jump occured")
-                        #        return self.previous_value
-                        #    if mag_array[2] < self.previous_value[2]-buffer or mag_array[2] > self.previous_value[2] + buffer:
-                        #        print(f"z. jump occured {mag_array[2]} vs. {self.previous_value[2]}")
-                        #        return self.previous_value
-                        
                         latest_valid_data = mag_array
+                        
                     except ValueError:
                         continue
                     
