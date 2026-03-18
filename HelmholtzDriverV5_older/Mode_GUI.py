@@ -298,11 +298,11 @@ class ModeGui():
             startPos = int(self.entry_startPos.get())
              
             # come back to this when working on the actual vs. simulated file. 
-            #df = pd.read_csv(self.file_select)
-            #num_vals = len(df)
+            # df = pd.read_csv(self.file_select)
+            # num_vals = len(df)
             
-            #endPos = (runTime / runSpeed) + startPos
-            #if endPos > num_vals:
+            # endPos = (runTime / runSpeed) + startPos
+            # if endPos > num_vals:
             #    endPos = num_vals
             
             #sim_vals = df.iloc[startPos:endPos, 1:4]

@@ -8,7 +8,12 @@ MySerial = SerialCtrl()
 ModeMaster = ModeGui(RootMaster.root, MySerial)
 GraphMaster = GraphGui(RootMaster.root, MySerial)
 
+#def on_closing():
+#    GraphMaster.plt.close('all')
+#    RootMaster.root.destroy()
+    
+#RootMaster.root.protocol("WM_DELETE_WINDOW", on_closing)
+
 RootMaster.root.mainloop()
 
-# POTENTIAL UPDATE FIX
-# actual and simulated values
+# POTENTIAL UPDATE FIX(ES)

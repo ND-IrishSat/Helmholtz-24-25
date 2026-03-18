@@ -22,6 +22,13 @@ class GraphGui():
                 time.sleep(sleep_time)
             else:
                 next_time = time.time()
+                
+    # def clean_up(self):
+    #    for frame in self.figs:
+    #        fig = frame[0]
+    #        plt.close(fig)       
+    #    self.figs.clear()
+    #    print("clean_up: all figures are cleaned up")
 
     
     def __init__(self, root, serial):
