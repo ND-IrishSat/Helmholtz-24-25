@@ -5,15 +5,14 @@ import serial.tools.list_ports
 import time
 
 def initiateUART(magnetometer, PWM):
+    nanoSer = ""
+    R4Ser = ""
+    
     if(magnetometer):
         nanoSer = serial.Serial('/dev/serial/by-id/usb-Arduino_LLC_Arduino_NANO_33_IoT_8845351E50304D48502E3120FF0E180B-if00',115200)
-    else:
-        nanoSer = ""
         
     if(PWM):
         R4Ser = serial.Serial('/dev/serial/by-id/usb-Arduino_UNO_WiFi_R4_CMSIS-DAP_F412FA74EB4C-if01', 9600)
-    else:
-        R4Ser = ""
     
     return [nanoSer, R4Ser]
 
