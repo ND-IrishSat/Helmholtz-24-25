@@ -43,17 +43,17 @@ class CageHardware:
         """Continuously reads nanoSer at max speed regardless of current mode."""
         while self._running:
             with self._serial_lock:
-                # Note: Ensure refresh_buffers doesn't wipe outgoing TX data
                 mag_out = readMagnetometerValues(self.nanoSer)
-                
-            if mag_out and len(mag_out) == 3:
+            
+            # The mag output has a trailing 0.0 term with the magnetic field values, so we need the >= chk
+            if mag_out and len(mag_out) >= 3:
                 try:
                     x, y, z = round(float(mag_out[0]), 2), round(float(mag_out[1]), 2), round(float(mag_out[2]), 2)
                     with self._data_lock:
                         self._latest_mag = (x, y, z)
                 except ValueError:
                     pass
-            time.sleep(0.005) # Prevent 100% CPU spin; tune to your Nano's baud/publish rate
+            time.sleep(0.05) # Prevent 100% CPU spin; tune to your Nano's baud/publish rate
 
     def get_magnetometer(self):
         """Called by BOTH the GUI and gen_sim() safely at any time."""
@@ -80,7 +80,6 @@ def main(args: list[str]=sys.argv[1:]) -> None:
 
     while(True):
         print(CageMaster.get_magnetometer())
-        time.sleep(0.005)
 
     # Current the rest of the code never reaches
 
