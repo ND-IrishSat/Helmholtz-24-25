@@ -19,7 +19,7 @@ from cage_hardware import CageHardware
 def isValidString(s: str) -> bool:
     return "." in s and not s.startswith(".")
 
-def gen_sim_2(
+def gen_sim(
     cage: CageHardware,
     stop_event: threading.Event,
     input_file: str,
@@ -64,7 +64,7 @@ def gen_sim_2(
     else:
         dataFrame = pd.read_csv(input_file)
 
-    currentFields = [0, 0, 0]
+    currentFields = [0.0, 0.0, 0.0]
 
     # .loc[row_label, column_label]
     # initialized currentFields with the first target values in dataFrame.loc[startPos, 'Bx']
@@ -88,28 +88,32 @@ def gen_sim_2(
     time.sleep(1)
 
     # real-time magnetometer readings
-    trueMagOutputX = [0]
-    trueMagOutputY = [0]
-    trueMagOutputZ = [0]
-    totalMagOutput = [0]
+    trueMagOutputX = [0.0]
+    trueMagOutputY = [0.0]
+    trueMagOutputZ = [0.0]
+    totalMagOutput = [0.0]
+
     # target magnetometer values from simulation
-    simulationOutputX = [0]
-    simulationOutputY = [0]
-    simulationOutputZ = [0]
-    totalSimOut = [0]
+    simulationOutputX = [0.0]
+    simulationOutputY = [0.0]
+    simulationOutputZ = [0.0]
+    totalSimOut = [0.0]
 
     simulationPos = startPos
+
     # magnetometer values from the moment PID calculations run
-    pidMagOutputX = [0]
-    pidMagOutputY = [0]
-    pidMagOutputZ = [0]
+    pidMagOutputX = [0.0]
+    pidMagOutputY = [0.0]
+    pidMagOutputZ = [0.0]
+
     # history of calculate pid values
-    pwmPosOutputX = [0]
-    pwmNegOutputX = [0]
-    pwmPosOutputY = [0]
-    pwmNegOutputY = [0]
-    pwmPosOutputZ = [0]
-    pwmNegOutputZ = [0]
+    pwmPosOutputX = [0.0]
+    pwmNegOutputX = [0.0]
+    pwmPosOutputY = [0.0]
+    pwmNegOutputY = [0.0]
+    pwmPosOutputZ = [0.0]
+    pwmNegOutputZ = [0.0]
+
     # time counter for plotting (each loop iteration)
     realTimeVector = [0]
     realTime = 0 # increments with each loop, used for graphing
@@ -121,342 +125,129 @@ def gen_sim_2(
     pidPosition = 0
     pidTimeVector = [0]
 
-    err_current = 0
-    err_best = 10000
+    err_current = 0.0
+    err_best = 10000.0
     bestIndex = 0
 
     runValuesCount = 0
-    magX = magY = magZ = 0
-    
-    while (True):
-        ################################################################################################################## 
-        # magnetometer reading                                                                                           #
-        ################################################################################################################## 
+    magX = magY = magZ = 0.0
 
-        # Error Checking is done within the get_magnetometer() function
-        magnetometerOutput = cage.get_magnetometer()
-        
-        magX = round(float(magnetometerOutput[0]), 2)
-        magY = round(float(magnetometerOutput[1]), 2)
-        magZ = round(float(magnetometerOutput[2]), 2)
-        
-        trueMagOutputX.append(magX)
-        trueMagOutputY.append(magY)
-        trueMagOutputZ.append(magZ)
-        
-        ##################################################################################################################
-        magRow = pd.DataFrame([{"X": magX, "Y": magY, "Z": magZ,}])
-        totalMag = pow(((magX * magX) + (magY * magY) + (magZ * magZ)), 0.5)
-        totalMagOutput.append(totalMag)
-        #fftFrame = pd.concat([fftFrame, magRow], ignore_index=True)
-        
-        
-        simulationOutputX.append(currentFields[0])
-        simulationOutputY.append(currentFields[1])
-        simulationOutputZ.append(currentFields[2])
-        totalSimOut.append(pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5))
+    try:
+        while not stop_event.is_set():
+            ##################################################################################################################
+            # magnetometer reading                                                                                           #
+            ##################################################################################################################
 
-        if(millis() - pidTime > pid_delay):
+            # Error checking and parsing are handled inside CageHardware._poll_magnetometer()
+            magnetometerOutput = cage.get_magnetometer()
 
-            pidMagOutputX.append(magX)
-            pidMagOutputY.append(magY)
-            pidMagOutputZ.append(magZ)
+            magX = round(float(magnetometerOutput[0]), 2)
+            magY = round(float(magnetometerOutput[1]), 2)
+            magZ = round(float(magnetometerOutput[2]), 2)
 
-            pidPosition += 1
-            pidTimeVector.append(millis())
+            trueMagOutputX.append(magX)
+            trueMagOutputY.append(magY)
+            trueMagOutputZ.append(magZ)
 
-            pidTime = millis()
-            
-            [Xp, Xn] = xPID(currentFields[0], magX, pidMagOutputX[pidPosition-1], pwmPosOutputX[pidPosition-1], pwmNegOutputX[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
-            [Yp, Yn] = yPID(currentFields[1], magY, pidMagOutputY[pidPosition-1], pwmPosOutputY[pidPosition-1], pwmNegOutputY[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
-            [Zp, Zn] = zPID(currentFields[2], magZ, pidMagOutputZ[pidPosition-1], pwmPosOutputZ[pidPosition-1], pwmNegOutputZ[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
-         
-            sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
+            ##################################################################################################################
+            totalMag = pow(((magX * magX) + (magY * magY) + (magZ * magZ)), 0.5)
+            totalMagOutput.append(totalMag)
 
-            pwmPosOutputX.append(Xp)
-            pwmNegOutputX.append(Xn)
-            
-            pwmPosOutputY.append(Yp)
-            pwmNegOutputY.append(Yn)
-            
-            pwmPosOutputZ.append(Zp)
-            pwmNegOutputZ.append(Zn)
+            simulationOutputX.append(currentFields[0])
+            simulationOutputY.append(currentFields[1])
+            simulationOutputZ.append(currentFields[2])
+            totalSimOut.append(
+                pow(
+                    ((currentFields[0] * currentFields[0])
+                     + (currentFields[1] * currentFields[1])
+                     + (currentFields[2] * currentFields[2])),
+                    0.5,
+                )
+            )
 
-            pidTriesCount += 1
+            if (millis() - pidTime) > pid_delay:
+                pidMagOutputX.append(magX)
+                pidMagOutputY.append(magY)
+                pidMagOutputZ.append(magZ)
 
-            err_current = (abs(currentFields[0] - magX)) + (abs(currentFields[1] - magY)) + (abs(currentFields[2] - magZ))
-            if (err_current < err_best):
-                err_best = err_current
-                bestIndex = pidPosition
+                pidPosition += 1
+                pidTimeVector.append(millis())
+                pidTime = millis()
 
-        realTime += 1
-        realTimeVector.append(realTime)
-        
-        if(len(realTimeVector) != len(trueMagOutputX) or len(realTimeVector) != len(trueMagOutputY) or len(realTimeVector) != len(trueMagOutputZ)):
-            trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
-            trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
-            trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
+                dt = pidTimeVector[pidPosition] - pidTimeVector[pidPosition - 1]
+                [Xp, Xn] = xPID(currentFields[0], magX, pidMagOutputX[pidPosition - 1], pwmPosOutputX[pidPosition - 1], pwmNegOutputX[pidPosition - 1], maxVal, dt)
+                [Yp, Yn] = yPID(currentFields[1], magY, pidMagOutputY[pidPosition - 1], pwmPosOutputY[pidPosition - 1], pwmNegOutputY[pidPosition - 1], maxVal, dt)
+                [Zp, Zn] = zPID(currentFields[2], magZ, pidMagOutputZ[pidPosition - 1], pwmPosOutputZ[pidPosition - 1], pwmNegOutputZ[pidPosition - 1], maxVal, dt)
 
-        if(pidTriesCount == pid_tries):
-            pidTriesCount = 0
-            simulationPos += 1
-            runValuesCount += 1
-            err_best = 10000
+                # Thread-safe PWM output via CageHardware
+                cage.set_pwm(Yp, Yn, Xn, Xp, Zp, Zn)
 
-            # row = pd.DataFrame([{"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[2], 
-            #                     "PWM_X+": pwmPosOutputX[bestIndex], "PWM_X-": pwmNegOutputX[bestIndex],
-            #                     "PWM_Y+": pwmPosOutputY[bestIndex], "PWM_Y-": pwmNegOutputY[bestIndex],
-            #                     "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex],}])
-            row = {"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[2], 
-                                 "PWM_X+": pwmPosOutputX[bestIndex], "PWM_X-": pwmNegOutputX[bestIndex],
-                                 "PWM_Y+": pwmPosOutputY[bestIndex], "PWM_Y-": pwmNegOutputY[bestIndex],
-                                 "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex]}
-            df_rows.append(row)
-            
-            # df = pd.concat([df, row], ignore_index=True)        
-        
-            if(simulationPos >= len(dataFrame) or runValuesCount >= runValues):
-                break
-            else:
-                currentFields[0] = dataFrame.loc[simulationPos, 'Bx']
-                currentFields[1] = dataFrame.loc[simulationPos, 'By']
-                currentFields[2] = dataFrame.loc[simulationPos, 'Bz']
+                pwmPosOutputX.append(Xp)
+                pwmNegOutputX.append(Xn)
 
-    # Creates output CSV file
-    df = pd.DataFrame(df_rows)
-    df.to_csv(output_file, index=True)
-    #fftFrame.to_csv(fftOutput, index=True)
-    
-    # Clean Exit
-    cage.set_pwm(0, 0, 0, 0, 0, 0)
-    cage.send_sim_value(0.0)
-    
+                pwmPosOutputY.append(Yp)
+                pwmNegOutputY.append(Yn)
+
+                pwmPosOutputZ.append(Zp)
+                pwmNegOutputZ.append(Zn)
+
+                pidTriesCount += 1
+
+                err_current = abs(currentFields[0] - magX) + abs(currentFields[1] - magY) + abs(currentFields[2] - magZ)
+                if err_current < err_best:
+                    err_best = err_current
+                    bestIndex = pidPosition
+
+            realTime += 1
+            realTimeVector.append(realTime)
+
+            if (
+                len(realTimeVector) != len(trueMagOutputX)
+                or len(realTimeVector) != len(trueMagOutputY)
+                or len(realTimeVector) != len(trueMagOutputZ)
+            ):
+                trueMagOutputX.append(trueMagOutputX[-1])
+                trueMagOutputY.append(trueMagOutputY[-1])
+                trueMagOutputZ.append(trueMagOutputZ[-1])
+
+            if pidTriesCount == pid_tries:
+                pidTriesCount = 0
+                simulationPos += 1
+                runValuesCount += 1
+                err_best = 10000.0
+
+                row = {
+                    "SIMX": currentFields[0],
+                    "SIMY": currentFields[1],
+                    "SIMZ": currentFields[2],
+                    "PWM_X+": pwmPosOutputX[bestIndex],
+                    "PWM_X-": pwmNegOutputX[bestIndex],
+                    "PWM_Y+": pwmPosOutputY[bestIndex],
+                    "PWM_Y-": pwmNegOutputY[bestIndex],
+                    "PWM_Z+": pwmPosOutputZ[bestIndex],
+                    "PWM_Z-": pwmNegOutputZ[bestIndex],
+                }
+                df_rows.append(row)
+
+                if simulationPos >= len(dataFrame) or runValuesCount >= runValues:
+                    break
+                else:
+                    currentFields[0] = dataFrame.loc[simulationPos, 'Bx']
+                    currentFields[1] = dataFrame.loc[simulationPos, 'By']
+                    currentFields[2] = dataFrame.loc[simulationPos, 'Bz']
+
+            # Pace loop to match CageHardware's 5ms reader thread and prevent 100% CPU spin
+            time.sleep(0.005)
+
+    finally:
+        # Save completed rows even if stopped early via stop_event
+        if df_rows:
+            os.makedirs(os.path.dirname(os.path.abspath(output_file)), exist_ok=True)
+            df = pd.DataFrame(df_rows)
+            df.to_csv(output_file, index=True)
+
+        # Guaranteed safe coil zeroing on exit
+        cage.set_pwm(0, 0, 0, 0, 0, 0)
+        cage.send_sim_value(0.0)
+
     return totalMagOutput, totalSimOut, realTimeVector
-
-def gen_sim(file_name, pidTries=30, pidDelay=100):
-
-    startPos = 0 # starting position in simulation
-    runValues = 5400 # number of values to run through for PYSOL
-
-    # If we're going to make the UI interact with this, we have to set this true;
-    usingPYSOL = False
-
-    inputFileName = file_name
-    outputFileName = "run_csv/runZeroed2.csv"
-    fftOutput = "magFieldsOut.csv"
-
-    ########################################################################################## pysol initialization
-
-    # oe - orbital elements
-    oe = [121, 6_800, 0.0000922, 51, -10, 80]
-    total_time = 3 # in hours
-    timestep = 1.0 # time step in seconds
-    file_name = "magneticFields.csv"
-    store_data = True
-    generate_GPS = False
-    generate_RAM = False
-
-    #generate_orbit_data(oe, total_time, timestep, file_name, store_data, generate_GPS, generate_RAM)
-    
-    # Full path to output file
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_dir = os.path.join(script_dir, "run_csv")
-    os.makedirs(output_dir, exist_ok=True) # required to work
-    output_path = os.path.join(output_dir, file_name)
-
-    dataFrame = 0
-
-    if(usingPYSOL):
-        dataFrame = pd.read_csv(output_path) # magnetic fields dataframe
-    else:
-        dataFrame = pd.read_csv(inputFileName)
-
-    currentFields = [0, 0, 0]
-
-    # .loc[row_label, column_label]
-    # initialized currentFields with the first target values in dataFrame.loc[startPos, 'Bx']
-    currentFields[0] = dataFrame.loc[startPos, 'Bx'] # Index: 0 Column Label : 'Bx'
-    currentFields[1] = dataFrame.loc[startPos, 'By']
-    currentFields[2] = dataFrame.loc[startPos, 'Bz']
-
-    # Dataframe created to store the final outputs data: target fields
-    #df = pd.DataFrame(columns=["SIMX", "SIMY", "SIMZ", "PWM_X+", "PWM_X-", "PWM_Y+", "PWM_Y-", "PWM_Z+", "PWM_Z-"])
-    #fftFrame = pd.DataFrame(columns=["X", "Y", "Z"])
-    df_rows = []
-
-    ##########################################################################################
-
-    terminals = initiateUART(True, True)
-    time.sleep(1)
-    nanoSer = terminals[0]
-    R4Ser = terminals[1]
-
-    # initial duty cycles, for manual mode set desired ones here
-    Xp = 0.0
-    Xn = 0.0
-
-    Yp = 0.0
-    Yn = 0.0
-
-    Zp = 0.0
-    Zn = 0.0
-        
-
-    maxVal = 100 # max value of pwm signal (control output)
-
-    # turn off cage at start
-    sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
-    time.sleep(2)
-
-    # real-time magnetometer readings
-    trueMagOutputX = [0]
-    trueMagOutputY = [0]
-    trueMagOutputZ = [0]
-    totalMagOutput = [0]
-    # target magnetometer values from simulation
-    simulationOutputX = [0]
-    simulationOutputY = [0]
-    simulationOutputZ = [0]
-    totalSimOut = [0]
-
-    simulationPos = startPos
-    # magnetometer values from the moment PID calculations run
-    pidMagOutputX = [0]
-    pidMagOutputY = [0]
-    pidMagOutputZ = [0]
-    # history of calculate pid values
-    pwmPosOutputX = [0]
-    pwmNegOutputX = [0]
-    pwmPosOutputY = [0]
-    pwmNegOutputY = [0]
-    pwmPosOutputZ = [0]
-    pwmNegOutputZ = [0]
-    # time counter for plotting (each loop iteration)
-    realTimeVector = [0]
-    realTime = 0 # increments with each loop, used for graphing
-
-    t0 = millis() # start time of the program
-
-    pidTime = t0
-    pidTriesCount = 0
-    pidPosition = 0
-    pidTimeVector = [0]
-
-    err_current = 0
-    err_best = 10000
-    bestIndex = 0
-
-    runValuesCount = 0
-
-    magX = 0
-    magY = 0
-    magZ = 0
-
-    while (True):
-        ################################################################################################################## 
-        # magnetometer reading                                                                                           #
-        ################################################################################################################## 
-        refresh_buffers(nanoSer, R4Ser)
-
-        magnetometerOutput = readMagnetometerValues(nanoSer)
-        if magnetometerOutput:
-            if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
-               magX = round(float(magnetometerOutput[0]), 2)
-               magY = round(float(magnetometerOutput[1]), 2)
-               magZ = round(float(magnetometerOutput[2]), 2)
-               
-               trueMagOutputX.append(magX)
-               trueMagOutputY.append(magY)
-               trueMagOutputZ.append(magZ)
-            else:
-               trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
-               trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
-               trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
-        ##################################################################################################################
-        magRow = pd.DataFrame([{"X": magX, "Y": magY, "Z": magZ,}])
-        totalMag = pow(((magX * magX) + (magY * magY) + (magZ * magZ)), 0.5)
-        totalMagOutput.append(totalMag)
-        #fftFrame = pd.concat([fftFrame, magRow], ignore_index=True)
-        
-        
-        simulationOutputX.append(currentFields[0])
-        simulationOutputY.append(currentFields[1])
-        simulationOutputZ.append(currentFields[2])
-        totalSimOut.append(pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5))
-
-        if(millis() - pidTime > pidDelay):
-
-            pidMagOutputX.append(magX)
-            pidMagOutputY.append(magY)
-            pidMagOutputZ.append(magZ)
-
-            pidPosition += 1
-            pidTimeVector.append(millis())
-
-            pidTime = millis()
-            
-            [Xp, Xn] = xPID(currentFields[0], magX, pidMagOutputX[pidPosition-1], pwmPosOutputX[pidPosition-1], pwmNegOutputX[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
-            [Yp, Yn] = yPID(currentFields[1], magY, pidMagOutputY[pidPosition-1], pwmPosOutputY[pidPosition-1], pwmNegOutputY[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
-            [Zp, Zn] = zPID(currentFields[2], magZ, pidMagOutputZ[pidPosition-1], pwmPosOutputZ[pidPosition-1], pwmNegOutputZ[pidPosition-1], maxVal, pidTimeVector[pidPosition]-pidTimeVector[pidPosition-1])
-         
-            sendPWMValues(Yp, Yn, Xn, Xp, Zp, Zn, R4Ser)
-
-            pwmPosOutputX.append(Xp)
-            pwmNegOutputX.append(Xn)
-            
-            pwmPosOutputY.append(Yp)
-            pwmNegOutputY.append(Yn)
-            
-            pwmPosOutputZ.append(Zp)
-            pwmNegOutputZ.append(Zn)
-
-            pidTriesCount += 1
-
-            err_current = (abs(currentFields[0] - magX)) + (abs(currentFields[1] - magY)) + (abs(currentFields[2] - magZ))
-            if (err_current < err_best):
-                err_best = err_current
-                bestIndex = pidPosition
-
-        realTime += 1
-        realTimeVector.append(realTime)
-        
-        if(len(realTimeVector) != len(trueMagOutputX) or len(realTimeVector) != len(trueMagOutputY) or len(realTimeVector) != len(trueMagOutputZ)):
-            trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
-            trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
-            trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
-
-        if(pidTriesCount == pidTries):
-            pidTriesCount = 0
-            simulationPos += 1
-            runValuesCount += 1
-            err_best = 10000
-
-            # row = pd.DataFrame([{"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[2], 
-            #                     "PWM_X+": pwmPosOutputX[bestIndex], "PWM_X-": pwmNegOutputX[bestIndex],
-            #                     "PWM_Y+": pwmPosOutputY[bestIndex], "PWM_Y-": pwmNegOutputY[bestIndex],
-            #                     "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex],}])
-            row = {"SIMX": currentFields[0], "SIMY": currentFields[1], "SIMZ": currentFields[2], 
-                                 "PWM_X+": pwmPosOutputX[bestIndex], "PWM_X-": pwmNegOutputX[bestIndex],
-                                 "PWM_Y+": pwmPosOutputY[bestIndex], "PWM_Y-": pwmNegOutputY[bestIndex],
-                                 "PWM_Z+": pwmPosOutputZ[bestIndex], "PWM_Z-": pwmNegOutputZ[bestIndex]}
-            df_rows.append(row)
-            
-            # df = pd.concat([df, row], ignore_index=True)        
-        
-            if(simulationPos >= len(dataFrame) or runValuesCount >= runValues):
-                break
-            else:
-                currentFields[0] = dataFrame.loc[simulationPos, 'Bx']
-                currentFields[1] = dataFrame.loc[simulationPos, 'By']
-                currentFields[2] = dataFrame.loc[simulationPos, 'Bz']
-
-    # Creates output CSV file
-    df = pd.DataFrame(df_rows)
-    df.to_csv(outputFileName, index=True)
-    #fftFrame.to_csv(fftOutput, index=True)
-    sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
-    
-    return totalMagOutput, totalSimOut, realTimeVector
-
-
-
