@@ -3,6 +3,7 @@
 # this creates a CSV file that can be read by the runSimulation program without a magnetometer 
 
 import time
+import threading
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
@@ -13,15 +14,19 @@ from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, refr
 from Dependencies.PID import xPID, yPID, zPID # PID code
 from Dependencies.calibrateValues import calibrate # magnetometer calibration code 
 from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
+from cage_hardware import CageHardware 
 
 def isValidString(s: str) -> bool:
     return "." in s and not s.startswith(".")
 
-##########################################################################################
-# 		Settings
-##########################################################################################
-
-def gen_sim_2(input_file, output_file, pid_tries=30, pid_delay=100):
+def gen_sim_2(
+    cage: CageHardware,
+    stop_event: threading.Event,
+    input_file: str,
+    output_file: str,
+    pid_tries:int = 30,
+    pid_delay: int = 100
+) -> None:
 
     startPos = 0 		# starting position in simulation
     runValues = 5400 	# number of values to run through for PYSOL
@@ -73,22 +78,14 @@ def gen_sim_2(input_file, output_file, pid_tries=30, pid_delay=100):
     df_rows = []
 
     ##########################################################################################
-
-    terminals = initiateUART(True, True)
-    time.sleep(1)
-    nanoSer = terminals[0]
-    R4Ser = terminals[1]
-
     # initial duty cycles, for manual mode set desired ones here
-    Xp = Xn = 0.0
-    Yp = Yn = 0.0
-    Zp = Zn = 0.0
+    Xp = Xn = Yp = Yn = Zp = Zn = 0.0
 
     maxVal = 100 # max value of pwm signal (control output)
 
     # turn off cage at start
-    sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
-    time.sleep(2)
+    cage.set_pwm(0, 0, 0, 0, 0, 0) 
+    time.sleep(1)
 
     # real-time magnetometer readings
     trueMagOutputX = [0]
@@ -129,31 +126,24 @@ def gen_sim_2(input_file, output_file, pid_tries=30, pid_delay=100):
     bestIndex = 0
 
     runValuesCount = 0
-
-    magX = 0
-    magY = 0
-    magZ = 0
-
+    magX = magY = magZ = 0
+    
     while (True):
         ################################################################################################################## 
         # magnetometer reading                                                                                           #
         ################################################################################################################## 
-        refresh_buffers(nanoSer, R4Ser)
 
-        magnetometerOutput = readMagnetometerValues(nanoSer)
-        if magnetometerOutput:
-            if ((len(magnetometerOutput) == 3) and isValidString(magnetometerOutput[0])):
-               magX = round(float(magnetometerOutput[0]), 2)
-               magY = round(float(magnetometerOutput[1]), 2)
-               magZ = round(float(magnetometerOutput[2]), 2)
-               
-               trueMagOutputX.append(magX)
-               trueMagOutputY.append(magY)
-               trueMagOutputZ.append(magZ)
-            else:
-               trueMagOutputX.append(trueMagOutputX[len(trueMagOutputX) - 1])
-               trueMagOutputY.append(trueMagOutputY[len(trueMagOutputY) - 1])
-               trueMagOutputZ.append(trueMagOutputZ[len(trueMagOutputZ) - 1])
+        # Error Checking is done within the get_magnetometer() function
+        magnetometerOutput = cage.get_magnetometer()
+        
+        magX = round(float(magnetometerOutput[0]), 2)
+        magY = round(float(magnetometerOutput[1]), 2)
+        magZ = round(float(magnetometerOutput[2]), 2)
+        
+        trueMagOutputX.append(magX)
+        trueMagOutputY.append(magY)
+        trueMagOutputZ.append(magZ)
+        
         ##################################################################################################################
         magRow = pd.DataFrame([{"X": magX, "Y": magY, "Z": magZ,}])
         totalMag = pow(((magX * magX) + (magY * magY) + (magZ * magZ)), 0.5)
@@ -236,7 +226,10 @@ def gen_sim_2(input_file, output_file, pid_tries=30, pid_delay=100):
     df = pd.DataFrame(df_rows)
     df.to_csv(output_file, index=True)
     #fftFrame.to_csv(fftOutput, index=True)
-    sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
+    
+    # Clean Exit
+    cage.set_pwm(0, 0, 0, 0, 0, 0)
+    cage.send_sim_value(0.0)
     
     return totalMagOutput, totalSimOut, realTimeVector
 
