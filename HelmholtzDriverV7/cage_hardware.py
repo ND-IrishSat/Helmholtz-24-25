@@ -49,10 +49,10 @@ class CageHardware:
         with self._data_lock:
             return self._latest_mag
 
-    def set_pwm(self, yp, yn, xn, xp, zp, zn):
+    def set_pwm(self, xp, xn, yp, yn, zp, zn): 
         """Thread-safe PWM output to R4Ser."""
         with self._serial_lock:
-            sendPWMValues(yp, yn, xn, xp, zp, zn, self.R4Ser)
+            sendPWMValues(xp, xn, yp, yn, zp, zn, self.R4Ser) 
 
     def send_sim_value(self, sim_tot):
         """Thread-safe simulated field output to nanoSer."""

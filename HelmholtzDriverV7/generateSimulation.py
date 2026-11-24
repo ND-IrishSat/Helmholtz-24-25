@@ -180,7 +180,7 @@ def gen_sim(
                 [Zp, Zn] = zPID(currentFields[2], magZ, pidMagOutputZ[pidPosition - 1], pwmPosOutputZ[pidPosition - 1], pwmNegOutputZ[pidPosition - 1], maxVal, dt)
 
                 # Thread-safe PWM output via CageHardware
-                cage.set_pwm(Yp, Yn, Xn, Xp, Zp, Zn)
+                cage.set_pwm(Xp, Xn, Yp, Yn, Zp, Zn)
 
                 pwmPosOutputX.append(Xp)
                 pwmNegOutputX.append(Xn)

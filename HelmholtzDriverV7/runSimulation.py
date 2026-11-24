@@ -47,11 +47,11 @@ def run_sim(
         dataFrame.loc[simulationPosition, 'PWM_Z+'],  
         dataFrame.loc[simulationPosition, 'PWM_Z-'],  
     ]
-
+    #  xp, xn, yp, yn, zp, zn
     cage.set_pwm(
-        currentPWMVals[2], currentPWMVals[3], 
-        currentPWMVals[1], currentPWMVals[0], 
-        currentPWMVals[4], currentPWMVals[5]
+        currentPWMVals[0], currentPWMVals[1], # xp, xn
+        currentPWMVals[2], currentPWMVals[3], # xp, yn
+        currentPWMVals[4], currentPWMVals[5]  # zp, zn
     )
 
     simulated_X = float(dataFrame.loc[simulationPosition, 'SIMX'])
@@ -82,9 +82,9 @@ def run_sim(
                     dataFrame.loc[simulationPosition, 'PWM_Z-'],  
                 ]
                 cage.set_pwm(
-                    currentPWMVals[2], currentPWMVals[3], 
-                    currentPWMVals[1], currentPWMVals[0], 
-                    currentPWMVals[4], currentPWMVals[5]
+                    currentPWMVals[0], currentPWMVals[1], # xp, xn
+                    currentPWMVals[2], currentPWMVals[3], # xp, yn
+                    currentPWMVals[4], currentPWMVals[5]  # zp, zn
                 )
 
                 simulated_X = float(dataFrame.loc[simulationPosition, 'SIMX'])
