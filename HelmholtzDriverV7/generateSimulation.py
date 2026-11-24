@@ -237,7 +237,7 @@ def gen_sim(
                     currentFields[2] = dataFrame.loc[simulationPos, 'Bz']
 
             # Pace loop to match CageHardware's 5ms reader thread and prevent 100% CPU spin
-            time.sleep(0.005)
+            time.sleep(cage.reader_wait)
 
     finally:
         # Save completed rows even if stopped early via stop_event

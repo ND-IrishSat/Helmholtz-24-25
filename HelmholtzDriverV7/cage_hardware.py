@@ -26,6 +26,7 @@ class CageHardware:
         # 2. Start dedicated magnetometer polling thread
         self._reader_thread = threading.Thread(target=self._poll_magnetometer, daemon=True)
         self._reader_thread.start()
+        self.reader_wait = 0.05
 
     def _poll_magnetometer(self):
         """Continuously reads nanoSer at max speed regardless of current mode."""
@@ -41,7 +42,7 @@ class CageHardware:
                         self._latest_mag = (x, y, z)
                 except ValueError:
                     pass
-            time.sleep(0.05) # Prevent 100% CPU spin; tune to your Nano's baud/publish rate
+            time.sleep(self.reader_wait) # Prevent 100% CPU spin; tune to your Nano's baud/publish rate
 
     def get_magnetometer(self):
         """Called by BOTH the GUI and gen_sim() safely at any time."""
