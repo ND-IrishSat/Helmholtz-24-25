@@ -1,260 +1,105 @@
-from Dependencies.R4UART import initiateUART, sendPWMValues, sendSIMValues # UART code 
 from Dependencies.extraneous import millis
 
 import time
+import threading
 import matplotlib.pyplot as plt
 
 import pandas as pd
 
 from math import sqrt
+from cage_hardware import CageHardware
 
-def isValidString(s: str) -> bool:
-    return "." in s and not s.startswith(".")
+def run_sim(
+        cage: CageHardware,
+        stop_event: threading.Event,
+        input_file: str, 
+        runTime_In: int = 10000, 
+        runSpeed_In: int = 1000, 
+        startPos_In: int = 0
+) -> None:
+    # magnetic fields dataframe
+    dataFrame = pd.read_csv(input_file)             
 
-def run_sim_2(file_name, runTime_In=10000, runSpeed_In=1000, startPos_In=0):
-    '''
-    Docstring for run_sim
+    ############################################################################ 
+    # Run parameters
+    ############################################################################
+    loop = False        # if true, simulation will loop 1 value
+    totalrunTime        = runTime_In # Time for total sim if timeLimit is true
+    runSpeed            = runSpeed_In # time in miliseconds between each change in field, so 1000 is real time
+    simulationPosition  = startPos_In
 
-    Description:
-        WIP
-    Args:
-        file_name :
-        runTime_In (int: Default=10000) :
-        runSpeed_In (int: Default=1000) :
-        startPos_In (int: Default=0)    : 
-    Returns:
-        WIP
-    '''
-    print("Started.\n")
-    print("Run Time (s): ", runTime_In/1000)
-    print("Run Speed (ms/): ", runSpeed_In)
-    print("Start Position: ", startPos_In)
-    #dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
-    dataFrame = pd.read_csv(file_name) # magnetic fields dataframe
+    ############################################################################
 
-    ################################################################################ Run parameters
-
-    loop = False # if true, simulation will loop 1 value
-
-    timeLimit = True
-    totalrunTime = runTime_In # Time for total sim if timeLimit is true
-
-    startPosition = startPos_In # index of the dataframe to start in
-    runSpeed = runSpeed_In # time in miliseconds between each change in field, so 1000 is real time
-
-    ################################################################################
-
-    #                x  y  z
-    currentFields = [0, 0, 0]
-
-    #                +x -x +y -y +z -z
-    currentPWMVals = [0, 0, 0, 0, 0, 0]
-
-    realTimeVector = []
-    timeVar = 0
-
-    terminals = initiateUART(True, True)
-    time.sleep(1)
-    nanoSer = terminals[0]
-    R4Ser = terminals[1]
-
-    sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
-    time.sleep(2)
-
-#     trueMagOutputX = []
-#     trueMagOutputY = []
-#     trueMagOutputZ = []
-#     totalMagOutput = []
-
-    simulationX = []
-    simulationY = []
-    simulationZ = []
-    simulationTotal = []
-    simulationPosition = 0 
-    
     if simulationPosition >= len(dataFrame):
         print(f"Error: Start position {simulationPosition} is larger DF length {len(dataFrame)}")
         return
-    
-    currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
-    currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
-    currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
-    currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
-    currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
-    currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
 
-    sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
+    # turn off the cage at start
+    cage.set_pwm(0,0,0,0,0,0)
+    time.sleep(1)
+    
+    # Send initial step before loop begins
+    currentPWMVals = [
+        dataFrame.loc[simulationPosition, 'PWM_X+'],  
+        dataFrame.loc[simulationPosition, 'PWM_X-'],  
+        dataFrame.loc[simulationPosition, 'PWM_Y+'],  
+        dataFrame.loc[simulationPosition, 'PWM_Y-'],  
+        dataFrame.loc[simulationPosition, 'PWM_Z+'],  
+        dataFrame.loc[simulationPosition, 'PWM_Z-'],  
+    ]
+
+    cage.set_pwm(
+        currentPWMVals[2], currentPWMVals[3], 
+        currentPWMVals[1], currentPWMVals[0], 
+        currentPWMVals[4], currentPWMVals[5]
+    )
+
     simulated_X = float(dataFrame.loc[simulationPosition, 'SIMX'])
     simulated_Y = float(dataFrame.loc[simulationPosition, 'SIMY'])
     simulated_Z = float(dataFrame.loc[simulationPosition, 'SIMZ'])
     simulated_tot = sqrt((simulated_X*simulated_X) + (simulated_Y*simulated_Y) + (simulated_Z*simulated_Z))
-    sendSIMValues(simulated_tot, nanoSer)
-    
+    cage.send_sim_value(simulated_tot)
     time.sleep(1)
-
-    realTimeVector = []
-    realTime = 0
 
     t0 = millis()
     pwmTime = t0
 
-    while(True):
-        if(millis() - pwmTime >= runSpeed):
-            pwmTime = millis()
+    try:
+        while not stop_event.is_set():
+            if (millis() - pwmTime) >= runSpeed:
+                pwmTime = millis()
+                simulationPosition += 1
 
-            simulationPosition += 1
+                if simulationPosition >= len(dataFrame):
+                    break
 
-            if(loop):
-                simulationPosition = 0
-            
-            currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
-            currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
-            currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
-            currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
-            currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
-            currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
+                currentPWMVals = [
+                    dataFrame.loc[simulationPosition, 'PWM_X+'],  
+                    dataFrame.loc[simulationPosition, 'PWM_X-'],  
+                    dataFrame.loc[simulationPosition, 'PWM_Y+'],  
+                    dataFrame.loc[simulationPosition, 'PWM_Y-'],  
+                    dataFrame.loc[simulationPosition, 'PWM_Z+'],  
+                    dataFrame.loc[simulationPosition, 'PWM_Z-'],  
+                ]
+                cage.set_pwm(
+                    currentPWMVals[2], currentPWMVals[3], 
+                    currentPWMVals[1], currentPWMVals[0], 
+                    currentPWMVals[4], currentPWMVals[5]
+                )
 
-            sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
+                simulated_X = float(dataFrame.loc[simulationPosition, 'SIMX'])
+                simulated_Y = float(dataFrame.loc[simulationPosition, 'SIMY'])
+                simulated_Z = float(dataFrame.loc[simulationPosition, 'SIMZ'])
+                simulated_tot = sqrt((simulated_X*simulated_X) + (simulated_Y*simulated_Y) + (simulated_Z*simulated_Z))
+                cage.send_sim_value(simulated_tot)
 
-            # currentFields[0] = dataFrame.loc[simulationPosition, 'SIMX']
-            # currentFields[1] = dataFrame.loc[simulationPosition, 'SIMY']
-            # currentFields[2] = dataFrame.loc[simulationPosition, 'SIMZ']
-            
-            simulated_X = float(dataFrame.loc[simulationPosition, 'SIMX'])
-            simulated_Y = float(dataFrame.loc[simulationPosition, 'SIMY'])
-            simulated_Z = float(dataFrame.loc[simulationPosition, 'SIMZ'])
-            simulated_tot = sqrt((simulated_X*simulated_X) + (simulated_Y*simulated_Y) + (simulated_Z*simulated_Z))
-            sendSIMValues(simulated_tot, nanoSer)
-            
-#         simTotal = pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5)
-#         simulationX.append(currentFields[0])
-#         simulationY.append(currentFields[1])
-#         simulationZ.append(currentFields[2])
-#         simulationTotal.append(simTotal)
+            if (millis() - t0) > totalrunTime:
+                break
+
+            time.sleep(0.001)
+
+    finally:
+        print("RUN SIM EXIT") 
+        cage.set_pwm(0, 0, 0, 0, 0, 0)
+        cage.send_sim_value(0.0)
         
-        realTime += 1
-        realTimeVector.append(realTime)
-        
-        if((millis() - t0) > totalrunTime):
-            print("RUN SIM EXIT")
-            sendPWMValues(0,0,0,0,0,0,R4Ser)
-            sendSIMValues(0.0, nanoSer)
-            break   
-
-def run_sim(file_name, runTime_In=10000, runSpeed_In=1000, startPos_In=0):
-
-    print("Started.\n")
-    print("Run Time (s): ", runTime_In/1000)
-    print("Run Speed (ms/): ", runSpeed_In)
-    print("Start Position: ", startPos_In)
-    #dataFrame = pd.read_csv("runPySolReal.csv") # magnetic fields dataframe
-    dataFrame = pd.read_csv(file_name) # magnetic fields dataframe
-
-    ################################################################################ Run parameters
-
-    loop = False # if true, simulation will loop 1 value
-
-    timeLimit = True
-    totalrunTime = runTime_In # Time for total sim if timeLimit is true
-
-    startPosition = startPos_In # index of the dataframe to start in
-    runSpeed = runSpeed_In # time in miliseconds between each change in field, so 1000 is real time
-
-    ################################################################################
-
-    #                x  y  z
-    currentFields = [0, 0, 0]
-
-    #                +x -x +y -y +z -z
-    currentPWMVals = [0, 0, 0, 0, 0, 0]
-
-    realTimeVector = []
-    timeVar = 0
-
-    terminals = initiateUART(True, True)
-    time.sleep(1)
-    nanoSer = terminals[0]
-    R4Ser = terminals[1]
-
-    sendPWMValues(0, 0, 0, 0, 0, 0, R4Ser)
-    time.sleep(2)
-
-#     trueMagOutputX = []
-#     trueMagOutputY = []
-#     trueMagOutputZ = []
-#     totalMagOutput = []
-
-    simulationX = []
-    simulationY = []
-    simulationZ = []
-    simulationTotal = []
-    simulationPosition = 0 
-    
-    if simulationPosition >= len(dataFrame):
-        print(f"Error: Start position {simulationPosition} is larger DF length {len(dataFrame)}")
-        return
-    
-    currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
-    currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
-    currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
-    currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
-    currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
-    currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
-
-    sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
-    simulated_X = float(dataFrame.loc[simulationPosition, 'SIMX'])
-    simulated_Y = float(dataFrame.loc[simulationPosition, 'SIMY'])
-    simulated_Z = float(dataFrame.loc[simulationPosition, 'SIMZ'])
-    simulated_tot = sqrt((simulated_X*simulated_X) + (simulated_Y*simulated_Y) + (simulated_Z*simulated_Z))
-    sendSIMValues(simulated_tot, nanoSer)
-    
-    time.sleep(1)
-
-    realTimeVector = []
-    realTime = 0
-
-    t0 = millis()
-    pwmTime = t0
-
-    while(True):
-        if(millis() - pwmTime >= runSpeed):
-            pwmTime = millis()
-
-            simulationPosition += 1
-
-            if(loop):
-                simulationPosition = 0
-            
-            currentPWMVals[0] = dataFrame.loc[simulationPosition, 'PWM_X+']
-            currentPWMVals[1] = dataFrame.loc[simulationPosition, 'PWM_X-']
-            currentPWMVals[2] = dataFrame.loc[simulationPosition, 'PWM_Y+']
-            currentPWMVals[3] = dataFrame.loc[simulationPosition, 'PWM_Y-']
-            currentPWMVals[4] = dataFrame.loc[simulationPosition, 'PWM_Z+']
-            currentPWMVals[5] = dataFrame.loc[simulationPosition, 'PWM_Z-']
-
-            sendPWMValues(currentPWMVals[2], currentPWMVals[3], currentPWMVals[1], currentPWMVals[0], currentPWMVals[4], currentPWMVals[5], R4Ser)
-
-            # currentFields[0] = dataFrame.loc[simulationPosition, 'SIMX']
-            # currentFields[1] = dataFrame.loc[simulationPosition, 'SIMY']
-            # currentFields[2] = dataFrame.loc[simulationPosition, 'SIMZ']
-            
-            simulated_X = float(dataFrame.loc[simulationPosition, 'SIMX'])
-            simulated_Y = float(dataFrame.loc[simulationPosition, 'SIMY'])
-            simulated_Z = float(dataFrame.loc[simulationPosition, 'SIMZ'])
-            simulated_tot = sqrt((simulated_X*simulated_X) + (simulated_Y*simulated_Y) + (simulated_Z*simulated_Z))
-            sendSIMValues(simulated_tot, nanoSer)
-            
-#         simTotal = pow(((currentFields[0] * currentFields[0]) + (currentFields[1] * currentFields[1]) + (currentFields[2] * currentFields[2])), 0.5)
-#         simulationX.append(currentFields[0])
-#         simulationY.append(currentFields[1])
-#         simulationZ.append(currentFields[2])
-#         simulationTotal.append(simTotal)
-        
-        realTime += 1
-        realTimeVector.append(realTime)
-        
-        if((millis() - t0) > totalrunTime):
-            print("RUN SIM EXIT")
-            sendPWMValues(0,0,0,0,0,0,R4Ser)
-            sendSIMValues(0.0, nanoSer)
-            break   
