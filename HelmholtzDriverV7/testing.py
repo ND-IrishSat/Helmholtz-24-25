@@ -15,10 +15,10 @@ def main(args: list[str]=sys.argv[1:]) -> None:
     # Creates a stop flag
     gen_stop_event = threading.Event()
     run_stop_event = threading.Event()
-    
+
 
     RootMaster = RootGUI()
-    ModeMaster = ModeGUI(RootMaster.root, CageMaster)
+    ModeMaster = ModeGUI(RootMaster.root, CageMaster, gen_stop_event, run_stop_event)
 
 
     print("Start Sim")

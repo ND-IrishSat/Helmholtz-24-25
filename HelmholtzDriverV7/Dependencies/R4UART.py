@@ -1,8 +1,9 @@
 # communication from RPi -> Arduino R4 for PWM
 
+
 import serial
 import serial.tools.list_ports
-import time
+
 
 def initiateUART(magnetometer, PWM):
     if(magnetometer):

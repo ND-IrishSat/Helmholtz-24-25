@@ -3,11 +3,11 @@ import time
 
 from Dependencies.R4UART import (
     initiateUART,
+    readMagnetometerValues,
     sendPWMValues,
     sendSIMValues,
-    readMagnetometerValues,
-    refresh_buffers,
 )
+
 
 class CageHardware:
     def __init__(self):

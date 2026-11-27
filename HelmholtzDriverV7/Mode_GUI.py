@@ -1,20 +1,14 @@
+import threading
+from pathlib import Path
 from tkinter import *
 
-from typing import Dict
-from pathlib import Path 
-import csv
-from multiprocessing import Process
-
-import threading 
-
 from cage_hardware import CageHardware
-
 from generateSimulation import gen_sim
+from Graph_GUI import GraphGui
 from runSimulation import run_sim
 
-from Graph_GUI import GraphGui
 
-class RootGUI():
+class RootGUI:
     def __init__(self):
         '''Initializing the root GUI and other comps of the program'''
         self.root = Tk()
@@ -28,19 +22,21 @@ class RootGUI():
         self.root.grid_rowconfigure(0, weight=1)
 
 # Manuel/Auto Selection
-class ModeGUI():
+class ModeGUI:
     def __init__(self, root: RootGUI, cage: CageHardware):
-        ''' Initialize the mode selection GUI '''
-
+        '''Initialize the mode selection GUI.'''
         self.root = root
+        self.cage = cage
 
-        # self.serial = serial
+        # Active worker tracking (fresh event created per task)
+        self._worker_thread: threading.Thread | None = None
+        self._stop_event: threading.Thread | None = None
 
         self.runEntry = ["runTime", "runSpeed", "startPos"]
-        self.entry_data: Dict[str, StringVar] = {}
+        self.entry_data: dict[str, StringVar] = {}
         self.fields = ["Bx","By", "Bz"]
         self.default_field = "0"
-        self.entry_field_data: Dict[str, StringVar] = {}
+        self.entry_field_data: dict[str, StringVar] = {}
         self.file_select = "zeroed.csv"
 
         # Default Parameters for Gen Sim
@@ -56,12 +52,11 @@ class ModeGUI():
         self.padx = 10
         self.pady = 5
 
-        ### Program main frames
-        # Mode selection frame - TOP LEFT (row=0, column=0)
-        self.frame = LabelFrame(root, text="Select Manuel or Auto", padx=5, pady=5, bg="white")
-        self.label_Mode = Label(self.frame, text="Mode: ", bg="white", width=15, anchor="w")
+        # Program Main Frames - TOP LEFT (row=0, column=0)
+        self.frame          = LabelFrame(self.root, text="Select Manuel or Auto", padx=5, pady=5, bg="white")
+        self.label_Mode     = Label(self.frame,     text="Mode: ", bg="white", width=15, anchor="w")
         # Input frame - BELOW mode selection (row=1, column=0)
-        self.input_frame = LabelFrame(root, text="Input Desired PWM/Field Values", padx=5, pady=5, bg="white")
+        self.input_frame    = LabelFrame(self.root, text="Input Desired PWM/Field Values", padx=5, pady=5, bg="white")
         
         # Create input widgets (must happen AFTER StringVar init)
         self._init_input_fields()
@@ -70,66 +65,106 @@ class ModeGUI():
         
         # Setup the Drop option menu and the button
         self.ModeOptionMenu()
-        self.btn_Gen_Sim = Button(self.frame, text="Execute", width=15, state="disabled", command=self._run_gen_sim)
+        self.btn_Gen_Sim    = Button(self.frame, text="Execute", width=12, state="disabled", command=self._execute_mode)
+        self.btn_Stop_Sim   = Button(self.frame, text="Stop", width=12, state="disabled", command=self.stop_active_task)
 
         # Layout the main frames on the root window
         # Mode frame at TOP LEFT (row=0, column=0)
         self.frame.grid(row=0, column=0, padx=10, pady=10, sticky="new")
         
-        # Input frame BELOW mode frame (row=1, column=0)
+        # Layout the main frames on the root window
         self.input_frame.grid(row=1, column=0, padx=10, pady=10, sticky="new")
 
-        # Layout the widgets inside the mode frame (TOP LEFT)
+        # Layout the widgets inside the mode frame
         self.label_Mode.grid(column=0, row=0, sticky="w", padx=5, pady=5)
-        self.btn_Gen_Sim.grid(column=0, row=1, columnspan=2, pady=10)
         self.drop_Mode.grid(column=1, row=0, padx=5, pady=5)
-        
+        self.btn_Gen_Sim.grid(column=0, row=1, pady=10, padx=5)
+        self.btn_Stop_Sim.grid(column=1, row=1, pady=10, padx=5)
+
+        # Ensure clean shutdown when window closes
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
         # Set initial input state to Manual
         self._hide_input_widgets()
         self.publish_run()
+
+    #############################
+    # Worker Threads Management #
+    #############################
+
+    def stop_active_task(self) -> None:
+        """Signals only the active worker thread to exit; CageHardware stays open."""
+        if self._stop_event is not None:
+            self._stop_event.set()
+        if self._worker_thread is not None and self._worker_thread.is_alive():
+            self._worker_thread.join(timeout=2.0)
+
+        self._stop_event = None
+        self._worker_thread = None
+        self.btn_Stop_Sim["state"] = "disabled"
+        if "-" not in self.clicked_Mode.get():
+            self.btn_Gen_Sim["state"] = "active"
+
+    def _launch_worker(self, target, args: tuple, kwargs: dict | None = None) -> None:
+        """Stops any running task, allocates a fresh Event, and starts a daemon thread."""
+        self.stop_active_task()
+
+        stop_event = threading.Event()
+        worker = threading.Thread(
+            target=target,
+            args=(self.cage, stop_event, *args),
+            kwargs=kwargs or {},
+            daemon=True,
+        )
+        self._stop_event = stop_event
+        self._worker_thread = worker
+        self.btn_Stop_Sim["state"] = "active"
+        worker.start()
+
+    def on_close(self) -> None:
+        """Stops active simulation workers and closes hardware ports cleanly."""
+        self.stop_active_task()
+        self.cage.shutdown()
+        self.root.destroy()
+
+    #############################
+    # UI Setup & Mode Switching #
+    #############################
     
     def _hide_input_widgets(self):
-        ''' Widget do not get deleted it just becomes invisible and loses its position and can be retrieve '''
+        ''' To not have to waste resources on recreating widget, to hide widgets we can unmap them temporarily '''
         for widgets in self.input_frame.winfo_children():
             widgets.grid_forget()
             
     def _init_input_fields(self):
-        self.entry_data["runTime"] = StringVar()
-        self.entry_data["runTime"].set(10000)
+        self.entry_data["runTime"]  = StringVar(value="10000")
+        self.entry_data["runSpeed"] = StringVar(value="1000")
+        self.entry_data["startPos"] = StringVar(value="0")
+        self.entry_data["pidTries"] = StringVar(value="30")
+        self.entry_data["pidDelay"] = StringVar(value="100")
         
-        self.entry_data["runSpeed"] = StringVar()
-        self.entry_data["runSpeed"].set(1000)
-        
-        self.entry_data["startPos"] = StringVar()
-        self.entry_data["startPos"].set(0)
-
-        self.entry_data["pidTries"] = StringVar()
-        self.entry_data["pidTries"].set(30)
-        
-        self.entry_data["pidDelay"] = StringVar()
-        self.entry_data["pidDelay"].set(100)
-        
-    def gen_file_ctrl(self):
+    def _get_gen_file_path(self):
         data = self.clicked_file.get()
         self.file_select = f"gen_csv/{data}"
-        print(f"gen_file_ctrl: {self.file_select}")
+        print(f"[Mode_GUI/_get_gen_file_path]: {self.file_select}")
     
-    def run_file_ctrl(self):
+    def _get_run_file_path(self):
         data = self.run_clicked_file.get()        
         self.file_select = f"run_csv/{data}"
-        print(f"run_file_ctrl: {self.file_select}")
+        print(f"[Mode_GUI/_get_run_file_path]: {self.file_select}")
         
     def _create_run_widgets(self):
-        # Goes to current working directory and find all the .csv in `run_csv/`
+        ''' Goes to curr. wd and retrives every csv file in `run_csv/` '''
         self.run_csv_files = list((Path.cwd() / "run_csv").glob("*.csv"))
-        self.run_file_list = ["-"]
-        for file in self.run_csv_files:
-            self.run_file_list.append(file.name)
-
+        self.run_file_list = ["-"] + [file.name for file in self.run_csv_files]
         self.run_clicked_file.set('-')
 
-        self.drop_runfile_label = Label(self.input_frame, text="Run Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
-        self.drop_runfile = OptionMenu(self.input_frame, self.run_clicked_file, *self.run_file_list, command=lambda *_: self.run_file_ctrl())
+        self.drop_runfile_label = Label(
+            self.input_frame, text="Run Sim File (csv)", bg="white", width=self.widget_width, anchor="w"
+        )
+        self.drop_runfile = OptionMenu(
+            self.input_frame, self.run_clicked_file, *self.run_file_list, command=lambda *_: self._get_run_file_path()
+        )
         self.drop_runfile.config(width=self.widget_width)
         
         self.run_widgets_maps = {
@@ -138,37 +173,43 @@ class ModeGUI():
             'startPos': 'Start Position:'
         }
 
-        self.run_widgets: Dict[str, tuple] = {}
-
+        self.run_widgets: dict[str, tuple] = {}
         for key, text in self.run_widgets_maps.items(): 
             label = Label(self.input_frame, text=text, bg="white", width=15, anchor="w")
             entry = Entry(self.input_frame, textvariable=self.entry_data[key], width=20)
             self.run_widgets[key] = (label, entry)
 
         # Set instance attributes for the old code to still work (_run_gen_sim uses these)
-        self.label_runTime, self.entry_runTime = self.run_widgets['runTime']
+        self.label_runTime,  self.entry_runTime = self.run_widgets['runTime']
         self.label_runSpeed, self.entry_runSpeed = self.run_widgets['runSpeed']
         self.label_startPos, self.entry_startPos = self.run_widgets['startPos']
 
     def _create_sim_widgets(self):
-        # Goes to current working directory and find all the .csv in `gen_csv/`
+        ''' Goes to curr. wd and retrives every csv file in `gen_csv/` '''
         self.csv_files = list((Path.cwd() / "gen_csv").glob("*.csv"))
-        self.file_list = ["-"]
-        # Drop down file list
-        for file in self.csv_files:
-            self.file_list.append(file.name)      
-        # Tinkter Objects for the interactables
+        self.file_list = ["-"] + [file.name for file in self.csv_files]
         self.clicked_file.set('-')
 
-        self.drop_file_label = Label(self.input_frame, text="Gen Sim File (csv)", bg="white", width=self.widget_width, anchor="w")
-        self.drop_file = OptionMenu(self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self.gen_file_ctrl())
+        self.drop_file_label = Label(
+            self.input_frame, text="Gen Sim File (csv)", bg="white", width=self.widget_width, anchor="w"
+        )
+        self.drop_file = OptionMenu(
+            self.input_frame, self.clicked_file, *self.file_list, command=lambda *_: self._get_gen_file_path()
+        )
         self.drop_file.config(width=self.widget_width)
-
-        self.pid_tries_label = Label(self.input_frame, text="PID Attempts (#)", bg="white", width=self.widget_width, anchor="w")
-        self.pid_tries_entry = Entry(self.input_frame, textvariable=self.entry_data['pidTries'], width=self.widget_width)
-
-        self.pid_delay_label = Label(self.input_frame, text="PID Delay (ms, min 65) ", bg="white", width=self.widget_width, anchor="w")
-        self.pid_delay_entry = Entry(self.input_frame, textvariable=self.entry_data['pidDelay'], width=self.widget_width)
+        # Additional Information for Simulation Configurations
+        self.pid_tries_label = Label(
+            self.input_frame, text="PID Attempts (#)", bg="white", width=self.widget_width, anchor="w"
+        )
+        self.pid_tries_entry = Entry(
+            self.input_frame, textvariable=self.entry_data['pidTries'], width=self.widget_width
+        )
+        self.pid_delay_label = Label(
+            self.input_frame, text="PID Delay (ms, min 65) ", bg="white", width=self.widget_width, anchor="w"
+        )
+        self.pid_delay_entry = Entry(
+            self.input_frame, textvariable=self.entry_data['pidDelay'], width=self.widget_width
+        )
 
     def publish_run(self):
         ''' Internal layout for run simulation input frame '''
@@ -208,14 +249,9 @@ class ModeGUI():
         should be easy, the generate sim will just be connecting to PySol
         '''
         modes: list[str] = ["-", "Run Simulation", "Zero", "Generate Simulation"]
+        self.clicked_Mode = StringVar(value=modes[0])
 
-        self.clicked_Mode = StringVar()
-        self.clicked_Mode.set(modes[0])
-
-        self.drop_Mode = OptionMenu(
-            self.frame, self.clicked_Mode, *modes, command=lambda *_: self.mode_ctrl()
-        )
-
+        self.drop_Mode = OptionMenu(self.frame, self.clicked_Mode, *modes, command=lambda *_: self.mode_ctrl())
         self.drop_Mode.config(width=15)      
 
     def mode_ctrl(self):
@@ -223,114 +259,59 @@ class ModeGUI():
         Method to keep the connect button disabled if all the
         conditions are not cleared.
         """
-        if "-" in self.clicked_Mode.get():
+        self.stop_active_task()
+        selected = self.clicked_Mode.get()
+        if "-" in selected:
             self.btn_Gen_Sim["state"] = "disabled"
         else:
-            if "Generate Simulation" in self.clicked_Mode.get():
-                # print("Generate Simulation mode selected")
-                self._hide_input_widgets() # Places the .csv drop box used to  self.public_sim() 
-                self.publish_gen() # self.drop_file.grid(column=0, row=0, padx=5, pady=5)
-
-            elif "Zero" in self.clicked_Mode.get():
-                # print("Zero mode selected")
-                self._hide_input_widgets()
+            # Places the .csv drop box used to  self.public_sim() 
+            self._hide_input_widgets()
+            if "Generate Simulation" in selected:
+                self.publish_gen() 
+            elif "Zero" in selected or "Run Simulation" in selected:
                 self.publish_run()
-
                 self.entry_runTime.focus()
-            elif "Run Simulation" in self.clicked_Mode.get():
-                # print("Run Simulation Mode Selected")
-                self._hide_input_widgets()
-                self.publish_run()
 
-                self.entry_runTime.focus()
             self.btn_Gen_Sim["state"] = "active"
 
         # Create graphs if they don't exist
         if self.graphs is None:
-            self.graphs = GraphGui(self.root, self.serial)
+            self.graphs = GraphGui(self.root, self.cage)
 
-    def _run_gen_sim(self):
-        # If in "Generate Simulation" mode, you likely want to use the B-field entries (self.entry_Bx, etc.)
+    #############################
+    # Task Execution            #
+    #############################
+
+    def _execute_mode(self):
         current_mode = self.clicked_Mode.get()
 
         if "Generate Simulation" in current_mode:
-            # if the graph is displaying something, pause it and close the serial connection`
-            # if self.graphs is not None:
-            #    self.graphs.paused_serial = True
-            #    self.serial.serial_close()
-            
-            if self.graphs is not None:
-                self.graphs.paused_serial = True
-            if self.serial is not None:
-                self.serial.serial_close()
-
-            '''
-            runTime = int(self.entry_runTime.get())
-            runSpeed = int(self.entry_runSpeed.get())
-            startPos = int(self.entry_startPos.get())
-            '''
-            
             pidTries = int(self.pid_tries_entry.get())
-            pidDelay = int(self.pid_delay_entry.get())
-            if (pidDelay < 65):
-                pidDelay = 65
-            
-            print("simulation started")
-            print("PID TRIES: ", pidTries)
-            print("PID Delay: ", pidDelay)
-            totalMagOutput, totalSimOut, realTimeVector = gen_sim(self.file_select, pidTries, pidDelay) # file_select is updated as user choose an item from the drop down menu 
-            print("simulation complete")
-            # print(f"first item in totalMagOutput : {totalMagOutput[0]}")
-            
-            self.graphs.set_graph(totalMagOutput, totalSimOut, realTimeVector)
-            
-            # Write to CSV only if data is available,
-            with open("run_csv/new_data.csv", mode ="w", newline="", encoding="utf-8") as file:
-                writer = csv.writer(file)
-                # if using generate simulation mode, the headers should match the B-field data
-                writer.writerow(["","Bx","By","Bz"])
-                writer.writerow([0, totalMagOutput[0], totalMagOutput[1], totalMagOutput[2]])
-                print(f"Generate csv in {current_mode} mode with values: {totalMagOutput[0], totalMagOutput[1], totalMagOutput[2]}")
-                    
-            self.serial.serial_open()
-            
+            pidDelay = max(65, int(self.pid_delay_entry.get())) # We claim on the button that 65 should be the minimum
+
+            print(f"Starting Generate Simulation | PID Tries: {pidTries}, PID Delay: {pidDelay}")
+
+            self._launch_worker(
+                target=gen_sim,
+                args=(self.file_select, "run_csv/new_data.csv"),
+                kwargs={"pid_tries": pidTries, "pid_delay": pidDelay},
+            )
         elif "Run Simulation" in current_mode:
-            self.graphs.paused_serial = False
-            print("Running Run Sim")
-            print("Serial Flag: " , self.graphs.paused_serial)
-            
             runTime = int(self.entry_runTime.get())
             runSpeed = int(self.entry_runSpeed.get())
             startPos = int(self.entry_startPos.get())
-             
-            # come back to this when working on the actual vs. simulated file. 
-            # df = pd.read_csv(self.file_select)
-            # num_vals = len(df)
-            
-            # endPos = (runTime / runSpeed) + startPos
-            # if endPos > num_vals:
-            #    endPos = num_vals
-            
-            #sim_vals = df.iloc[startPos:endPos, 1:4]
-            
-            print("Run Time (s): ", runTime/1000)
-            print("Run Speed (ms/): ", runSpeed)
-            print("Start Position: ", startPos)
-            # copied from above - run_sim(file_name, runTime, runSpeed, startPos)
-            p = Process(target=run_sim, args=(self.file_select, runTime, runSpeed, startPos))
-            p.start()
 
-        #     def run_sim(
-        # cage: CageHardware,
-        # stop_event: threading.Event,
-        # input_file: str, 
-        # runTime_In: int = 10000, 
-        # runSpeed_In: int = 1000, 
-        # startPos_In: int = 0
+            print(f"Starting Run Simulation | Time: {runTime/1000}s, Speed: {runSpeed}ms, Start: {startPos}")
+            self._launch_worker(
+                target=run_sim,
+                args=(self.file_select,),
+                kwargs={"runTime_In": runTime, "runSpeed_In": runSpeed, "startPos_In": startPos},
+            )
 
-        # Zero mode can also be handled if needed, but we'll stick to the provided structure for now
         elif "Zero" in current_mode:
             print("Zeroing field")
-            runTime = 20000
-            runSpeed = 100
-            startPos = 0
+            self._launch_worker(
+                target=run_sim,
+                args=("run_csv/zeroed.csv",),
+                kwargs={"runTime_In": 20000, "runSpeed_In": 100, "startPos_In": 0},
+            )

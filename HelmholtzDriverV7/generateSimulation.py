@@ -2,19 +2,17 @@
 # the resulting PWM values are associated with each magnetic field vector
 # this creates a CSV file that can be read by the runSimulation program without a magnetometer 
 
-import time
-import threading
-import matplotlib.pyplot as plt
-import pandas as pd
 import os
-import numpy as np
+import threading
+import time
 
-from PySol.sol_sim import generate_orbit_data
-from Dependencies.R4UART import sendPWMValues, readPWMValues, initiateUART, refresh_buffers, readMagnetometerValues # UART code 
-from Dependencies.PID import xPID, yPID, zPID # PID code
-from Dependencies.calibrateValues import calibrate # magnetometer calibration code 
-from Dependencies.extraneous import processStrings, calculateOffsets, millis # import extraneous functions
-from cage_hardware import CageHardware 
+import pandas as pd
+from cage_hardware import CageHardware
+from Dependencies.extraneous import (  # import extraneous functions
+    millis,
+)
+from Dependencies.PID import xPID, yPID, zPID  # PID code
+
 
 def isValidString(s: str) -> bool:
     return "." in s and not s.startswith(".")

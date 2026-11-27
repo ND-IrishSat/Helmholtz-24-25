@@ -1,13 +1,11 @@
-from Dependencies.extraneous import millis
-
-import time
 import threading
-import matplotlib.pyplot as plt
+import time
+from math import sqrt
 
 import pandas as pd
-
-from math import sqrt
 from cage_hardware import CageHardware
+from Dependencies.extraneous import millis
+
 
 def run_sim(
         cage: CageHardware,
