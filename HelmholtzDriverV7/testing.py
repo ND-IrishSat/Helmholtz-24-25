@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+from Graph_GUI import RootGUI, ModeGUI
+
 from generateSimulation import gen_sim
 from runSimulation import run_sim
+
 from cage_hardware import CageHardware 
 import sys
 import threading
@@ -12,27 +15,31 @@ def main(args: list[str]=sys.argv[1:]) -> None:
     # Creates a stop flag
     gen_stop_event = threading.Event()
     run_stop_event = threading.Event()
-
-    # input_file = "gen_csv/zeroed.csv"
-    # output_file = "run_csv/runZeroed.csv"
-    # pid_tries = 30
-    # pid_delay = 100
     
-    # while args:
-    #    arg = args.pop(0)
-        
-    #    match arg:
-    #        case '-f': input_file = args.pop(0)
-    #        case '-o': output_file = args.pop(0)
-    #        case '-t': pid_tries = args.pop(0)
-    #        case '-d': pid_delay = args.pop(0)
 
-    # print("Start Sim")
-    # gen_sim(CageMaster, gen_stop_event, input_file, output_file, pid_tries, pid_delay)
-    # print("End sim")
-    
+    RootMaster = RootGUI()
+    ModeMaster = ModeGUI(RootMaster.root, CageMaster)
+
+
     print("Start Sim")
-    run_sim(CageMaster, run_stop_event, "run_csv/1dTestPySOL.csv")
         
 if __name__ == '__main__':
     main()	
+
+# from Mode_GUI import RootGUI, ModeGui
+# from Graph_GUI import GraphGui
+# from Serial_Ctrl import SerialCtrl
+
+# RootMaster = RootGUI()
+# MySerial = SerialCtrl()
+
+# ModeMaster = ModeGui(RootMaster.root, MySerial)
+# GraphMaster = GraphGui(RootMaster.root, MySerial)
+
+# #def on_closing():
+# #    GraphMaster.plt.close('all')
+# #    RootMaster.root.destroy()
+    
+# #RootMaster.root.protocol("WM_DELETE_WINDOW", on_closing)
+
+# RootMaster.root.mainloop()

@@ -5,16 +5,20 @@ from pathlib import Path
 import csv
 from multiprocessing import Process
 
+import threading 
+
+from cage_hardware import CageHardware
+
 from generateSimulation import gen_sim
 from runSimulation import run_sim
-from Graph_GUI import GraphGui
 
+from Graph_GUI import GraphGui
 
 class RootGUI():
     def __init__(self):
         '''Initializing the root GUI and other comps of the program'''
         self.root = Tk()
-        self.root.title("GOAT HELMHOLTZ CAGE")
+        self.root.title("HELMHOLTZ CAGE")
         self.root.geometry("1200x700")
         self.root.config(bg="white")
         
@@ -24,14 +28,14 @@ class RootGUI():
         self.root.grid_rowconfigure(0, weight=1)
 
 # Manuel/Auto Selection
-class ModeGui():
-    def __init__(self, root, serial):
-        '''
-        Initialize the mode selection GUI
-        '''
-        # Initialize instance attributes
+class ModeGUI():
+    def __init__(self, root: RootGUI, cage: CageHardware):
+        ''' Initialize the mode selection GUI '''
+
         self.root = root
-        self.serial = serial
+
+        # self.serial = serial
+
         self.runEntry = ["runTime", "runSpeed", "startPos"]
         self.entry_data: Dict[str, StringVar] = {}
         self.fields = ["Bx","By", "Bz"]
@@ -198,17 +202,19 @@ class ModeGui():
 
     def ModeOptionMenu(self):
         '''
-        Method to Get the available modes and list them into the drop menu
+        Method to Get the available modes and list them into the drop menu. 
+        Generate the list of available modes via the new requirements we 
+        will still need the manual mode, the zero is an addition, which 
+        should be easy, the generate sim will just be connecting to PySol
         '''
-        # Generate the list of available modes
-        # via the new requirement we will still need the mannuel mode, the zero is an addition, which should be easy
-        # the generate sim will just be connecting to pysol
         modes: list[str] = ["-", "Run Simulation", "Zero", "Generate Simulation"]
 
         self.clicked_Mode = StringVar()
         self.clicked_Mode.set(modes[0])
+
         self.drop_Mode = OptionMenu(
-            self.frame, self.clicked_Mode, *modes, command=lambda *_: self.mode_ctrl())
+            self.frame, self.clicked_Mode, *modes, command=lambda *_: self.mode_ctrl()
+        )
 
         self.drop_Mode.config(width=15)      
 
@@ -313,7 +319,15 @@ class ModeGui():
             # copied from above - run_sim(file_name, runTime, runSpeed, startPos)
             p = Process(target=run_sim, args=(self.file_select, runTime, runSpeed, startPos))
             p.start()
-            
+
+        #     def run_sim(
+        # cage: CageHardware,
+        # stop_event: threading.Event,
+        # input_file: str, 
+        # runTime_In: int = 10000, 
+        # runSpeed_In: int = 1000, 
+        # startPos_In: int = 0
+
         # Zero mode can also be handled if needed, but we'll stick to the provided structure for now
         elif "Zero" in current_mode:
             print("Zeroing field")

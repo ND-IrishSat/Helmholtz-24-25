@@ -31,7 +31,7 @@ def run_sim(
     ############################################################################
 
     if simulationPosition >= len(dataFrame):
-        print(f"Error: Start position {simulationPosition} is larger DF length {len(dataFrame)}")
+        print(f"[runSimulation.py] Error: Start position {simulationPosition} is larger DF length {len(dataFrame)}")
         return
 
     # turn off the cage at start
@@ -99,7 +99,7 @@ def run_sim(
             time.sleep(0.001)
 
     finally:
-        print("RUN SIM EXIT") 
+        print("[runSimulation.py] RUN SIM EXIT") 
         cage.set_pwm(0, 0, 0, 0, 0, 0)
         cage.send_sim_value(0.0)
         
